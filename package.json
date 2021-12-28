@@ -1,6 +1,7 @@
 {
   "name": "cribbage",
   "version": "0.1.0",
+  "homepage": "https://kr-matthews.github.io/cribbage",
   "private": true,
   "dependencies": {
     "@testing-library/jest-dom": "^5.16.1",
@@ -14,6 +15,8 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -b gh-pages -d build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
