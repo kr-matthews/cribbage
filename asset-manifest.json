@@ -1,0 +1,14 @@
+{
+  "files": {
+    "main.css": "/cribbage/static/css/main.86b2adbe.css",
+    "main.js": "/cribbage/static/js/main.86037a63.js",
+    "static/media/website-logo.svg": "/cribbage/static/media/website-logo.2a15d8d040919c10066eaa55c12d2b83.svg",
+    "index.html": "/cribbage/index.html",
+    "main.86b2adbe.css.map": "/cribbage/static/css/main.86b2adbe.css.map",
+    "main.86037a63.js.map": "/cribbage/static/js/main.86037a63.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.86b2adbe.css",
+    "static/js/main.86037a63.js"
+  ]
+}
