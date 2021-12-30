@@ -2,25 +2,36 @@ import { useState } from "react";
 
 // TODO: CSS: (buttons, input)
 
-export default function SelectMode({ setMode, setCode }) {
+export default function SelectMode({ setMode, create, join }) {
   const [selectedRemote, setSelectedRemote] = useState(false);
   const [selectedJoin, setSelectedJoin] = useState(false);
   const [codeInput, setCodeInput] = useState("");
 
-  // TODO: NETWORK: generate code on create room
-
   function handleChange(e) {
     setCodeInput(e.target.value.toUpperCase().trim());
   }
-  function handleSubmit(e) {
+
+  function handleJoin(e) {
     e.preventDefault();
     if (codeInput === "") {
-      // don't do anything if the input is empty
+      alert("Enter a code first!");
       return;
     }
-    // TODO: NETWORK: verify code is valid on join room
-    setCode(codeInput);
-    setMode("remote");
+    try {
+      join(codeInput);
+      setMode("remote");
+    } catch (e) {
+      // TODO: NETWORK: catch join error
+    }
+  }
+
+  function handleCreate() {
+    try {
+      create();
+      setMode("remote");
+    } catch (e) {
+      // TODO: NETWORK: catch create error
+    }
   }
 
   return (
@@ -31,7 +42,7 @@ export default function SelectMode({ setMode, setCode }) {
       </div>
       {selectedRemote && (
         <div>
-          <button onClick={() => setMode("remote")}>Create Game</button>
+          <button onClick={() => handleCreate}>Create Game</button>
           <button onClick={() => setSelectedJoin(true)}>Join Game</button>
         </div>
       )}
@@ -40,11 +51,11 @@ export default function SelectMode({ setMode, setCode }) {
           <form>
             <input
               type="text"
-              placeholder="paste game code"
+              placeholder="paste or type code"
               value={codeInput}
               onChange={handleChange}
             ></input>
-            <button onClick={handleSubmit}>Submit</button>
+            <button onClick={handleJoin}>Submit</button>
           </form>
         </div>
       )}
