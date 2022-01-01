@@ -42,7 +42,7 @@ export default function SelectMode({ setMode, create, join }) {
       </div>
       {selectedRemote && (
         <div>
-          <button onClick={() => handleCreate}>Create Game</button>
+          <button onClick={handleCreate}>Create Game</button>
           <button onClick={() => setSelectedJoin(true)}>Join Game</button>
         </div>
       )}

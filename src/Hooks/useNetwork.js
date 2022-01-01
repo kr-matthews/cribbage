@@ -1,36 +1,35 @@
-import { useState, useReducer } from "react";
+import { useState, useEffect } from "react";
+
+import { useLocalStorage } from "./useLocalStorage.js";
 
 // pubnubKeys.js is listed in .gitignore, contains private keys
-import { subscribeKey, publishKey } from "../pubnubKeys.js";
+// import { subscribeKey, publishKey } from "../pubnubKeys.js";
 
-//// Reducers
+//// Helpers
 
-function messageQueueReducer(state, action) {
-  switch (action.type) {
-    case "clear":
-      return [];
-    case "add":
-      return [...state, action.message];
-    default:
-      console.info(
-        "incomingMessageQueueReducer received unrecognized action",
-        action.type
-      );
-      return state;
-  }
+// should make sure it is unique, but just assume it is
+function createUuid() {
+  // TODO: define getUuid
+  return "1234567890";
 }
 
 export function useNetwork({ capacityPerCode = 2 }) {
   //// States & Constants
 
+  // universally unique ID
+  const [uuid, setUuid] = useLocalStorage("uuid", createUuid());
   // code currently in use (can only use one at a time)
   const [code, setCode] = useState(null);
+  // function to handle incoming messages
+  const [messageHandler, setMessageHandler] = useState(null);
 
-  // queue of incoming messages
-  const [incomingMessageQueue, dispatchIncomingMessagesQueue] = useReducer(
-    [],
-    messageQueueReducer
-  );
+  //// Effects
+
+  useEffect(() => {
+    if (messageHandler) {
+      // TODO: NETWORK: setup subscription
+    }
+  });
 
   //// Helpers
 
@@ -56,7 +55,6 @@ export function useNetwork({ capacityPerCode = 2 }) {
   function leave() {
     // TODO: NETWORK: define leave
     // shouldn't throw any errors
-    dispatchIncomingMessagesQueue({ type: "clear" });
     setCode(null);
   }
 
@@ -73,6 +71,6 @@ export function useNetwork({ capacityPerCode = 2 }) {
     join,
     leave,
     sendMessage,
-    incomingMessageQueue, // TODO: NETWORK: This needs to be thought out -- can't remove from queue as is
+    setMessageHandler,
   };
 }
