@@ -1,6 +1,6 @@
 # Cribbage [WIP]
 
-This is a(n incomplete) single-page application for the card game Cribbage. A user can create an online room and play remotely against another user who joins the room. Alternatively, a user can play locally against a computer player, or two users can play locally.
+This is a(n incomplete) single-page application for the card game Cribbage. A user can create a game online and play remotely against up to two other users (and may use computer players). Alternatively, a user can play locally against up to two computer players.
 
 If you want to clone the repository, you'll need to add definitions for `publishKey` and `subscribeKey` at `src/pubnubKeys.js`.
 
@@ -18,7 +18,7 @@ None (yet).
 
 See [enhancements](https://github.com/kr-matthews/cribbage/issues?q=is%3Aissue+is%3Aopen+label%3Aenhancement) on GitHub.
 
-- Allow sending of short (possibly pre-defined) messages.
+- Allow sending of short (possibly predefined) messages.
 
 ## Original Intentions
 
