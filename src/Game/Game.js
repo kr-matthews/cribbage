@@ -1,6 +1,6 @@
 import { useGame } from "./../Hooks/useGame.js";
 
-import ScoreBoard from "./ScoreBoard.js";
+import ScoreBoard from "./../ScoreBoard/ScoreBoard.js";
 import Banner from "./Banner.js";
 import Hands from "./Hands.js";
 import PlayArea from "./PlayArea.js";
