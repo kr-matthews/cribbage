@@ -1,25 +1,23 @@
 import { useGame } from "./../Hooks/useGame.js";
 
-import ScoreBoard from "./../ScoreBoard/ScoreBoard.js";
-import Banner from "./Banner.js";
+import Header from "./Header.js";
 import Hands from "./Hands.js";
 import PlayArea from "./PlayArea.js";
-import GameButtons from "./GameButtons.js";
-import PlayByPlay from "./PlayByPlay.js";
+import ScoreBoard from "./../ScoreBoard/ScoreBoard.js";
+import PlayHistory from "./PlayHistory.js";
 
-// TODO: GAME: build out individual components
+// TODO: NEXT: remove Game and put this directly in App
 
 export default function Game() {
   const game = useGame();
-  const showAllComponents = ["ongoing", "over"].includes(game.status);
+
   return (
     <>
+      <Header />
+      <Hands />
+      <PlayArea />
       <ScoreBoard />
-      <Banner />
-      {showAllComponents && <Hands />}
-      {showAllComponents && <PlayArea />}
-      <GameButtons />
-      {showAllComponents && <PlayByPlay />}
+      <PlayHistory />
     </>
   );
 }
