@@ -67,6 +67,13 @@ function App() {
   // can still play locally if there's no connection
   const network = {}; // useNetwork({ capacityPerCode: 3 }); // TEMP: uncomment for network
 
+  // which cards from user's name are selected
+  // (may not be best as a boolean array; may want variable length of 5 or 6)
+  const [selected, dispatchSelected] = useReducer(
+    [false, false, false, false, false, false],
+    null // TODO: NEXT: selected reducer
+  );
+
   //// Return
 
   return (
@@ -85,7 +92,14 @@ function App() {
         players={players}
         dealer={game.dealer}
       />
-      <Hands />
+      <Hands
+        crib={game.crib}
+        hands={game.hands}
+        position={position}
+        selectedCards={selected}
+        amountOfCardsToSelect={0} // TODO
+        clickCard={(index) => dispatchSelected({ type: "click", index })}
+      />
       <PlayArea />
       <ScoreBoard />
       <PlayHistory />
