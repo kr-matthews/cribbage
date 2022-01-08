@@ -51,6 +51,8 @@ function App() {
     [null, null, null],
     playersReducer
   );
+  // what spot (0, 1, 2 -- or null) the user is 'sitting' in
+  const [position, setPosition] = useState(null);
   // amount of players present (user is always present)
   const playerCount = players[2] !== null ? 3 : players[1] !== null ? 2 : 1;
 
@@ -63,13 +65,26 @@ function App() {
   const gamePoints = useGamePoints();
   // handle network connection, for remote play
   // can still play locally if there's no connection
-  // const network = useNetwork({ capacityPerCode: 3 }); // TEMP: uncomment for network
+  const network = {}; // useNetwork({ capacityPerCode: 3 }); // TEMP: uncomment for network
 
   //// Return
 
   return (
     <div className="App">
-      <Header />
+      <Header
+        userName={userName}
+        setUserName={setUserName}
+        mode={mode}
+        setMode={setMode}
+        isSoundOn={soundEffects.isOn}
+        toggleSound={soundEffects.toggle}
+        code={network.code}
+        create={network.create}
+        join={network.join}
+        leave={network.leave}
+        players={players}
+        dealer={game.dealer}
+      />
       <Hands />
       <PlayArea />
       <ScoreBoard />
