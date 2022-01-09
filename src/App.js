@@ -13,6 +13,10 @@ import ScoreBoard from "./ScoreBoard/ScoreBoard.js";
 import PlayHistory from "./PlayHistory/PlayHistory.js";
 import Links from "./links/Links.js";
 
+//// Constants
+
+const HAND_ALL_UNSELECTED = [false, false, false, false, false, false];
+
 //// Reducers
 
 function playersReducer(state, action) {
@@ -33,6 +37,20 @@ function playersReducer(state, action) {
       break;
     default:
       console.debug("playersReducer couldn't recognize action", action);
+  }
+  return newState;
+}
+
+function selectedReducer(state, action) {
+  const newState = [...state];
+  switch (action.type) {
+    case "click":
+      newState[action.index] = !newState[action.index];
+      break;
+    case "reset":
+      return HAND_ALL_UNSELECTED;
+    default:
+      console.error("selectedReducer couldn't recognize action", action);
   }
   return newState;
 }
@@ -70,8 +88,8 @@ function App() {
   // which cards from user's name are selected
   // (may not be best as a boolean array; may want variable length of 5 or 6)
   const [selected, dispatchSelected] = useReducer(
-    [false, false, false, false, false, false],
-    null // TODO: NEXT: selected reducer
+    HAND_ALL_UNSELECTED,
+    selectedReducer
   );
 
   //// Return
@@ -100,7 +118,11 @@ function App() {
         amountOfCardsToSelect={0} // TODO
         clickCard={(index) => dispatchSelected({ type: "click", index })}
       />
-      <PlayArea />
+      <PlayArea
+        deckSize={game.deckSize}
+        starter={game.starter}
+        playStacks={game.playStacks}
+      />
       <ScoreBoard />
       <PlayHistory />
 
