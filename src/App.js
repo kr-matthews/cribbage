@@ -9,6 +9,7 @@ import { useGamePoints } from "./Hooks/useGamePoints.js";
 import Header from "./Header/Header.js";
 import Hands from "./Hands/Hands.js";
 import PlayArea from "./PlayArea/PlayArea.js";
+import Action from "./Action/Action.js";
 import ScoreBoard from "./ScoreBoard/ScoreBoard.js";
 import PlayHistory from "./PlayHistory/PlayHistory.js";
 import Links from "./links/Links.js";
@@ -69,8 +70,8 @@ function App() {
     [null, null, null],
     playersReducer
   );
-  // what spot (0, 1, 2 -- or null) the user is 'sitting' in
-  const [position, setPosition] = useState(null);
+  // what spot the user is 'sitting' in (can't be 'standing')
+  const [position, setPosition] = useState(1);
   // amount of players present (user is always present)
   const playerCount = players[2] !== null ? 3 : players[1] !== null ? 2 : 1;
 
@@ -123,9 +124,13 @@ function App() {
         starter={game.starter}
         playStacks={game.playStacks}
       />
+      <Action
+        actionable={game.nextToAct === position}
+        text={game.nextActionType}
+        action={() => "TODO: next action"}
+      />
       <ScoreBoard />
       <PlayHistory />
-
       <Links
         gitHubLink="https://github.com/kr-matthews/cribbage"
         themeType="light"
