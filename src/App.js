@@ -136,7 +136,7 @@ function App() {
         currentScores={game.currentScores}
         priorScores={game.priorScores}
       />
-      <PlayHistory />
+      <PlayHistory messages={[{ type: "auto", colour: "red", text: "TODO" }]} />
       <Links
         gitHubLink="https://github.com/kr-matthews/cribbage"
         themeType="light"
