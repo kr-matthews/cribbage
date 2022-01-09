@@ -14,6 +14,8 @@ import ScoreBoard from "./ScoreBoard/ScoreBoard.js";
 import PlayHistory from "./PlayHistory/PlayHistory.js";
 import Links from "./links/Links.js";
 
+import "./gameComponent.css";
+
 //// Constants
 
 const HAND_ALL_UNSELECTED = [false, false, false, false, false, false];
@@ -56,7 +58,7 @@ function selectedReducer(state, action) {
   return newState;
 }
 
-// TODO: NEXT: create placeholdrs for all stateful values (here, useGame, etc.)
+// TODO: NEXT: create placeholders for all stateful values (here, useGame, etc.)
 
 function App() {
   //// States
@@ -96,7 +98,7 @@ function App() {
   //// Return
 
   return (
-    <div className="App">
+    <div className="app">
       <Header
         userName={userName}
         setUserName={setUserName}

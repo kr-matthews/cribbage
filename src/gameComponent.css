@@ -1,0 +1,7 @@
+.game-component {
+  max-width: 600px; /* TODO: figure out width */
+  margin: 0 auto;
+  padding: 1em 0.2em;
+  text-align: center;
+  border: dotted 1px LightGrey; /* TEMP: border lines */
+}
