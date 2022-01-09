@@ -126,8 +126,9 @@ function App() {
       />
       <Action
         actionable={game.nextToAct === position}
-        text={game.nextActionType}
-        action={() => "TODO: next action"}
+        labels={["TODO"]}
+        actions={[() => "TODO: next action"]}
+        enabled={["TODO"]}
       />
       <ScoreBoard />
       <PlayHistory />
