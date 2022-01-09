@@ -1,3 +1,8 @@
-export default function PlayArea({ deckSize, starter, playStacks }) {
+export default function PlayArea({
+  deckSize,
+  isDeckCut = false,
+  starter,
+  playStacks,
+}) {
   return <div className="game-component">TODO: Play Area</div>;
 }

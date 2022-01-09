@@ -121,6 +121,7 @@ function App() {
       />
       <PlayArea
         deckSize={game.deckSize}
+        isDeckCut={false} // TODO
         starter={game.starter}
         playStacks={game.playStacks}
       />
@@ -130,7 +131,11 @@ function App() {
         actions={[() => "TODO: next action"]}
         enabled={["TODO"]}
       />
-      <ScoreBoard />
+      <ScoreBoard
+        gamePoints={gamePoints}
+        currentScores={game.currentScores}
+        priorScores={game.priorScores}
+      />
       <PlayHistory />
       <Links
         gitHubLink="https://github.com/kr-matthews/cribbage"
