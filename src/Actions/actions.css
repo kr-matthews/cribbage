@@ -1,0 +1,9 @@
+.actions {
+  height: 25px;
+}
+
+.action {
+  margin: 0 3px;
+  padding: 3px;
+  width: 150px;
+}

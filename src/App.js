@@ -9,7 +9,7 @@ import { useGamePoints } from "./Hooks/useGamePoints.js";
 import Header from "./Header/Header.js";
 import Hands from "./Hands/Hands.js";
 import PlayArea from "./PlayArea/PlayArea.js";
-import Action from "./Action/Action.js";
+import Actions from "./Actions/Actions.js";
 import ScoreBoard from "./ScoreBoard/ScoreBoard.js";
 import PlayHistory from "./PlayHistory/PlayHistory.js";
 import Links from "./links/Links.js";
@@ -99,6 +99,11 @@ function App() {
 
   return (
     <div className="app">
+      <ScoreBoard
+        gamePoints={gamePoints}
+        currentScores={game.currentScores}
+        priorScores={game.priorScores}
+      />
       <Header
         userName={userName}
         setUserName={setUserName}
@@ -127,16 +132,13 @@ function App() {
         starter={game.starter}
         playStacks={game.playStacks}
       />
-      <Action
-        actionable={game.nextToAct === position}
-        labels={["TODO"]}
-        actions={[() => "TODO: next action"]}
-        enabled={["TODO"]}
-      />
-      <ScoreBoard
-        gamePoints={gamePoints}
-        currentScores={game.currentScores}
-        priorScores={game.priorScores}
+      <Actions // TEMP: Actions params
+        waiting={false} // ={game.nextToAct !== position}
+        // nextToAct={game.nextToAct !== null && players[game.nextToAct].name}
+        nextAction={game.nextAction}
+        labels={["Play Three of a Kind", "Claim Missing Points"]}
+        actions={[() => console.log("TODO: next action"), null]}
+        enabled={["TODO", false]}
       />
       <PlayHistory messages={[{ type: "auto", colour: "red", text: "TODO" }]} />
       <Links

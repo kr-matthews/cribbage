@@ -1,7 +1,11 @@
 .game-component {
-  max-width: 600px; /* TODO: figure out width */
-  margin: 0 auto;
-  padding: 1em 0.2em;
-  text-align: center;
+  /* position container horizontally center */
+  width: 1000px; /* TODO: CSS: figure out appropriate width (bounds)*/
+  margin: 10px auto;
+  /* center contents vertically and horizontally */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
   border: dotted 1px LightGrey; /* TEMP: border lines */
 }

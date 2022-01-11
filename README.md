@@ -31,3 +31,5 @@ Quick and clean implementation with proper use of hooks and good separation of c
 ## Flaws
 
 See the [issues](https://github.com/kr-matthews/cribbage/issues) on GitHub.
+
+- The styling (css) is not very responsive; won't work well on smaller screens.
