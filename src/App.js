@@ -58,7 +58,7 @@ function selectedReducer(state, action) {
   return newState;
 }
 
-// TODO: NEXT: create placeholders for all stateful values (here, useGame, etc.)
+// TODO: NEXT: create all components (views), with temporary params
 
 function App() {
   //// States
@@ -118,17 +118,17 @@ function App() {
         players={players}
         dealer={game.dealer}
       />
-      <Hands
+      <Hands // TEMP: Hands params
         crib={game.crib}
         hands={game.hands}
         position={position}
         selectedCards={selected}
-        amountOfCardsToSelect={0} // TODO
+        amountOfCardsToSelect={null}
         clickCard={(index) => dispatchSelected({ type: "click", index })}
       />
-      <PlayArea
+      <PlayArea // TEMP: PlayArea params
         deckSize={game.deckSize}
-        isDeckCut={false} // TODO
+        isDeckCut={null}
         starter={game.starter}
         playStacks={game.playStacks}
       />
@@ -137,10 +137,75 @@ function App() {
         // nextToAct={game.nextToAct !== null && players[game.nextToAct].name}
         nextAction={game.nextAction}
         labels={["Play Three of a Kind", "Claim Missing Points"]}
-        actions={[() => console.log("TODO: next action"), null]}
-        enabled={["TODO", false]}
+        actions={[() => console.log("next action"), null]}
+        enabled={[true, false]}
       />
-      <PlayHistory messages={[{ type: "auto", colour: "red", text: "TODO" }]} />
+      <PlayHistory // TEMP: PlayHistory params
+        messages={[
+          { type: "auto", colour: "red", text: "top", timestamp: Date.now() },
+          {
+            type: "auto",
+            colour: "red",
+            text: "text",
+            timestamp: Date.now() + 1,
+          },
+          {
+            type: "custom",
+            colour: "red",
+            text: "text",
+            timestamp: Date.now() + 2000,
+          },
+          {
+            type: "auto",
+            colour: "green",
+            text: "text",
+            timestamp: Date.now() + 3000,
+          },
+          {
+            type: "auto",
+            colour: "red",
+            text: "23 for 3",
+            timestamp: Date.now() + 5000,
+          },
+          {
+            type: "custom",
+            colour: "blue",
+            text:
+              "texttexttexttexttexttexttexttexttexttexttexttex ttexttexttexttexttexttexttext texttexttexttexttexttexttexttexttexttexttext texttexttext",
+            timestamp: Date.now() + 5056,
+          },
+          {
+            type: "auto",
+            colour: "red",
+            text: "text",
+            timestamp: Date.now() + 6746,
+          },
+          {
+            type: "auto",
+            colour: "red",
+            text: "text",
+            timestamp: Date.now() + 7875,
+          },
+          {
+            type: "auto",
+            colour: "red",
+            text: "text",
+            timestamp: Date.now() + 8080,
+          },
+          {
+            type: "auto",
+            colour: "red",
+            text: "v",
+            timestamp: Date.now() + 9541,
+          },
+          {
+            type: "auto",
+            colour: "red",
+            text: "bottom",
+            timestamp: Date.now() + 100454,
+          },
+        ]}
+      />
       <Links
         gitHubLink="https://github.com/kr-matthews/cribbage"
         themeType="light"
