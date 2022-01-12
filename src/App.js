@@ -136,73 +136,41 @@ function App() {
         waiting={false} // ={game.nextToAct !== position}
         // nextToAct={game.nextToAct !== null && players[game.nextToAct].name}
         nextAction={game.nextAction}
-        labels={["Play Three of a Kind", "Claim Missing Points"]}
+        labels={["Accept Score", "Claim Missed Points"]}
         actions={[() => console.log("next action"), null]}
-        enabled={[true, false]}
+        enabled={[true, true]}
       />
-      <PlayHistory // TEMP: PlayHistory params
+      <PlayHistory // TEMP: PlayHistory param
         messages={[
-          { type: "auto", colour: "red", text: "top", timestamp: Date.now() },
           {
             type: "auto",
-            colour: "red",
-            text: "text",
-            timestamp: Date.now() + 1,
-          },
-          {
-            type: "custom",
-            colour: "red",
-            text: "text",
-            timestamp: Date.now() + 2000,
-          },
-          {
-            type: "auto",
-            colour: "green",
-            text: "text",
-            timestamp: Date.now() + 3000,
-          },
-          {
-            type: "auto",
-            colour: "red",
-            text: "23 for 3",
-            timestamp: Date.now() + 5000,
-          },
-          {
-            type: "custom",
             colour: "blue",
-            text:
-              "texttexttexttexttexttexttexttexttexttexttexttex ttexttexttexttexttexttexttext texttexttexttexttexttexttexttexttexttexttext texttexttext",
-            timestamp: Date.now() + 5056,
+            text: "You score 8 points from your hand",
+            timestamp: Date.now(),
           },
           {
             type: "auto",
             colour: "red",
-            text: "text",
-            timestamp: Date.now() + 6746,
+            text: "Joe scores 19 points from their hand",
+            timestamp: Date.now() + 6000,
           },
           {
             type: "auto",
-            colour: "red",
-            text: "text",
-            timestamp: Date.now() + 7875,
-          },
-          {
-            type: "auto",
-            colour: "red",
-            text: "text",
+            colour: "blue",
+            text: "You claim 3 missed points from Joe's hand",
             timestamp: Date.now() + 8080,
           },
           {
-            type: "auto",
+            type: "manual",
             colour: "red",
-            text: "v",
-            timestamp: Date.now() + 9541,
+            text: "Joe: Nice play!",
+            timestamp: Date.now() + 10541,
           },
           {
             type: "auto",
             colour: "red",
-            text: "bottom",
-            timestamp: Date.now() + 100454,
+            text: "Joe scores 1 point from their crib",
+            timestamp: Date.now() + 50454,
           },
         ]}
       />

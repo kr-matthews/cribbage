@@ -1,13 +1,12 @@
 .play-history {
   flex-direction: column;
   height: 8em;
+  width: 500px;
   overflow-y: scroll;
+  overflow-x: hidden;
 }
 
 .message {
-  width: 500px; /* TODO: CSS: confirm largest message width */
   text-align: left;
-  padding: 3px 0;
+  padding: 3px;
 }
-
-/* TODO: NEXT: top of play history is cut off */

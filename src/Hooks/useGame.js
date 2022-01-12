@@ -58,5 +58,5 @@ export function useGame() {
 // play (possibly suboptions: play _-of-a-kind, play run-of-_, play 31, play)
 // go
 // [scoring] 15, pair, run, flush, his nobs, submit points
-// [opp scoring] accept score, claim missing points
+// [opp scoring] accept score, claim missed points
 // [claiming] 15, pair, run, flush, his nobs, submit points
