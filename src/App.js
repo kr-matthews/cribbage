@@ -98,7 +98,10 @@ function App() {
   //// Return
 
   return (
+    // TEMP: WIP note
     <div className="app">
+      This Cribbage project is a work-in-progress. Proper functionality is not
+      guaranteed.
       <ScoreBoard
         gamePoints={gamePoints}
         currentScores={game.currentScores}
@@ -127,9 +130,9 @@ function App() {
         clickCard={(index) => dispatchSelected({ type: "click", index })}
       />
       <PlayArea // TEMP: PlayArea params
-        deckSize={game.deckSize}
-        isDeckCut={null}
-        starter={game.starter}
+        deckSize={52 - 13} //game.deckSize}
+        isDeckCut={false}
+        starter={{ rank: "A", suit: "Clubs" }} // game.starter}
         playStacks={game.playStacks}
       />
       <Actions // TEMP: Actions params
