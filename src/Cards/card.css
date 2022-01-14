@@ -1,10 +1,12 @@
 .card {
   border-style: solid;
-  border-width: 4px;
-  border-radius: 4px;
+  border-width: 2px;
+  border-radius: 6px;
 
-  height: 98px;
-  width: 70px;
+  height: 99px;
+  width: 64px;
+
+  background-position: center;
 }
 
 .card-info {

@@ -11,6 +11,7 @@ export default function Deck({ deckSize = 52, isDeckCut = false, starter }) {
       <Card rank={Rank.QUEEN} suit={Suit.DIAMOND} faceUp={true} />
       <Card rank={Rank.TWO} suit={Suit.SPADE} faceUp={true} selected={true} />
       <Card rank={Rank.TEN} suit={Suit.HEART} faceUp={true} />
+      <Card faceUp={false} />
     </div>
   );
 }
