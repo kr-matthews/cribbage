@@ -1,22 +1,38 @@
+import Suit from "./Suit.js";
+
 import "./card.css";
 import playingCardBack from "./playing_card_back.svg";
 
 const backgroundImage = `url(${playingCardBack})`;
+const backgroundColor = "White";
 
 const UNSELECTED_BORDER = "#0b2652"; // attempt to match background picture
-const SELECTED_BORDER = "LightGrey";
+const SELECTED_BORDER = "Red";
+
+const RED_SUIT = "#85221b"; // attempt to match suit colour
+const BLACK_SUIT = "Black";
 
 export default function Card({ rank, suit, faceUp = false, selected = false }) {
   const borderColor = selected ? SELECTED_BORDER : UNSELECTED_BORDER;
-  const style = faceUp ? { borderColor } : { borderColor, backgroundImage };
+  const color =
+    suit === Suit.HEART || suit === Suit.DIAMOND ? RED_SUIT : BLACK_SUIT;
+  const style = faceUp
+    ? { borderColor, backgroundColor }
+    : { borderColor, backgroundImage };
   return (
     <div className="card" style={style}>
       {faceUp ? (
         <>
-          <span className="card-info">{rank.symbol}</span>
-          <img src={suit.image} className="card-info" />
+          <div className="card-info" style={{ color }}>
+            {rank.symbol}
+          </div>
+          <div className="card-info">
+            <img src={suit.image} />
+          </div>
         </>
       ) : null}
     </div>
   );
 }
+
+// TODO: NEXT: figure out how to overlap cards into a hand

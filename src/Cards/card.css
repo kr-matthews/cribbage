@@ -10,6 +10,11 @@
 }
 
 .card-info {
+  width: 18px;
+  text-align: center;
+  padding: 1px 0;
+}
+
+.card-info img {
   width: 12px;
-  display: block;
 }
