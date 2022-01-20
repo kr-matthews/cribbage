@@ -27,7 +27,7 @@ export default function Card({ rank, suit, faceUp = false, selected = false }) {
             {rank.symbol}
           </div>
           <div className="card-info">
-            <img src={suit.image} />
+            <img src={suit.image} alt={`${suit.name}`} />
           </div>
         </>
       ) : null}

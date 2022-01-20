@@ -1,19 +1,18 @@
 import Card from "./../Cards/Card.js";
 
-import Suit from "./../Cards/Suit.js";
-import Rank from "./../Cards/Rank.js";
-
 import "./deck.css";
 
 // TODO: CSS: deal with cut deck case
 
 export default function Deck({ deckSize = 52, isDeckCut = false, starter }) {
-  // split with at least 1 card per hand
-  const splitRatio = 1 + Math.floor(Math.random() * (deckSize - 2));
-
+  // the top card
+  const { rank, suit, faceUp } = starter || { faceUp: false };
   // simulate stacked cards by stacking /4 of them
   const simulatedSize = deckSize / 4;
+  // split with at least 1 card per hand
+  // const splitRatio = 1 + Math.floor(Math.random() * (deckSize - 2));
   let deck = [];
+
   // add the non-top cards
   for (var i = 0; i < simulatedSize - 1; i++) {
     deck.push(
@@ -22,10 +21,10 @@ export default function Deck({ deckSize = 52, isDeckCut = false, starter }) {
       </div>
     );
   }
-  // with starter card on top, if applicable
+  // with starter card (or facedown card) on top
   deck.push(
     <div key={-1} style={getStyle(Math.ceil(simulatedSize - 1))}>
-      {starter || <Card faceUp={false} />}
+      <Card rank={rank} suit={suit} faceUp={faceUp} />
     </div>
   );
   return <div className="deck">{deck}</div>;

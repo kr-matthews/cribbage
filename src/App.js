@@ -16,8 +16,7 @@ import Links from "./links/Links.js";
 
 import "./gameComponent.css";
 
-import Card from "./Cards/Card.js"; // 3x TEMP: for PlayArea temp params
-import Rank from "./Cards/Rank.js";
+import Rank from "./Cards/Rank.js"; // 2x TEMP: for PlayArea temp params
 import Suit from "./Cards/Suit.js";
 
 //// Constants
@@ -136,7 +135,7 @@ export default function App() {
       <PlayArea // TEMP: PlayArea params
         deckSize={52 - 13} //game.deckSize}
         isDeckCut={false}
-        starter={<Card rank={Rank.QUEEN} suit={Suit.HEART} faceUp={true} />} // game.starter}
+        starter={{ rank: Rank.QUEEN, suit: Suit.HEART, faceUp: true }} // game.starter}
         playStacks={[stack1, stack2, stack3]} // game.playStacks}
       />
       <Actions // TEMP: Actions params
@@ -191,13 +190,13 @@ export default function App() {
 
 // TEMP: stacks
 const stack1 = [
-  <Card rank={Rank.JACK} suit={Suit.SPADE} faceUp={true} />,
-  <Card rank={Rank.ACE} suit={Suit.CLUB} faceUp={false} selected={true} />,
-  <Card rank={Rank.TEN} suit={Suit.HEART} faceUp={true} selected={true} />,
-  <Card faceUp={false} />,
+  { rank: Rank.JACK, suit: Suit.SPADE, faceUp: true },
+  { rank: Rank.ACE, suit: Suit.CLUB, faceUp: true },
+  { rank: Rank.TEN, suit: Suit.HEART, faceUp: true },
+  { faceUp: false },
 ];
 const stack2 = [
-  <Card rank={Rank.JACK} suit={Suit.SPADE} faceUp={true} />,
-  <Card rank={Rank.ACE} suit={Suit.CLUB} faceUp={false} selected={true} />,
+  { rank: Rank.JACK, suit: Suit.SPADE, faceUp: true },
+  { rank: Rank.ACE, suit: Suit.CLUB, faceUp: true },
 ];
 const stack3 = [];
