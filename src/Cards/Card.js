@@ -34,5 +34,3 @@ export default function Card({ rank, suit, faceUp = false, selected = false }) {
     </div>
   );
 }
-
-// TODO: NEXT: figure out how to overlap cards into a hand
