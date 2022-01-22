@@ -1,7 +1,7 @@
-import club from "./club.svg";
-import diamond from "./diamond.svg";
-import spade from "./spade.svg";
-import heart from "./heart.svg";
+import club from "./images/club.svg";
+import diamond from "./images/diamond.svg";
+import spade from "./images/spade.svg";
+import heart from "./images/heart.svg";
 
 export default class Suit {
   static CLUB = new Suit("Club", club);

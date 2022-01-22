@@ -1,7 +1,7 @@
 import Suit from "./Suit.js";
 
 import "./card.css";
-import playingCardBack from "./playing_card_back.svg";
+import playingCardBack from "./images/playing_card_back.svg";
 
 const backgroundImage = `url(${playingCardBack})`;
 const backgroundColor = "White";
