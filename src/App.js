@@ -6,15 +6,15 @@ import { useSoundEffects } from "./Hooks/useSoundEffects.js";
 import { useGamePoints } from "./Hooks/useGamePoints.js";
 // import { useNetwork } from "./Hooks/useNetwork.js"; // TEMP: uncomment for network
 
-import Header from "./Header/Header.js";
-import Hands from "./Hands/Hands.js";
-import PlayArea from "./PlayArea/PlayArea.js";
-import Actions from "./Actions/Actions.js";
-import ScoreBoard from "./ScoreBoard/ScoreBoard.js";
-import PlayHistory from "./PlayHistory/PlayHistory.js";
+import Header from "./GameComponents/Header.js";
+import Hands from "./GameComponents/Hands.js";
+import PlayArea from "./GameComponents/PlayArea.js";
+import Actions from "./GameComponents/Actions.js";
+import ScoreBoard from "./GameComponents/ScoreBoard.js";
+import PlayHistory from "./GameComponents/PlayHistory.js";
 import Links from "./links/Links.js";
 
-import "./gameComponent.css";
+import "./GameComponents/gameComponents.css";
 
 import Rank from "./Cards/Rank.js"; // 2x TEMP: for PlayArea temp params
 import Suit from "./Cards/Suit.js";
