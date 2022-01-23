@@ -1,5 +1,5 @@
-import Deck from "../Cards/Deck.js";
-import CutDeck from "../Cards/CutDeck.js";
+import Deck from "../PlayingCards/Deck.js";
+import CutDeck from "../PlayingCards/CutDeck.js";
 
 export default function PlayArea({ deckSize, isDeckCut, starter, playStacks }) {
   return (
