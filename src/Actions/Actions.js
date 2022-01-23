@@ -1,5 +1,3 @@
-import "./actions.css";
-
 export default function Actions({
   waiting = true,
   nextToAct = "opponent",

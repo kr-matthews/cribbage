@@ -1,5 +1,3 @@
-import "./playHistory.css";
-
 export default function PlayHistory({ messages = [] }) {
   let messageDisplays = [];
   messages.forEach(({ type, colour, text, timestamp }, i) => {

@@ -1,8 +1,6 @@
 import Deck from "../Cards/Deck.js";
 import CutDeck from "../Cards/CutDeck.js";
 
-import "./playArea.css";
-
 export default function PlayArea({ deckSize, isDeckCut, starter, playStacks }) {
   return (
     <div className="game-component play-area">

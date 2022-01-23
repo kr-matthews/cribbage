@@ -8,6 +8,8 @@
   border: dotted 1px LightGrey; /* TEMP: border lines */
 }
 
+/* Some game components are divided into 4 columns */
+
 .col {
   width: 244px;
   margin: 0 3px;
@@ -15,5 +17,35 @@
   border: dotted 1px LightGrey; /* TEMP: border lines */
 }
 
+/* Specific game components */
+
+.play-area {
+  height: 110px;
+}
+
+.actions {
+  height: 25px;
+  align-items: center;
+  justify-content: center;
+}
+
+.action {
+  margin: 0 3px;
+  padding: 3px;
+  width: 150px;
+}
+
+.play-history {
+  flex-direction: column;
+  height: 8em;
+  overflow-y: scroll;
+  overflow-x: hidden;
+}
+
+.message {
+  text-align: left;
+  padding: 3px;
+}
+
 /* TODO: NEXT: NEXT: NEXT: start using css variables */
-/* TODO: NEXT: NEXT: NEXT: aggregate css files together */
+/* TODO: NEXT: make the cols be flex row or something */
