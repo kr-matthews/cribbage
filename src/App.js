@@ -15,6 +15,7 @@ import PlayHistory from "./GameComponents/PlayHistory.js";
 import Links from "./links/Links.js";
 
 import "./GameComponents/gameComponents.css";
+import "./Cards/playingCards.css";
 
 import Rank from "./Cards/Rank.js"; // 2x TEMP: for PlayArea temp params
 import Suit from "./Cards/Suit.js";

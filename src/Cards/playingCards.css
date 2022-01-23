@@ -1,0 +1,41 @@
+:root {
+  --card-dim-ratio: 16 / 25; /* based on the background image */
+  --card-height: 100px; /* scale everything by changing just this */
+  --card-width: calc(var(--card-height) * var(--card-dim-ratio));
+
+  --stack-vert-spacing: 0.5px;
+  --stack-hori-spacing: 1px;
+}
+
+.card {
+  border-style: solid;
+  border-width: calc(var(--card-height) / 50);
+  border-radius: calc(var(--card-height) * 3 / 50);
+
+  height: var(--card-height);
+  width: var(--card-width);
+
+  background-position: center;
+}
+
+.card-info {
+  width: calc(var(--card-width) * 9 / 32);
+  font-size: calc(var(--card-width) / 4);
+  text-align: center;
+  padding: calc(var(--card-height) / 100) 0;
+}
+
+.card-info img {
+  width: calc(var(--card-width) * 3 / 16);
+}
+
+.stack {
+  display: flex;
+}
+
+.deck {
+  display: flex;
+  margin-left: 70px;
+}
+
+/* TODO: NEXT: NEXT: NEXT: continue using css variables */

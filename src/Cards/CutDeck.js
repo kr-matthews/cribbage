@@ -1,7 +1,5 @@
 import CardStack from "./CardStack.js";
 
-import "./cutDeck.css";
-
 // simulate stacked cards by stacking /4 of them
 const SCALE_DOWN_FACTOR = 4;
 

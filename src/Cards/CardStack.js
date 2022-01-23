@@ -1,7 +1,5 @@
 import Card from "./Card.js";
 
-import "./cardStack.css";
-
 // in px
 const H_SPACING = 1;
 const V_SPACING = 1 / 2;
@@ -40,5 +38,15 @@ export default function CardStack({
     </div>
   );
 
-  return <div className="stack">{stack}</div>;
+  return (
+    <div
+      className="stack"
+      style={{
+        width: "calc(var(--card-width) * 2)",
+        border: "dotted 1px Black",
+      }} // TEMP
+    >
+      {stack}
+    </div>
+  );
 }
