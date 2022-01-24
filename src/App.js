@@ -136,7 +136,7 @@ export default function App() {
       <PlayArea // TEMP: PlayArea params
         deckSize={52 - 13} //game.deckSize}
         isDeckCut={true && false}
-        starter={{ rank: Rank.QUEEN, suit: Suit.DIAMOND, faceUp: true }} // game.starter}
+        starter={{ rank: Rank.QUEEN, suit: Suit.HEART, faceUp: true }} // game.starter}
         playStacks={[stack1, stack2, stack3]} // game.playStacks}
       />
       <Actions // TEMP: Actions params

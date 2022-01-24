@@ -5,22 +5,25 @@
 
   display: flex;
 
-  border: dotted 1px LightGrey; /* TEMP: border lines */
+  border: dotted 1px Black; /* TEMP: border lines */
 }
 
 /* Some game components are divided into 4 columns */
 
 .col {
-  width: 244px;
   margin: 0 3px;
 
-  border: dotted 1px LightGrey; /* TEMP: border lines */
+  border: dotted 1px DarkGrey; /* TEMP: border lines */
 }
 
 /* Specific game components */
 
 .play-area {
-  height: 110px;
+  /* the max size that a full deck takes up */
+  height: calc(
+    var(--card-height) + (2 * var(--border-width)) + 3px +
+      (var(--stack-vert-spacing) * 13)
+  );
 }
 
 .actions {
@@ -46,5 +49,7 @@
   text-align: left;
   padding: 3px;
 }
+
+/* TODO: NEXT: NEXT: NEXT: continue using css variables */
 
 /* TODO: NEXT: make the cols be flex row or something */

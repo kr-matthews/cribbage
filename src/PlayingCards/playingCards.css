@@ -3,26 +3,39 @@
   --card-height: 100px; /* scale everything by changing just this */
   --card-width: calc(var(--card-height) * var(--card-dim-ratio));
 
-  --stack-vert-spacing: 0.5px;
-  --stack-hori-spacing: 1px;
+  --border-width: calc(var(--card-height) / 50);
+
+  --default-face: "White";
+  --selected-face: "LightGrey";
+  --default-border: "#0b2652"; /* attempt to match background picture */
+  --selected-border: "Red";
+
+  /* attempt to match suit image colours */
+  --red-suit: "#85221b";
+  --black-suit: "Black";
+
+  --stack-vert-spacing: calc(var(--card-height) / 200);
+  --stack-hori-spacing: calc(var(--card-width) / 16);
 }
 
 .card {
-  border-style: solid;
-  border-width: calc(var(--card-height) / 50);
-  border-radius: calc(var(--card-height) * 3 / 50);
-
   height: var(--card-height);
   width: var(--card-width);
+
+  /* picked to work well with background image's own border */
+  border-style: solid;
+  border-width: var(--border-width);
+  border-radius: calc(var(--card-height) * 3 / 50);
 
   background-position: center;
 }
 
 .card-info {
   width: calc(var(--card-width) * 9 / 32);
-  font-size: calc(var(--card-width) / 4);
-  text-align: center;
   padding: calc(var(--card-height) / 100) 0;
+
+  text-align: center;
+  font-size: calc(var(--card-width) / 4);
 }
 
 .card-info img {
@@ -31,11 +44,9 @@
 
 .stack {
   display: flex;
+  padding: 1px;
 }
 
 .deck {
-  display: flex;
-  margin-left: 70px;
+  display: flex; /* puts both halves on the same row when cut */
 }
-
-/* TODO: NEXT: NEXT: NEXT: continue using css variables */

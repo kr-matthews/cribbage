@@ -15,5 +15,5 @@ export default function PlayArea({ deckSize, isDeckCut, starter, playStacks }) {
   );
 }
 
+// TODO: NEXT: NEXT: starter card is selectable
 // TODO: NEXT: NEXT: Hands.js -> individual play areas
-// TODO: NEXT: starter card is selectable

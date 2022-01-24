@@ -1,6 +1,7 @@
 import CardStack from "./CardStack.js";
 
 // simulate stacked cards by stacking /4 of them
+// also need to change PlayArea size in css
 const SCALE_DOWN_FACTOR = 4;
 
 // kind of assumes there are enough cards to make a reasonable cut
@@ -13,9 +14,7 @@ export default function CutDeck({ size = 52 }) {
   return (
     <div className="deck">
       <CardStack size={sizeBottom} />
-      <CardStack size={sizeTop} vOffset={sizeBottom / 2} hOffset={70} />
+      <CardStack size={sizeTop} />
     </div>
   );
 }
-
-// TODO: CSS: move awkward offsets into css files
