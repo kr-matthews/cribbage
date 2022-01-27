@@ -1,6 +1,6 @@
 :root {
   --card-dim-ratio: 16 / 25; /* based on the background image */
-  --card-height: 100px; /* scale everything by changing just this */
+  --card-height: 150px; /* scale everything by changing just this */
   --card-width: calc(var(--card-height) * var(--card-dim-ratio));
 
   --border-width: calc(var(--card-height) / 50);
@@ -44,9 +44,18 @@
 
 .stack {
   display: flex;
-  padding: 1px;
+  /* margin: 0 auto; */
 }
 
 .deck {
   display: flex; /* puts both halves on the same row when cut */
+  /* the max size that a split full deck takes up */
+  height: calc(
+    var(--card-height) + (2 * var(--border-width)) +
+      (var(--stack-vert-spacing) * 13)
+  );
+  width: calc(
+    (2 * var(--card-width)) + (2 * var(--border-width)) +
+      (var(--stack-hori-spacing) * 13)
+  );
 }

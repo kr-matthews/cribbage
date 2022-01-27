@@ -1,9 +1,16 @@
+:root {
+  --max-width: 1200px; /* TODO: CSS: based on card width and actual components */
+  --min-width: 600px;
+  --padding: 10px;
+}
+
 .game-component {
-  /* position container horizontally center */
-  max-width: 1000px; /* TODO: CSS: figure out appropriate width (bounds)*/
-  margin: 10px auto;
+  max-width: var(--max-width);
+  min-width: var(--min-width);
 
   display: flex;
+  margin: 0 auto;
+  padding: var(--padding);
 
   border: dotted 1px Black; /* TEMP: border lines */
 }
@@ -11,20 +18,13 @@
 /* Some game components are divided into 4 columns */
 
 .col {
-  margin: 0 3px;
+  margin: 0 auto;
+  padding: 0 var(--padding);
 
-  border: dotted 1px DarkGrey; /* TEMP: border lines */
+  border: dashed 1px DarkGrey; /* TEMP: border lines */
 }
 
 /* Specific game components */
-
-.play-area {
-  /* the max size that a full deck takes up */
-  height: calc(
-    var(--card-height) + (2 * var(--border-width)) + 3px +
-      (var(--stack-vert-spacing) * 13)
-  );
-}
 
 .actions {
   height: 25px;
@@ -51,5 +51,3 @@
 }
 
 /* TODO: NEXT: NEXT: NEXT: continue using css variables */
-
-/* TODO: NEXT: make the cols be flex row or something */
