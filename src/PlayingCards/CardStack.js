@@ -1,9 +1,5 @@
 import Card from "./Card.js";
 
-// in px
-const H_SPACING = 1;
-const V_SPACING = 1 / 2;
-
 export default function CardStack({ size = 52, topCard }) {
   const { rank, suit, faceUp } = topCard || { faceUp: false };
 
@@ -34,11 +30,12 @@ export default function CardStack({ size = 52, topCard }) {
   }
 
   // add the top card
-  stack.push(
-    <div key={size - 1} style={cardContainerStyle(size - 1)}>
-      <Card rank={rank} suit={suit} faceUp={faceUp} />
-    </div>
-  );
+  size > 0 &&
+    stack.push(
+      <div key={size - 1} style={cardContainerStyle(size - 1)}>
+        <Card rank={rank} suit={suit} faceUp={faceUp} />
+      </div>
+    );
 
   return (
     <div className="stack" style={{ width, height }}>
