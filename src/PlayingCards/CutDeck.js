@@ -5,7 +5,7 @@ import CardStack from "./CardStack.js";
 const SCALE_DOWN_FACTOR = 4;
 
 // kind of assumes there are enough cards to make a reasonable cut
-export default function CutDeck({ size = 52 }) {
+export default function CutDeck({ size = 52, clickDeckHandler }) {
   const simulatedSize = Math.ceil(size / SCALE_DOWN_FACTOR);
   // split with at least 2 'visible' cards per hand (if possible)
   const minSize = simulatedSize > 3 ? 2 : simulatedSize > 1 ? 1 : 0;
@@ -15,7 +15,7 @@ export default function CutDeck({ size = 52 }) {
 
   return (
     <div className="deck">
-      <CardStack size={sizeBottom} />
+      <CardStack size={sizeBottom} clickTopHandler={clickDeckHandler} />
       <CardStack size={sizeTop} />
     </div>
   );

@@ -26,6 +26,8 @@
 
 /* Specific game components */
 
+/* TODO: CSS: may need to shrink action(s) below a certain threshhold */
+
 .actions {
   height: 25px;
   align-items: center;
@@ -49,5 +51,3 @@
   text-align: left;
   padding: 3px;
 }
-
-/* TODO: NEXT: NEXT: NEXT: continue using css variables */

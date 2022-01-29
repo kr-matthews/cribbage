@@ -1,6 +1,11 @@
 import Card from "./Card.js";
 
-export default function CardStack({ size = 52, topCard }) {
+export default function CardStack({
+  size = 52,
+  topCard,
+  isTopSelected,
+  clickTopHandler,
+}) {
   const { rank, suit, faceUp } = topCard || { faceUp: false };
 
   function cardContainerStyle(i) {
@@ -33,7 +38,13 @@ export default function CardStack({ size = 52, topCard }) {
   size > 0 &&
     stack.push(
       <div key={size - 1} style={cardContainerStyle(size - 1)}>
-        <Card rank={rank} suit={suit} faceUp={faceUp} />
+        <Card
+          rank={rank}
+          suit={suit}
+          faceUp={faceUp}
+          isSelected={isTopSelected}
+          clickHandler={clickTopHandler}
+        />
       </div>
     );
 

@@ -5,15 +5,6 @@
 
   --border-width: calc(var(--card-height) / 50);
 
-  --default-face: "White";
-  --selected-face: "LightGrey";
-  --default-border: "#0b2652"; /* attempt to match background picture */
-  --selected-border: "Red";
-
-  /* attempt to match suit image colours */
-  --red-suit: "#85221b";
-  --black-suit: "Black";
-
   --stack-vert-spacing: calc(var(--card-height) / 200);
   --stack-hori-spacing: calc(var(--card-width) / 16);
 }
@@ -30,6 +21,27 @@
   background-position: center;
 }
 
+/* types of cards */
+
+.face-up {
+  background-color: White;
+}
+
+.selected {
+  border-color: Red;
+  background-color: LightGrey;
+}
+
+.not-selected {
+  border-color: #0b2652; /* attempt to match background picture */
+}
+
+.clickable:hover {
+  cursor: pointer;
+}
+
+/* inside cards */
+
 .card-info {
   width: calc(var(--card-width) * 9 / 32);
   padding: calc(var(--card-height) / 100) 0;
@@ -41,6 +53,12 @@
 .card-info img {
   width: calc(var(--card-width) * 3 / 16);
 }
+
+.red-suit .card-info {
+  color: #85221b; /* attempt to match suit image colours */
+}
+
+/* groupings of cards */
 
 .stack {
   display: flex;

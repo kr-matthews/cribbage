@@ -22,7 +22,8 @@ import Suit from "./PlayingCards/Suit.js";
 
 //// Constants
 
-const HAND_ALL_UNSELECTED = [false, false, false, false, false, false];
+// hand of size up to 6, plus starter card on the end
+const HAND_ALL_UNSELECTED = Array(7).fill(false);
 
 //// Reducers
 
@@ -131,12 +132,14 @@ export default function App() {
         position={position}
         selectedCards={selected}
         amountOfCardsToSelect={null}
-        clickCard={(index) => dispatchSelected({ type: "click", index })}
+        clickCardHandler={(index) => dispatchSelected({ type: "click", index })}
       />
       <PlayArea // TEMP: PlayArea params
         deckSize={52 - 13} //game.deckSize}
         isDeckCut={true && false}
-        starter={{ rank: Rank.QUEEN, suit: Suit.HEART, faceUp: true }} // game.starter}
+        starter={{ rank: Rank.QUEEN, suit: Suit.DIAMOND, faceUp: true }} // game.starter}
+        isStarterSelected={false}
+        clickDeckHandler={() => console.log("Test")} //() => dispatchSelected({ type: "click", index: 6 })} // sometimes this should cut or flip, not just select
         playStacks={[stack1, stack2, stack3]} // game.playStacks}
       />
       <Actions // TEMP: Actions params
@@ -188,6 +191,8 @@ export default function App() {
     </div>
   );
 }
+
+// TODO: NEXT: NEXT: NEXT: clickDeckHandler commented out thing isn't working
 
 // TEMP: stacks
 const stack1 = [
