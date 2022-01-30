@@ -58,7 +58,7 @@ function selectedReducer(state, action) {
     case "reset":
       return HAND_ALL_UNSELECTED;
     default:
-      console.error("selectedReducer couldn't recognize action", action);
+      console.debug("selectedReducer couldn't recognize action", action);
   }
   return newState;
 }
@@ -96,8 +96,8 @@ export default function App() {
   // which cards from user's name are selected
   // (may not be best as a boolean array; may want variable length of 5 or 6)
   const [selected, dispatchSelected] = useReducer(
-    HAND_ALL_UNSELECTED,
-    selectedReducer
+    selectedReducer,
+    HAND_ALL_UNSELECTED
   );
 
   //// Return
@@ -139,7 +139,7 @@ export default function App() {
         isDeckCut={true && false}
         starter={{ rank: Rank.QUEEN, suit: Suit.DIAMOND, faceUp: true }} // game.starter}
         isStarterSelected={false}
-        clickDeckHandler={() => console.log("Test")} //() => dispatchSelected({ type: "click", index: 6 })} // sometimes this should cut or flip, not just select
+        clickDeckHandler={() => dispatchSelected({ type: "click", index: 6 })} // sometimes this might cut or flip, not just select
         playStacks={[stack1, stack2, stack3]} // game.playStacks}
       />
       <Actions // TEMP: Actions params
@@ -191,8 +191,6 @@ export default function App() {
     </div>
   );
 }
-
-// TODO: NEXT: NEXT: NEXT: clickDeckHandler commented out thing isn't working
 
 // TEMP: stacks
 const stack1 = [
