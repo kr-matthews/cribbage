@@ -1,7 +1,7 @@
 import CardStack from "./CardStack.js";
 
 // simulate stacked cards by stacking /4 of them
-const SCALE_DOWN_FACTOR = 4;
+const SCALE_DOWN_FACTOR = 3;
 
 export default function Deck({
   size = 52,

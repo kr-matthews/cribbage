@@ -1,13 +1,14 @@
 import Deck from "../PlayingCards/Deck.js";
 import CutDeck from "../PlayingCards/CutDeck.js";
+import CardStack from "../PlayingCards/CardStack.js";
 
 export default function PlayArea({
   deckSize,
   isDeckCut,
   starter,
-  playStacks,
   isStarterSelected,
   clickDeckHandler,
+  playStacks,
 }) {
   return (
     <div className="game-component play-area">
@@ -23,17 +24,13 @@ export default function PlayArea({
           />
         )}
       </div>
-      <div className="col">
-        <CutDeck size={44} />
-      </div>
-      <div className="col">
-        <CutDeck size={9} />
-      </div>
-      <div className="col">
-        <CutDeck size={17} />
-      </div>
+      {playStacks.map((cards, index) => {
+        return (
+          <div key={index} className="col">
+            <CardStack cards={cards} />
+          </div>
+        );
+      })}
     </div>
   );
 }
-
-// TODO: NEXT: NEXT: Hands.js -> individual play areas

@@ -70,10 +70,10 @@
   /* the max size that a split full deck takes up */
   height: calc(
     var(--card-height) + (2 * var(--border-width)) +
-      (var(--stack-vert-spacing) * 13)
+      (var(--stack-vert-spacing) * 17)
   );
   width: calc(
     (2 * var(--card-width)) + (2 * var(--border-width)) +
-      (var(--stack-hori-spacing) * 13)
+      (var(--stack-hori-spacing) * 17)
   );
 }

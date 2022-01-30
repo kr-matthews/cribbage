@@ -11,13 +11,17 @@ export default function Card({
   isSelected = false,
   clickHandler = null,
 }) {
-  const faceClass = faceUp ? "face-up" : "face-down";
-  const selectedClass = isSelected ? "selected" : "not-selected";
-  const clickableClass = clickHandler ? "clickable" : "";
+  const faceClass = faceUp ? " face-up" : " face-down";
+  const selectedClass = isSelected ? " selected" : " not-selected";
+  const clickableClass = clickHandler ? " clickable" : "";
   const colourClass =
-    suit === Suit.HEART || suit === Suit.DIAMOND ? "red-suit" : "black-suit";
+    faceUp && (suit === Suit.HEART || suit === Suit.DIAMOND)
+      ? " red-suit"
+      : faceUp && (suit === Suit.SPADE || suit === Suit.CLUB)
+      ? " black-suit"
+      : "";
 
-  const className = `card ${faceClass} ${selectedClass} ${colourClass} ${clickableClass}`;
+  const className = `card${faceClass}${selectedClass}${colourClass}${clickableClass}`;
   const backImageIfFaceDown = faceUp ? {} : { backgroundImage };
 
   return (

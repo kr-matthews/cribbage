@@ -1,13 +1,13 @@
 import Card from "./Card.js";
 
+// either stacks given cards, or creates stack of given size with topCard
 export default function CardStack({
-  size = 52,
+  cards,
+  size,
   topCard,
   isTopSelected,
   clickTopHandler,
 }) {
-  const { rank, suit, faceUp } = topCard || { faceUp: false };
-
   function cardContainerStyle(i) {
     return {
       position: "relative",
@@ -16,41 +16,40 @@ export default function CardStack({
     };
   }
 
+  const stackSize = size || cards.length;
   const height = `calc(var(--card-height) + (2 * var(--border-width)) + (var(--stack-vert-spacing) * ${
-    size - 1
+    stackSize - 1
   }))`;
   const width = `calc(var(--card-width) + (2 * var(--border-width)) + (var(--stack-hori-spacing) * ${
-    size - 1
+    stackSize - 1
   }))`;
 
-  let stack = [];
+  // if no explicit cards given, create face-down cards
+  let cardStack = cards || Array(size - 1).fill({ faceUp: false });
+  cards || cardStack.push(topCard);
 
-  // add the non-top cards
-  for (var i = 0; i < size - 1; i++) {
-    stack.push(
-      <div key={i} style={cardContainerStyle(i)}>
-        <Card faceUp={false} />
+  // transform into stack of Card components
+  cardStack = cardStack.map(({ rank, suit, faceUp }, index) => {
+    return (
+      <div key={index} style={cardContainerStyle(index)}>
+        {index === size - 1 ? (
+          <Card
+            rank={rank}
+            suit={suit}
+            faceUp={faceUp}
+            isSelected={isTopSelected}
+            clickHandler={clickTopHandler}
+          />
+        ) : (
+          <Card rank={rank} suit={suit} faceUp={faceUp} />
+        )}
       </div>
     );
-  }
-
-  // add the top card
-  size > 0 &&
-    stack.push(
-      <div key={size - 1} style={cardContainerStyle(size - 1)}>
-        <Card
-          rank={rank}
-          suit={suit}
-          faceUp={faceUp}
-          isSelected={isTopSelected}
-          clickHandler={clickTopHandler}
-        />
-      </div>
-    );
+  });
 
   return (
     <div className="stack" style={{ width, height }}>
-      {stack}
+      {cardStack}
     </div>
   );
 }
