@@ -127,18 +127,17 @@ export default function App() {
         dealer={game.dealer}
       />
       <Hands // TEMP: Hands params
-        crib={game.crib}
-        hands={game.hands}
-        position={position}
+        crib={stack2}
+        hands={[stack1, stack2, stack3]}
+        activePosition={0}
         selectedCards={selected}
-        amountOfCardsToSelect={null}
         clickCardHandler={(index) => dispatchSelected({ type: "click", index })}
       />
       <PlayArea // TEMP: PlayArea params
         deckSize={52 - 13} //game.deckSize}
         isDeckCut={true && false}
         starter={{ rank: Rank.QUEEN, suit: Suit.DIAMOND, faceUp: true }} // game.starter}
-        isStarterSelected={false}
+        isStarterSelected={selected[6]}
         clickDeckHandler={() => dispatchSelected({ type: "click", index: 6 })} // sometimes this might cut or flip, not just select
         playStacks={[stack1, stack2, stack3]} // game.playStacks}
       />
@@ -195,12 +194,14 @@ export default function App() {
 // TEMP: stacks
 const stack1 = [
   { rank: Rank.JACK, suit: Suit.SPADE, faceUp: true },
-  { rank: Rank.ACE, suit: Suit.CLUB, faceUp: true },
-  { rank: Rank.TEN, suit: Suit.HEART, faceUp: true },
   { faceUp: false },
+  { rank: Rank.ACE, suit: Suit.HEART, faceUp: true },
+  { rank: Rank.EIGHT, suit: Suit.HEART, faceUp: true },
+  { rank: Rank.ACE, suit: Suit.HEART, faceUp: false },
+  { rank: Rank.TEN, suit: Suit.CLUB, faceUp: true },
 ];
 const stack2 = [
-  { rank: Rank.JACK, suit: Suit.SPADE, faceUp: true },
-  { rank: Rank.ACE, suit: Suit.CLUB, faceUp: true },
+  { rank: Rank.FOUR, suit: Suit.DIAMOND, faceUp: true },
+  { rank: Rank.KING, suit: Suit.HEART, faceUp: true },
 ];
 const stack3 = [];

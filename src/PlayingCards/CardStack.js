@@ -7,6 +7,7 @@ export default function CardStack({
   topCard,
   isTopSelected,
   clickTopHandler,
+  maxSize,
 }) {
   function cardContainerStyle(i) {
     return {
@@ -17,15 +18,17 @@ export default function CardStack({
   }
 
   const stackSize = size || cards.length;
-  const height = `calc(var(--card-height) + (2 * var(--border-width)) + (var(--stack-vert-spacing) * ${
-    stackSize - 1
-  }))`;
-  const width = `calc(var(--card-width) + (2 * var(--border-width)) + (var(--stack-hori-spacing) * ${
-    stackSize - 1
-  }))`;
+  const height = `calc(var(--card-height) + (2 * var(--border-width)) + (var(--stack-vert-spacing) * ${Math.max(
+    0,
+    (maxSize || stackSize) - 1
+  )}))`;
+  const width = `calc(var(--card-width) + (2 * var(--border-width)) + (var(--stack-hori-spacing) * ${Math.max(
+    0,
+    (maxSize || stackSize) - 1
+  )}))`;
 
   // if no explicit cards given, create face-down cards
-  let cardStack = cards || Array(size - 1).fill({ faceUp: false });
+  let cardStack = cards || Array(stackSize - 1).fill({ faceUp: false });
   cards || cardStack.push(topCard);
 
   // transform into stack of Card components

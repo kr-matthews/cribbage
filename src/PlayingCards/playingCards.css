@@ -2,11 +2,14 @@
   --card-dim-ratio: 16 / 25; /* based on the background image */
   --card-height: 150px; /* scale everything by changing just this */
   --card-width: calc(var(--card-height) * var(--card-dim-ratio));
-
   --border-width: calc(var(--card-height) / 50);
+
+  --card-info-width: calc(var(--card-width) * 9 / 32);
 
   --stack-vert-spacing: calc(var(--card-height) / 200);
   --stack-hori-spacing: calc(var(--card-width) / 16);
+
+  --hand-spacing: calc(var(--card-info-width) * 11 / 10);
 }
 
 .card {
@@ -43,7 +46,7 @@
 /* inside cards */
 
 .card-info {
-  width: calc(var(--card-width) * 9 / 32);
+  width: var(--card-info-width);
   padding: calc(var(--card-height) / 100) 0;
 
   text-align: center;
@@ -61,6 +64,11 @@
 /* groupings of cards */
 
 .stack {
+  display: flex;
+  /* margin: 0 auto; */
+}
+
+.hand {
   display: flex;
   /* margin: 0 auto; */
 }
