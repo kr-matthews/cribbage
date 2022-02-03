@@ -28,6 +28,27 @@
 
 /* TODO: CSS: may need to shrink action(s) below a certain threshhold */
 
+.options {
+  background-color: DarkGrey;
+  border-color: DarkGrey;
+}
+
+.headerbox {
+  border-radius: 15px;
+  border-style: solid;
+  border-width: 5px;
+  width: 175px;
+}
+
+.infobox {
+  color: White;
+}
+
+.headerbox-info {
+  text-align: center;
+  margin: 5px 0;
+}
+
 .actions {
   height: 25px;
   align-items: center;

@@ -113,18 +113,24 @@ export default function App() {
         priorScores={game.priorScores}
       />
       <Header
-        userName={userName}
-        setUserName={setUserName}
-        mode={mode}
-        setMode={setMode}
-        isSoundOn={soundEffects.isOn}
-        toggleSound={soundEffects.toggle}
-        code={network.code}
+        userName={"Octavia"} //userName}
+        setUserName={() => console.log("Change name")} //setUserName}
+        userPosition={1}
+        dealerPosition={0}
+        mode={"local"} //mode}
+        setMode={() => console.log("Change mode")} //setMode}
+        isSoundOn={false} //soundEffects.isOn}
+        toggleSound={() => console.log("Toggle sound")} //soundEffects.toggle}
+        code={"AB6Y"} //network.code}
         create={network.create}
         join={network.join}
         leave={network.leave}
-        players={players}
-        dealer={game.dealer}
+        players={[
+          { name: "Joseph", type: "Human" },
+          { name: "You", type: "Human" },
+          { name: "Claire", type: "Computer" },
+        ]} //players}
+        scores={[null, 67, null]}
       />
       <Hands // TEMP: Hands params
         crib={stack2}
