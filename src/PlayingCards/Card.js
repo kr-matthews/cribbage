@@ -1,8 +1,10 @@
 import Suit from "./Suit.js";
 
 import playingCardBack from "./images/playing_card_back.svg";
+import playingCardBackSelected from "./images/playing_card_back_selected.svg";
 
-const backgroundImage = `url(${playingCardBack})`;
+const unselectedImage = `url(${playingCardBack})`;
+const selectedImage = `url(${playingCardBackSelected})`;
 
 export default function Card({
   rank,
@@ -22,7 +24,11 @@ export default function Card({
       : "";
 
   const className = `card${faceClass}${selectedClass}${colourClass}${clickableClass}`;
-  const backImageIfFaceDown = faceUp ? {} : { backgroundImage };
+  const backImageIfFaceDown = faceUp
+    ? {}
+    : {
+        backgroundImage: isSelected ? selectedImage : unselectedImage,
+      };
 
   return (
     <div
