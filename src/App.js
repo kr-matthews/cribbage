@@ -126,11 +126,11 @@ export default function App() {
         join={network.join}
         leave={network.leave}
         players={[
-          { name: "Joseph", type: "Human" },
+          { name: "Joe", type: "Human" },
           { name: "You", type: "Human" },
-          { name: "Claire", type: "Computer" },
+          // { name: "Claire", type: "Computer" },
         ]} //players}
-        scores={[null, 67, null]}
+        scores={[46, 67, 80]}
       />
       <Hands // TEMP: Hands params
         crib={stack2}
