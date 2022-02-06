@@ -1,3 +1,5 @@
+import Options from "../Options/Options.js";
+
 export default function Header({
   hideEmptyColumns,
   userName,
@@ -20,7 +22,18 @@ export default function Header({
 
   return (
     <div className="game-component">
-      <Options userName={userName} setUserName={setUserName} />
+      <Options
+        userName={userName}
+        setUserName={setUserName}
+        isSoundOn={isSoundOn}
+        toggleSound={toggleSound}
+        mode={mode}
+        setMode={setMode}
+        code={code}
+        create={create}
+        join={join}
+        leave={leave}
+      />
       {players.map(({ name, type }, index) => {
         return (
           <InfoBox
@@ -67,23 +80,6 @@ function InfoBox({
           </div>
         </>
       )}
-    </div>
-  );
-}
-
-// TODO: NEXT: NEXT: finish Options
-
-// TODO: allow input to change username
-function Options({ userName, setUserName, isSoundOn, toggleSound }) {
-  return (
-    <div className="col headerbox options">
-      <div className="headerbox-info">
-        Name: <button onClick={setUserName}>{userName}</button>
-      </div>
-      <div className="headerbox-info">
-        Sound is{" "}
-        <button onClick={toggleSound}>{isSoundOn ? "on" : "off"}</button>
-      </div>
     </div>
   );
 }
