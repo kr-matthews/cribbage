@@ -1,7 +1,5 @@
-// TODO: NEXT: SHOWING_EMPTY_SPOTS clean up and share with other components
-const SHOWING_EMPTY_SPOTS = false;
-
 export default function Header({
+  hideEmptyColumns,
   userName,
   setUserName,
   userPosition,
@@ -16,15 +14,9 @@ export default function Header({
   leave,
   players = [],
   scores,
+  colours,
 }) {
-  const dummyArray = SHOWING_EMPTY_SPOTS
-    ? Array(3 - players.length).fill(0)
-    : [];
-
-  // TODO: COLOURS: clean up and share with other components
-  var colours = ["DarkRed", "DarkGreen", "DarkBlue"];
-  // for 2 players, use the outer and inner tracks (skip middle green)
-  players.length === 2 && colours.splice(1, 1);
+  const dummyArray = hideEmptyColumns ? [] : Array(3 - players.length).fill(0);
 
   return (
     <div className="game-component">
@@ -44,7 +36,6 @@ export default function Header({
         );
       })}
       {dummyArray.map((_, index) => {
-        console.log("fake", index);
         return <InfoBox key={players.length + index} exists={false} />;
       })}
     </div>

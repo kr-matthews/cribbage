@@ -22,8 +22,10 @@ import Suit from "./PlayingCards/Suit.js";
 
 //// Constants
 
+// always use four columns
+const HIDE_EMPTY_COLUMNS = false; // TODO: make empty cols uniform
 // hand of size up to 6, plus starter card on the end
-const HAND_ALL_UNSELECTED = Array(7).fill(false);
+const HAND_ALL_UNSELECTED = Array(7).fill(0);
 
 //// Reducers
 
@@ -73,14 +75,16 @@ export default function App() {
   // play mode: "local" or "remote"
   const [mode, setMode] = useState("local");
   // list of 3 players (players may be null)
-  const [players, dispatchPlayers] = useReducer(
-    [null, null, null],
-    playersReducer
-  );
+  const [players, dispatchPlayers] = useReducer(playersReducer, [
+    // TEMP players
+    { name: "Joe", type: "Human" },
+    { name: "You", type: "Human" },
+    // { name: "Claire", type: "Computer" },
+  ]);
   // what spot the user is 'sitting' in (can't be 'standing')
   const [position, setPosition] = useState(1);
   // amount of players present (user is always present)
-  const playerCount = players[2] !== null ? 3 : players[1] !== null ? 2 : 1;
+  const playerCount = players.length;
 
   // the game
   const game = useGame();
@@ -100,6 +104,10 @@ export default function App() {
     HAND_ALL_UNSELECTED
   );
 
+  // colours on the board; don't use middle row when 2 players
+  var colours = ["DarkRed", "DarkGreen", "DarkBlue"];
+  playerCount === 2 && colours.splice(1, 1);
+
   //// Return
 
   return (
@@ -113,6 +121,7 @@ export default function App() {
         priorScores={game.priorScores}
       />
       <Header
+        hideEmptyColumns={HIDE_EMPTY_COLUMNS}
         userName={"Octavia"} //userName}
         setUserName={() => console.log("Change name")} //setUserName}
         userPosition={1}
@@ -125,27 +134,26 @@ export default function App() {
         create={network.create}
         join={network.join}
         leave={network.leave}
-        players={[
-          { name: "Joe", type: "Human" },
-          { name: "You", type: "Human" },
-          // { name: "Claire", type: "Computer" },
-        ]} //players}
+        players={players}
+        colours={colours}
         scores={[46, 67, 80]}
       />
       <Hands // TEMP: Hands params
+        hideEmptyColumns={HIDE_EMPTY_COLUMNS}
         crib={stack2}
-        hands={[stack1, stack2, stack3]}
+        hands={[stack1, stack2]}
         activePosition={0}
         selectedCards={selected}
         clickCardHandler={(index) => dispatchSelected({ type: "click", index })}
       />
       <PlayArea // TEMP: PlayArea params
+        hideEmptyColumns={HIDE_EMPTY_COLUMNS}
         deckSize={52 - 13} //game.deckSize}
         isDeckCut={true && false}
         starter={{ rank: Rank.QUEEN, suit: Suit.DIAMOND, faceUp: true }} // game.starter}
         isStarterSelected={selected[6]}
         clickDeckHandler={() => dispatchSelected({ type: "click", index: 6 })} // sometimes this might cut or flip, not just select
-        playStacks={[stack1, stack2, stack3]} // game.playStacks}
+        playStacks={[stack1, stack2]} // game.playStacks}
       />
       <Actions // TEMP: Actions params
         waiting={false} // ={game.nextToAct !== position}

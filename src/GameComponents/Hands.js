@@ -1,12 +1,15 @@
 import Hand from "../PlayingCards/Hand.js";
 
 export default function Hands({
+  hideEmptyColumns,
   crib,
-  hands,
+  hands = [],
   activePosition,
   selectedCards,
   clickCardHandler,
 }) {
+  const dummyArray = hideEmptyColumns ? [] : Array(3 - hands.length).fill(0);
+
   return (
     <div className="game-component">
       <div className="col">
@@ -25,6 +28,9 @@ export default function Hands({
           />
         </div>
       ))}
+      {dummyArray.map((_, index) => {
+        return <div key={hands.length + index} className="col"></div>;
+      })}
     </div>
   );
 }
