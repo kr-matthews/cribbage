@@ -3,7 +3,7 @@ import Options from "../Options/Options.js";
 export default function Header({
   hideEmptyColumns,
   userName,
-  setUserName,
+  updateUserName,
   userPosition,
   dealerPosition,
   mode,
@@ -24,7 +24,7 @@ export default function Header({
     <div className="game-component">
       <Options
         userName={userName}
-        setUserName={setUserName}
+        updateUserName={updateUserName}
         isSoundOn={isSoundOn}
         toggleSound={toggleSound}
         mode={mode}

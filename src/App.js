@@ -110,6 +110,7 @@ export default function App() {
 
   //// Return
 
+  // TEMP: params for components
   return (
     // TEMP: WIP note
     <div className="app">
@@ -123,7 +124,7 @@ export default function App() {
       <Header
         hideEmptyColumns={HIDE_EMPTY_COLUMNS}
         userName={"Octavia"} //userName}
-        setUserName={() => console.log("Change name")} //setUserName}
+        updateUserName={() => console.log("Change name")} //setUserName}
         userPosition={1}
         dealerPosition={0}
         mode={"local"} //mode}
@@ -138,7 +139,7 @@ export default function App() {
         colours={colours}
         scores={[46, 67, 80]}
       />
-      <Hands // TEMP: Hands params
+      <Hands
         hideEmptyColumns={HIDE_EMPTY_COLUMNS}
         crib={stack2}
         hands={[stack1, stack2]}
@@ -146,7 +147,7 @@ export default function App() {
         selectedCards={selected}
         clickCardHandler={(index) => dispatchSelected({ type: "click", index })}
       />
-      <PlayArea // TEMP: PlayArea params
+      <PlayArea
         hideEmptyColumns={HIDE_EMPTY_COLUMNS}
         deckSize={52 - 13} //game.deckSize}
         isDeckCut={true && false}
@@ -155,7 +156,7 @@ export default function App() {
         clickDeckHandler={() => dispatchSelected({ type: "click", index: 6 })} // sometimes this might cut or flip, not just select
         playStacks={[stack1, stack2]} // game.playStacks}
       />
-      <Actions // TEMP: Actions params
+      <Actions
         waiting={false} // ={game.nextToAct !== position}
         // nextToAct={game.nextToAct !== null && players[game.nextToAct].name}
         nextAction={game.nextAction}
@@ -163,40 +164,7 @@ export default function App() {
         actions={[() => console.log("next action"), null]}
         enabled={[true, true]}
       />
-      <PlayHistory // TEMP: PlayHistory param
-        messages={[
-          {
-            type: "auto",
-            colour: "blue",
-            text: "You score 8 points from your hand",
-            timestamp: Date.now(),
-          },
-          {
-            type: "auto",
-            colour: "red",
-            text: "Joe scores 19 points from their hand",
-            timestamp: Date.now() + 6000,
-          },
-          {
-            type: "auto",
-            colour: "blue",
-            text: "You claim 3 missed points from Joe's hand",
-            timestamp: Date.now() + 8080,
-          },
-          {
-            type: "manual",
-            colour: "red",
-            text: "Joe: Nice play!",
-            timestamp: Date.now() + 10541,
-          },
-          {
-            type: "auto",
-            colour: "red",
-            text: "Joe scores 1 point from their crib",
-            timestamp: Date.now() + 50454,
-          },
-        ]}
-      />
+      <PlayHistory messages={messages} />
       <Links
         gitHubLink="https://github.com/kr-matthews/cribbage"
         themeType="light"
@@ -205,7 +173,7 @@ export default function App() {
   );
 }
 
-// TEMP: stacks
+// TEMP: consts for temp params
 const stack1 = [
   { rank: Rank.JACK, suit: Suit.SPADE, faceUp: true },
   { faceUp: false },
@@ -219,3 +187,36 @@ const stack2 = [
   { rank: Rank.KING, suit: Suit.HEART, faceUp: true },
 ];
 const stack3 = [];
+
+const messages = [
+  {
+    type: "auto",
+    colour: "blue",
+    text: "You score 8 points from your hand",
+    timestamp: Date.now(),
+  },
+  {
+    type: "auto",
+    colour: "red",
+    text: "Joe scores 19 points from their hand",
+    timestamp: Date.now() + 6000,
+  },
+  {
+    type: "auto",
+    colour: "blue",
+    text: "You claim 3 missed points from Joe's hand",
+    timestamp: Date.now() + 8080,
+  },
+  {
+    type: "manual",
+    colour: "red",
+    text: "Joe: Nice play!",
+    timestamp: Date.now() + 10541,
+  },
+  {
+    type: "auto",
+    colour: "red",
+    text: "Joe scores 1 point from their crib",
+    timestamp: Date.now() + 50454,
+  },
+];

@@ -1,11 +1,11 @@
 import PlayMode from "./PlayMode.js";
+import Edit from "./Edit.js";
 
 // TODO: NEXT: NEXT: finish Options
 
-// TODO: allow input to change username
 export default function Options({
   userName,
-  setUserName,
+  updateUserName,
   isSoundOn,
   toggleSound,
   mode,
@@ -18,12 +18,25 @@ export default function Options({
   return (
     <div className="col headerbox options">
       <div className="headerbox-info">
-        Name: <button onClick={setUserName}>{userName}</button>
+        Name: {userName}{" "}
+        <Edit
+          type="prompt"
+          text="Enter a new username:"
+          defaultInput={userName}
+          fun={updateUserName}
+        />
       </div>
       <div className="headerbox-info">
-        Sound: <button onClick={toggleSound}>{isSoundOn ? "on" : "off"}</button>
+        Sound: {isSoundOn ? "On" : "Off"} <Edit fun={toggleSound} />
       </div>
-      <PlayMode />
+      <PlayMode
+        mode={mode}
+        setMode={setMode}
+        code={code}
+        create={create}
+        join={join}
+        leave={leave}
+      />
     </div>
   );
 }
