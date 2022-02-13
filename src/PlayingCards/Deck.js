@@ -3,6 +3,7 @@ import CardStack from "./CardStack.js";
 // simulate stacked cards by stacking /4 of them
 const SCALE_DOWN_FACTOR = 3;
 // TODO: fix /4 comment; use single val (here, cutDeck, css)
+// TODO: actually, instead, just shrink increments and use no scaling factor
 
 export default function Deck({
   size = 52,

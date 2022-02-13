@@ -57,10 +57,10 @@ function InfoBox({
   exists,
   isUser,
   isDealer,
-  name,
-  type,
+  name = "name unknown",
+  type = "agency unknown",
   colour = "transparent",
-  score = "--",
+  score,
 }) {
   const style = {
     backgroundColor: colour,
@@ -71,8 +71,10 @@ function InfoBox({
     <div className="col headerbox infobox" style={style}>
       {exists && (
         <>
-          <div className="headerbox-info">{name || "(no name)"}</div>
-          <div className="headerbox-info">{type || "(unknown)"}</div>
+          <div className="headerbox-info">
+            {isUser ? <em>{name}</em> : name}
+          </div>
+          <div className="headerbox-info">{type}</div>
           <div className="headerbox-info">
             Score: {score !== null ? score : "--"}
           </div>

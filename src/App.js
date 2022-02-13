@@ -69,7 +69,14 @@ export default function App() {
   //// States
 
   // user's name (persists)
-  const [userName, setUserName] = useLocalStorage("userName", "Your Name Here");
+  const [userName, setUserName] = useLocalStorage("userName", "Undecided");
+  function trySetUserName(input) {
+    const newName = input.slice(0, 12).trim();
+    if (newName.length > 0) {
+      setUserName(newName);
+    }
+  }
+
   // play mode: "local" or "remote"
   const [mode, setMode] = useState("local");
   // list of 3 players (players may be null)
@@ -77,7 +84,7 @@ export default function App() {
     // TEMP players
     { name: "Joe", type: "Human" },
     { name: "You", type: "Human" },
-    // { name: "Claire", type: "Computer" },
+    { name: "Claire", type: "Computer" },
   ]);
   // what spot the user is 'sitting' in (can't be 'standing')
   const [position, setPosition] = useState(1);
@@ -121,13 +128,13 @@ export default function App() {
       />
       <Header
         hideEmptyColumns={HIDE_EMPTY_COLUMNS}
-        userName={"Octavia"} //userName}
-        updateUserName={() => console.log("Change name")} //setUserName} TODO: validate/trim/etc
-        userPosition={1}
-        dealerPosition={0}
-        mode={"remote"} //mode}
-        isSoundOn={false} //soundEffects.isOn}
-        toggleSound={() => console.log("Toggle sound")} //soundEffects.toggle}
+        userName={userName}
+        updateUserName={trySetUserName}
+        userPosition={position}
+        dealerPosition={0} // FIX
+        mode={mode}
+        isSoundOn={soundEffects.isOn}
+        toggleSound={soundEffects.toggle}
         code={"AB6Y"} //network.code}
         create={network.create}
         join={network.join}

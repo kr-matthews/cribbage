@@ -1,3 +1,12 @@
+import { useLocalStorage } from "./useLocalStorage";
+
 export function useSoundEffects() {
-  return {}; // TODO: SOUND
+  const [isOn, setIsOn] = useLocalStorage("sound", false);
+  function toggle() {
+    setIsOn(!isOn);
+  }
+
+  // TODO: SOUND: actual effects
+
+  return { isOn, toggle };
 }
