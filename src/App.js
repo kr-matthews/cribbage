@@ -122,7 +122,7 @@ export default function App() {
       <Header
         hideEmptyColumns={HIDE_EMPTY_COLUMNS}
         userName={"Octavia"} //userName}
-        updateUserName={() => console.log("Change name")} //setUserName}
+        updateUserName={() => console.log("Change name")} //setUserName} TODO: validate/trim/etc
         userPosition={1}
         dealerPosition={0}
         mode={"remote"} //mode}
@@ -138,9 +138,9 @@ export default function App() {
       />
       <Hands
         hideEmptyColumns={HIDE_EMPTY_COLUMNS}
-        crib={stack2}
-        hands={[stack1, stack2]}
-        activePosition={0}
+        crib={crib}
+        hands={[hand1, hand2]}
+        activePosition={1}
         selectedCards={selected}
         clickCardHandler={(index) => dispatchSelected({ type: "click", index })}
       />
@@ -148,9 +148,9 @@ export default function App() {
         hideEmptyColumns={HIDE_EMPTY_COLUMNS}
         deckSize={52 - 13} //game.deckSize}
         isDeckCut={true && false}
-        starter={{ rank: Rank.QUEEN, suit: Suit.DIAMOND, faceUp: true }} // game.starter}
+        starter={{ rank: Rank.QUEEN, suit: Suit.DIAMOND, faceUp: false }} // game.starter}
         isStarterSelected={selected[6]}
-        clickDeckHandler={() => dispatchSelected({ type: "click", index: 6 })} // sometimes this might cut or flip, not just select
+        clickDeckHandler={() => dispatchSelected({ type: "click", index: 6 })} // TODO: sometimes this might cut or flip, not just select
         playStacks={[stack1, stack2]} // game.playStacks}
       />
       <Actions
@@ -171,19 +171,28 @@ export default function App() {
 }
 
 // TEMP: consts for temp params
-const stack1 = [
-  { rank: Rank.JACK, suit: Suit.SPADE, faceUp: true },
-  { faceUp: false },
-  { rank: Rank.ACE, suit: Suit.HEART, faceUp: true },
-  { rank: Rank.EIGHT, suit: Suit.HEART, faceUp: true },
-  { rank: Rank.ACE, suit: Suit.HEART, faceUp: false },
-  { rank: Rank.TEN, suit: Suit.CLUB, faceUp: true },
-];
+const stack1 = [{ rank: Rank.THREE, suit: Suit.CLUB, faceUp: true }];
 const stack2 = [
-  { rank: Rank.FOUR, suit: Suit.DIAMOND, faceUp: true },
+  { rank: Rank.FIVE, suit: Suit.CLUB, faceUp: true },
+  { rank: Rank.JACK, suit: Suit.DIAMOND, faceUp: true },
+];
+
+const hand1 = [
+  { rank: Rank.ACE, suit: Suit.HEART, faceUp: false },
+  { rank: Rank.TWO, suit: Suit.DIAMOND, faceUp: false },
+  { rank: Rank.TWO, suit: Suit.HEART, faceUp: false },
+];
+const hand2 = [
+  { rank: Rank.FOUR, suit: Suit.SPADE, faceUp: true },
   { rank: Rank.KING, suit: Suit.HEART, faceUp: true },
 ];
-const stack3 = [];
+
+const crib = [
+  { faceUp: false },
+  { faceUp: false },
+  { faceUp: false },
+  { faceUp: false },
+];
 
 const messages = [
   {

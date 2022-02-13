@@ -37,6 +37,7 @@ export default function Edit({
   return (
     <img
       src={pencilIcon}
+      alt="Edit"
       className="editIcon"
       title={title}
       onClick={clickhandler}
