@@ -7,7 +7,6 @@ export default function Header({
   userPosition,
   dealerPosition,
   mode,
-  setMode,
   isSoundOn,
   toggleSound,
   code,
@@ -28,7 +27,6 @@ export default function Header({
         isSoundOn={isSoundOn}
         toggleSound={toggleSound}
         mode={mode}
-        setMode={setMode}
         code={code}
         create={create}
         join={join}

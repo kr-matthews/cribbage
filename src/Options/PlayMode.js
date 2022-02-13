@@ -2,7 +2,6 @@ import Edit from "./Edit.js";
 
 export default function PlayMode({
   mode = "local",
-  setMode, // TODO: NEXT: NEXT: confirm where to use this (and use copyTo...)
   code,
   create,
   join,
@@ -31,7 +30,10 @@ export default function PlayMode({
           </>
         ) : (
           <>
-            Remote Code: {code}{" "}
+            Remote Code:{" "}
+            <button className="copy-code" onClick={copyToClipboard}>
+              {code}
+            </button>{" "}
             <Edit
               type="confirm"
               text="Are you sure you want to leave this remote game? The game state may be lost."

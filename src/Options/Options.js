@@ -1,15 +1,12 @@
 import PlayMode from "./PlayMode.js";
 import Edit from "./Edit.js";
 
-// TODO: NEXT: NEXT: finish Options
-
 export default function Options({
   userName,
   updateUserName,
   isSoundOn,
   toggleSound,
   mode,
-  setMode,
   code,
   create,
   join,
@@ -31,7 +28,6 @@ export default function Options({
       </div>
       <PlayMode
         mode={mode}
-        setMode={setMode}
         code={code}
         create={create}
         join={join}

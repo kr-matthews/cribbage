@@ -46,7 +46,7 @@ function playersReducer(state, action) {
       newState[action.player] = null;
       break;
     default:
-      console.debug("playersReducer couldn't recognize action", action);
+      console.error("playersReducer couldn't recognize action", action);
   }
   return newState;
 }
@@ -60,12 +60,10 @@ function selectedReducer(state, action) {
     case "reset":
       return HAND_ALL_UNSELECTED;
     default:
-      console.debug("selectedReducer couldn't recognize action", action);
+      console.error("selectedReducer couldn't recognize action", action);
   }
   return newState;
 }
-
-// TODO: NEXT: create all components (views), with temporary params
 
 export default function App() {
   //// States
@@ -127,8 +125,7 @@ export default function App() {
         updateUserName={() => console.log("Change name")} //setUserName}
         userPosition={1}
         dealerPosition={0}
-        mode={"local"} //mode}
-        setMode={() => console.log("Change mode")} //setMode}
+        mode={"remote"} //mode}
         isSoundOn={false} //soundEffects.isOn}
         toggleSound={() => console.log("Toggle sound")} //soundEffects.toggle}
         code={"AB6Y"} //network.code}

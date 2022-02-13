@@ -1,0 +1,11 @@
+.editIcon {
+  height: 0.9em;
+}
+
+.editIcon:hover {
+  cursor: pointer;
+}
+
+.copy-code {
+  cursor: copy;
+}
