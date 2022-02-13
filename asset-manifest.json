@@ -1,14 +1,20 @@
 {
   "files": {
-    "main.css": "/cribbage/static/css/main.86b2adbe.css",
-    "main.js": "/cribbage/static/js/main.86037a63.js",
+    "main.css": "/cribbage/static/css/main.0721535d.css",
+    "main.js": "/cribbage/static/js/main.f809647e.js",
+    "static/media/playing_card_back.svg": "/cribbage/static/media/playing_card_back.deeb6181c4296706168cc8f56e7bd42b.svg",
+    "static/media/playing_card_back_selected.svg": "/cribbage/static/media/playing_card_back_selected.74a22268ccb95f8af9625be57353631f.svg",
+    "static/media/club.svg": "/cribbage/static/media/club.a609638e84b8febbc1ad211e5a219bae.svg",
+    "static/media/diamond.svg": "/cribbage/static/media/diamond.e794a0c746571dbb7b8f6b518eede99c.svg",
+    "static/media/heart.svg": "/cribbage/static/media/heart.feb1d7fee1beb60c93d0f4a5736dab97.svg",
+    "static/media/spade.svg": "/cribbage/static/media/spade.8de67ee7a673c96bdd89476b05a3b614.svg",
     "static/media/website-logo.svg": "/cribbage/static/media/website-logo.2a15d8d040919c10066eaa55c12d2b83.svg",
     "index.html": "/cribbage/index.html",
-    "main.86b2adbe.css.map": "/cribbage/static/css/main.86b2adbe.css.map",
-    "main.86037a63.js.map": "/cribbage/static/js/main.86037a63.js.map"
+    "main.0721535d.css.map": "/cribbage/static/css/main.0721535d.css.map",
+    "main.f809647e.js.map": "/cribbage/static/js/main.f809647e.js.map"
   },
   "entrypoints": [
-    "static/css/main.86b2adbe.css",
-    "static/js/main.86037a63.js"
+    "static/css/main.0721535d.css",
+    "static/js/main.f809647e.js"
   ]
 }
