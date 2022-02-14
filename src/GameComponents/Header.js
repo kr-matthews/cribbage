@@ -6,16 +6,16 @@ export default function Header({
   updateUserName,
   userPosition,
   dealerPosition,
-  mode,
-  isSoundOn,
+  mode = "local",
+  isSoundOn = false,
   toggleSound,
   code,
   create,
   join,
   leave,
   players = [],
-  scores,
-  colours,
+  scores = [null, null, null],
+  colours = [null, null, null],
 }) {
   const dummyArray = hideEmptyColumns ? [] : Array(3 - players.length).fill(0);
 

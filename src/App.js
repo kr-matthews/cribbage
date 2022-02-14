@@ -65,6 +65,8 @@ function selectedReducer(state, action) {
   return newState;
 }
 
+////// App //////
+
 export default function App() {
   //// States
 
@@ -77,8 +79,6 @@ export default function App() {
     }
   }
 
-  // play mode: "local" or "remote"
-  const [mode, setMode] = useState("local");
   // list of 3 players (players may be null)
   const [players, dispatchPlayers] = useReducer(playersReducer, [
     // TEMP players
@@ -93,23 +93,20 @@ export default function App() {
 
   // the game
   const game = useGame();
-  // track games, until player change
   // sound effects (can be muted)
   const soundEffects = useSoundEffects();
   // track game points across multiple games
   const gamePoints = useGamePoints();
-  // handle network connection, for remote play
-  // can still play locally if there's no connection
-  const network = {}; // useNetwork({ capacityPerCode: 3 }); // TEMP: uncomment for network
+  // handle network connection, for remote play (can still play locally if there's no connection)
+  const network = {}; // useNetwork({ capacityPerCode: 3, playerCount }); // TEMP: uncomment for network
 
-  // which cards from user's name are selected
-  // (may not be best as a boolean array; may want variable length of 5 or 6)
+  // which cards from user's hand (plus deck top card) are selected
   const [selected, dispatchSelected] = useReducer(
     selectedReducer,
     HAND_ALL_UNSELECTED
   );
 
-  // colours on the board; don't use middle row when 2 players
+  // colours on the board; don't use middle track when 2 players
   var colours = ["DarkRed", "DarkGreen", "DarkBlue"];
   playerCount === 2 && colours.splice(1, 1);
 
@@ -132,30 +129,30 @@ export default function App() {
         updateUserName={trySetUserName}
         userPosition={position}
         dealerPosition={0} // FIX
-        mode={mode}
+        mode={network.mode}
         isSoundOn={soundEffects.isOn}
         toggleSound={soundEffects.toggle}
-        code={"AB6Y"} //network.code}
+        code={network.code}
         create={network.create}
         join={network.join}
         leave={network.leave}
         players={players}
         colours={colours}
-        scores={[46, 67, 80]}
+        scores={[46, 67, 80]} // FIX
       />
       <Hands
         hideEmptyColumns={HIDE_EMPTY_COLUMNS}
-        crib={crib}
-        hands={[hand1, hand2]}
-        activePosition={1}
+        crib={crib} // FIX
+        hands={[hand1, hand2]} // FIX
+        activePosition={1} // FIX
         selectedCards={selected}
-        clickCardHandler={(index) => dispatchSelected({ type: "click", index })}
+        clickCardHandler={(index) => dispatchSelected({ type: "click", index })} // TODO: only when clickable
       />
       <PlayArea
         hideEmptyColumns={HIDE_EMPTY_COLUMNS}
         deckSize={52 - 13} //game.deckSize}
-        isDeckCut={true && false}
-        starter={{ rank: Rank.QUEEN, suit: Suit.DIAMOND, faceUp: false }} // game.starter}
+        isDeckCut={true} //game.isDeckCut}
+        starter={{ rank: Rank.QUEEN, suit: Suit.DIAMOND, faceUp: false }} //game.starter}
         isStarterSelected={selected[6]}
         clickDeckHandler={() => dispatchSelected({ type: "click", index: 6 })} // TODO: sometimes this might cut or flip, not just select
         playStacks={[stack1, stack2]} // game.playStacks}
@@ -164,9 +161,9 @@ export default function App() {
         waiting={false} // ={game.nextToAct !== position}
         // nextToAct={game.nextToAct !== null && players[game.nextToAct].name}
         nextAction={game.nextAction}
-        labels={["Accept Score", "Claim Missed Points"]}
-        actions={[() => console.log("next action"), null]}
-        enabled={[true, true]}
+        labels={["Accept Score", "Claim Missed Points"]} // FIX
+        actions={[() => console.log("next action"), null]} // FIX
+        enabled={[true, true]} // FIX
       />
       <PlayHistory messages={messages} />
       <Links

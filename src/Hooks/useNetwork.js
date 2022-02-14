@@ -19,13 +19,14 @@ function createUuid() {
   return uuid;
 }
 
-export function useNetwork({ capacityPerCode = 2 }) {
+export function useNetwork({ capacityPerCode = 2, playerCount }) {
   //// States & Constants
 
   // universally unique ID (don't need setter -- won't ever change)
   const [uuid] = useLocalStorage("uuid", createUuid());
   // code currently in use (can only use one at a time)
   const [code, setCode] = useState(null);
+  const mode = code ? "local" : "remote";
   // function to handle incoming messages
   const [messageHandler, setMessageHandler] = useState(null);
 
@@ -33,9 +34,10 @@ export function useNetwork({ capacityPerCode = 2 }) {
 
   // useMemo to avoid recalculating every reredner due to uuid dependency
   // (uuid never changes once set)
-  const pubnub = useMemo(() => new PubNub({ publishKey, subscribeKey, uuid }), [
-    uuid,
-  ]);
+  const pubnub = useMemo(
+    () => new PubNub({ publishKey, subscribeKey, uuid }),
+    [uuid]
+  );
 
   //// Effects
 
@@ -125,6 +127,7 @@ export function useNetwork({ capacityPerCode = 2 }) {
   //// Return
 
   return {
+    mode,
     code,
     create,
     join,
