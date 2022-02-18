@@ -29,7 +29,7 @@ export default function CardStack({
 
   // if no explicit cards given, create face-down cards
   let cardStack = cards || Array(stackSize - 1).fill({ faceUp: false });
-  cards || cardStack.push(topCard);
+  cards || cardStack.push(topCard || { faceUp: false });
 
   // transform into stack of Card components
   cardStack = cardStack.map(({ rank, suit, faceUp }, index) => {

@@ -1,5 +1,13 @@
 import { useState } from "react";
 
+/**
+ * Essentially [useState], but it stores the state in local storage
+ * for use across reloads.
+ *
+ * @param {string} key - unique identifier for local storage read/write
+ * @param {any} initialValue - starting value if none exists in local storage
+ * @returns
+ */
 export function useLocalStorage(key, initialValue) {
   const savedValue = JSON.parse(localStorage.getItem(key));
   const [value, setValue] = useState(() => {
