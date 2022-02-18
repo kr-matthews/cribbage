@@ -4,7 +4,7 @@ import { useLocalStorage } from "./Hooks/useLocalStorage.js";
 import { useGame } from "./Hooks/useGame.js";
 import { useSoundEffects } from "./Hooks/useSoundEffects.js";
 import { useGamePoints } from "./Hooks/useGamePoints.js";
-// import { useNetwork } from "./Hooks/useNetwork.js"; // TEMP: uncomment for network
+import { useNetwork } from "./Hooks/useNetwork.js";
 
 import Header from "./GameComponents/Header.js";
 import Hands from "./GameComponents/Hands.js";
@@ -98,7 +98,7 @@ export default function App() {
   // track game points across multiple games
   const gamePoints = useGamePoints();
   // handle network connection, for remote play (can still play locally if there's no connection)
-  const network = {}; // useNetwork({ capacityPerCode: 3, playerCount }); // TEMP: uncomment for network
+  const network = useNetwork({ capacityPerCode: 3, playerCount });
 
   // which cards from user's hand (plus deck top card) are selected
   const [selected, dispatchSelected] = useReducer(
@@ -151,7 +151,7 @@ export default function App() {
       <PlayArea
         hideEmptyColumns={HIDE_EMPTY_COLUMNS}
         deckSize={52 - 13} //game.deckSize}
-        isDeckCut={true} //game.isDeckCut}
+        isDeckCut={false} //game.isDeckCut}
         starter={{ rank: Rank.QUEEN, suit: Suit.DIAMOND, faceUp: false }} //game.starter}
         isStarterSelected={selected[6]}
         clickDeckHandler={() => dispatchSelected({ type: "click", index: 6 })} // TODO: sometimes this might cut or flip, not just select
