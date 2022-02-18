@@ -1,4 +1,4 @@
-import Options from "../Options/Options.js";
+import Options from "../options/Options.js";
 
 export default function Header({
   hideEmptyColumns,

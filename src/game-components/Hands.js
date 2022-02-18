@@ -1,4 +1,4 @@
-import Hand from "../PlayingCards/Hand.js";
+import Hand from "../playing-cards/Hand.js";
 
 export default function Hands({
   hideEmptyColumns,

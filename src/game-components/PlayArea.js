@@ -1,6 +1,6 @@
-import Deck from "../PlayingCards/Deck.js";
-import CutDeck from "../PlayingCards/CutDeck.js";
-import CardStack from "../PlayingCards/CardStack.js";
+import Deck from "../playing-cards/Deck.js";
+import CutDeck from "../playing-cards/CutDeck.js";
+import CardStack from "../playing-cards/CardStack.js";
 
 export default function PlayArea({
   hideEmptyColumns,

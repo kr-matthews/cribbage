@@ -1,24 +1,24 @@
 import { useState, useReducer } from "react";
 
-import { useLocalStorage } from "./Hooks/useLocalStorage.js";
-import { useGame } from "./Hooks/useGame.js";
-import { useSoundEffects } from "./Hooks/useSoundEffects.js";
-import { useGamePoints } from "./Hooks/useGamePoints.js";
-import { useNetwork } from "./Hooks/useNetwork.js";
+import { useLocalStorage } from "./hooks/useLocalStorage.js";
+import { useGame } from "./hooks/useGame.js";
+import { useSoundEffects } from "./hooks/useSoundEffects.js";
+import { useGamePoints } from "./hooks/useGamePoints.js";
+import { useNetwork } from "./hooks/useNetwork.js";
 
-import Header from "./GameComponents/Header.js";
-import Hands from "./GameComponents/Hands.js";
-import PlayArea from "./GameComponents/PlayArea.js";
-import Actions from "./GameComponents/Actions.js";
-import ScoreBoard from "./GameComponents/ScoreBoard.js";
-import PlayHistory from "./GameComponents/PlayHistory.js";
+import Header from "./game-components/Header.js";
+import Hands from "./game-components/Hands.js";
+import PlayArea from "./game-components/PlayArea.js";
+import Actions from "./game-components/Actions.js";
+import ScoreBoard from "./game-components/ScoreBoard.js";
+import PlayHistory from "./game-components/PlayHistory.js";
 import Links from "./links/Links.js";
 
-import "./GameComponents/gameComponents.css";
-import "./PlayingCards/playingCards.css";
+import "./game-components/gameComponents.css";
+import "./playing-cards/playingCards.css";
 
-import Rank from "./PlayingCards/Rank.js"; // 2x TEMP: for PlayArea temp params
-import Suit from "./PlayingCards/Suit.js";
+import Rank from "./playing-cards/Rank.js"; // 2x TEMP: for PlayArea temp params
+import Suit from "./playing-cards/Suit.js";
 
 //// Constants
 
