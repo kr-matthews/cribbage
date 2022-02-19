@@ -1,5 +1,6 @@
 import { useState, useReducer } from "react";
 
+import { useDeck } from "./useDeck.js";
 import { useRound } from "./useRound.js";
 
 //// Reducers
@@ -22,9 +23,12 @@ function scoresReducer(state, action) {
 
 export function useGame() {
   // game status: reset, ongoing, over
-  // reset means current players haven't start a game yet
-  // over shows end state of prior game
+  //   reset means current players haven't start a game yet
+  //   over shows end state of prior game
   const [status, setStatus] = useState("reset");
+
+  // the deck, only used by player 0
+  const deck = useDeck();
 
   // current dealer, via player index
   const [dealer, setDealer] = useState(0); // TODO: initial dealer (from cut or prev game)
@@ -45,7 +49,7 @@ export function useGame() {
 
   //// Return
 
-  return { status };
+  return { status, dealer, scores };
 }
 
 //// Possible actions:
