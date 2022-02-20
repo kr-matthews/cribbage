@@ -29,40 +29,40 @@ const HAND_ALL_UNSELECTED = Array(7).fill(0);
 
 //// Reducers
 
-function playersReducer(state, action) {
-  const newState = [...state];
+function playersReducer(players, action) {
+  const newPlayers = [...players];
   switch (action.type) {
     case "add":
     // intentional fall-through
     // eslint-disable-next-line
     case "update":
       const ind = action.player;
-      const isComputer = action.isComputer || newState[ind].isComputer;
-      const name = action.name || newState[ind].name;
-      const colour = action.colour || newState[ind].colour;
-      newState[ind] = { isComputer, name, colour };
+      const isComputer = action.isComputer || newPlayers[ind].isComputer;
+      const name = action.name || newPlayers[ind].name;
+      const colour = action.colour || newPlayers[ind].colour;
+      newPlayers[ind] = { isComputer, name, colour };
       break;
     case "remove":
-      newState[action.player] = null;
+      newPlayers[action.player] = null;
       break;
     default:
       console.error("playersReducer couldn't recognize action", action);
   }
-  return newState;
+  return newPlayers;
 }
 
-function selectedReducer(state, action) {
-  const newState = [...state];
+function selectedReducer(selected, action) {
+  const newSelected = [...selected];
   switch (action.type) {
     case "click":
-      newState[action.index] = !newState[action.index];
+      newSelected[action.index] = !newSelected[action.index];
       break;
     case "reset":
       return HAND_ALL_UNSELECTED;
     default:
       console.error("selectedReducer couldn't recognize action", action);
   }
-  return newState;
+  return newSelected;
 }
 
 ////// App //////

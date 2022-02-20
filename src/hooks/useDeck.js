@@ -28,16 +28,16 @@ for (let rank in [
 
 //// Reducers
 
-function cardReducer(state, action) {
-  let newState = [...state];
+function cardsReducer(cards, action) {
+  let newCards = [...cards];
   switch (action.type) {
     case "reset":
-      newState = [...allCards];
-      shuffle(newState);
+      newCards = [...allCards];
+      shuffle(newCards);
       break;
 
     case "remove":
-      newState = newState.filter(
+      newCards = newCards.filter(
         ({ rank, suit }) => rank !== action.rank || suit !== action.suit
       );
       break;
@@ -46,7 +46,7 @@ function cardReducer(state, action) {
       console.error("deckReducer no match for action:", action);
       break;
   }
-  return newState;
+  return newCards;
 }
 
 /**
@@ -71,7 +71,7 @@ export function useDeck() {
 
   // the deck
   const [cards, dispatchCards] = useReducer(
-    cardReducer,
+    cardsReducer,
     [...allCards],
     (cards) => {
       shuffle(cards);

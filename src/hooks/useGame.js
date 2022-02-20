@@ -2,24 +2,11 @@ import { useState, useReducer } from "react";
 
 import { useDeck } from "./useDeck.js";
 import { useRound } from "./useRound.js";
+import { useScores } from "./useScores.js";
 
 //// Reducers
 
-const INITIAL_SCORES = [0, 0, 0];
-
-function scoresReducer(state, action) {
-  let newState = [...state];
-  switch (action.type) {
-    case "reset":
-      return INITIAL_SCORES;
-    case "increment":
-      newState[action.player] += action.points;
-      break;
-    default:
-      console.debug("scoresReducer couldn't recognize action", action);
-  }
-  return newState;
-}
+//
 
 export function useGame() {
   // game status: reset, ongoing, over
@@ -34,7 +21,7 @@ export function useGame() {
   const [dealer, setDealer] = useState(0); // TODO: initial dealer (from cut or prev game)
 
   // current scores
-  const [scores, dispatchScores] = useReducer(INITIAL_SCORES, scoresReducer);
+  const scores = useScores();
 
   // the game plays rounds until someone wins
   const round = useRound();
