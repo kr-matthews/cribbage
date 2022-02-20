@@ -5,7 +5,7 @@ import Rank from "./../playing-cards/Rank.js";
 
 //// Constants
 
-let fullDeck = [];
+let allCards = [];
 for (let rank in [
   Rank.ACE,
   Rank.TWO,
@@ -22,23 +22,23 @@ for (let rank in [
   Rank.KING,
 ]) {
   for (let suit in [Suit.CLUB, Suit.DIAMOND, Suit.SPADE, Suit.HEART]) {
-    fullDeck.push({ rank, suit });
+    allCards.push({ rank, suit });
   }
 }
 
 //// Reducers
 
-function deckReducer(state, action) {
+function cardReducer(state, action) {
   let newState = [...state];
   switch (action.type) {
     case "reset":
-      newState = [...fullDeck];
+      newState = [...allCards];
       shuffle(newState);
       break;
 
     case "remove":
-      newState.remove(
-        ({ rank, suit }) => rank === action.rank && suit === action.suit
+      newState = newState.filter(
+        ({ rank, suit }) => rank !== action.rank || suit !== action.suit
       );
       break;
 
@@ -70,7 +70,14 @@ export function useDeck() {
   //// Constants and States
 
   // the deck
-  const [cards, dispatchDeck] = useReducer(fullDeck, deckReducer);
+  const [cards, dispatchCards] = useReducer(
+    cardReducer,
+    [...allCards],
+    (cards) => {
+      shuffle(cards);
+      return cards;
+    }
+  );
   const size = cards.length;
   const isEmpty = size < 1;
 
@@ -78,20 +85,20 @@ export function useDeck() {
 
   function getRandomCard() {
     if (isEmpty) return null;
-    return cards[Math.floor(Math.random() * deckSize)];
+    return cards[Math.floor(Math.random() * size)];
   }
 
   //// Return Functions
 
   function reset() {
-    dispatchDeck({ action: "reset" });
+    dispatchCards({ type: "reset" });
   }
 
   // use to deal
   function drawWithoutReplacement() {
     if (isEmpty) return null;
     let { rank, suit } = getRandomCard();
-    dispatchDeck({ action: "remove", rank, suit });
+    dispatchCards({ type: "remove", rank, suit });
     return { rank, suit };
   }
 
@@ -102,7 +109,6 @@ export function useDeck() {
   //// Return
 
   return {
-    cards,
     size,
     isEmpty,
     reset,
