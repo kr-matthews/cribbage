@@ -49,7 +49,7 @@ export function useScores() {
   //// Return Functions
 
   function peg(player, points) {
-    dispatchScores({ type: "reset", player, points });
+    dispatchScores({ type: "increment", player, points });
   }
 
   function reset() {
