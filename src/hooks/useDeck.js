@@ -37,9 +37,13 @@ function cardsReducer(cards, action) {
       break;
 
     case "remove":
-      newCards = newCards.filter(
-        ({ rank, suit }) => rank !== action.rank || suit !== action.suit
-      );
+      if (
+        newCards.length > 0 &&
+        newCards[newCards.length - 1].rank === action.rank &&
+        newCards[newCards.length - 1].suit === action.suit
+      ) {
+        newCards.pop();
+      }
       break;
 
     default:
@@ -69,7 +73,7 @@ function shuffle(arr) {
 export function useDeck() {
   //// Constants and States
 
-  // the deck
+  // the deck, stored in an array in shuffled order
   const [cards, dispatchCards] = useReducer(
     cardsReducer,
     [...allCards],
@@ -83,10 +87,7 @@ export function useDeck() {
 
   //// Helpers
 
-  function getRandomCard() {
-    if (isEmpty) return null;
-    return cards[Math.floor(Math.random() * size)];
-  }
+  //
 
   //// Return Functions
 
@@ -95,15 +96,11 @@ export function useDeck() {
   }
 
   // use to deal
-  function drawWithoutReplacement() {
+  function draw() {
     if (isEmpty) return null;
-    let { rank, suit } = getRandomCard();
-    dispatchCards({ type: "remove", rank, suit });
-    return { rank, suit };
-  }
-
-  function drawWithReplacement() {
-    return getRandomCard();
+    let card = cards[size - 1];
+    dispatchCards({ type: "remove", suit: card.suit, rank: card.rank });
+    return card;
   }
 
   //// Return
@@ -111,8 +108,7 @@ export function useDeck() {
   return {
     size,
     isEmpty,
+    draw,
     reset,
-    drawWithReplacement,
-    drawWithoutReplacement,
   };
 }

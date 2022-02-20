@@ -1,4 +1,4 @@
-import { render } from "@testing-library/react";
+// import { render } from "@testing-library/react";
 import { renderHook, act } from "@testing-library/react-hooks";
 
 import { useDeck } from "./useDeck.js";
@@ -12,25 +12,12 @@ it("initial state", () => {
   expect(deck.size).toBe(52);
 });
 
-it("draw with replacement", () => {
-  const deck = renderHook(() => useDeck()).result.current;
-
-  let card;
-  act(() => {
-    card = deck.drawWithReplacement();
-  });
-
-  expect(card).toHaveProperty("suit");
-  expect(card).toHaveProperty("rank");
-  expect(deck.size).toBe(52);
-});
-
-it("draw without replacement", () => {
+it("draw (without replacement)", () => {
   const { result } = renderHook(() => useDeck());
 
   let card;
   act(() => {
-    card = result.current.drawWithoutReplacement();
+    card = result.current.draw();
   });
 
   expect(card).toHaveProperty("suit");
@@ -41,15 +28,13 @@ it("draw without replacement", () => {
 it("draw then reset deck", () => {
   const { result } = renderHook(() => useDeck());
 
-  act(() => {
-    result.current.drawWithoutReplacement();
-    result.current.drawWithReplacement();
-    result.current.drawWithReplacement();
-    result.current.drawWithoutReplacement();
-    result.current.drawWithReplacement();
-  });
+  for (let i = 0; i < 5; i++) {
+    act(() => {
+      result.current.draw();
+    });
+  }
 
-  expect(result.current.size).toBe(50);
+  expect(result.current.size).toBe(47);
   expect(result.current.isEmpty).toBe(false);
 
   act(() => result.current.reset());
@@ -63,7 +48,7 @@ it("empty then reset deck", () => {
 
   for (let i = 0; i < 51; i++) {
     act(() => {
-      result.current.drawWithoutReplacement();
+      result.current.draw();
     });
   }
 
@@ -71,7 +56,7 @@ it("empty then reset deck", () => {
   expect(result.current.isEmpty).toBe(false);
 
   act(() => {
-    result.current.drawWithoutReplacement();
+    result.current.draw();
   });
 
   expect(result.current.size).toBe(0);
