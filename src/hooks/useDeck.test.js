@@ -67,3 +67,5 @@ it("empty then reset deck", () => {
   expect(result.current.size).toBe(52);
   expect(result.current.isEmpty).toBe(false);
 });
+
+// TODO: test cut, uncut, iscut

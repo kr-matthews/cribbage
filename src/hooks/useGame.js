@@ -1,4 +1,4 @@
-import { useState, useReducer } from "react";
+import { useState } from "react";
 
 import { useDeck } from "./useDeck.js";
 import { useRound } from "./useRound.js";
@@ -8,23 +8,27 @@ import { useScores } from "./useScores.js";
 
 //
 
-export function useGame() {
+export function useGame(isOwner) {
+  //// Constants and States
+
   // game status: reset, ongoing, over
   //   reset means current players haven't start a game yet
   //   over shows end state of prior game
   const [status, setStatus] = useState("reset");
 
-  // the deck, only used by player 0
-  const deck = useDeck();
-
   // current dealer, via player index
   const [dealer, setDealer] = useState(0); // TODO: initial dealer (from cut or prev game)
+
+  //// Custom Hooks
 
   // current scores
   const scores = useScores();
 
+  // the deck, only used by game owner
+  const deck = useDeck();
+
   // the game plays rounds until someone wins
-  const round = useRound();
+  const round = useRound(deck);
 
   //// Helpers
 

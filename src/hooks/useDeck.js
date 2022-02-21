@@ -1,4 +1,4 @@
-import { useReducer } from "react";
+import { useReducer, useState } from "react";
 
 import Suit from "./../playing-cards/Suit.js";
 import Rank from "./../playing-cards/Rank.js";
@@ -73,6 +73,9 @@ function shuffle(arr) {
 export function useDeck() {
   //// Constants and States
 
+  // is the deck currently split into two 'halves'
+  const [isCut, setIsCut] = useState(false);
+
   // the deck, stored in an array in shuffled order
   const [cards, dispatchCards] = useReducer(
     cardsReducer,
@@ -93,6 +96,7 @@ export function useDeck() {
 
   function reset() {
     dispatchCards({ type: "reset" });
+    setIsCut(false);
   }
 
   // use to deal
@@ -103,12 +107,23 @@ export function useDeck() {
     return card;
   }
 
+  function cut() {
+    setIsCut(true);
+  }
+
+  function uncut() {
+    setIsCut(false);
+  }
+
   //// Return
 
   return {
     size,
     isEmpty,
     draw,
+    isCut,
+    cut,
+    uncut,
     reset,
   };
 }
