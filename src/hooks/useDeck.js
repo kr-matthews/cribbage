@@ -3,10 +3,17 @@ import { useReducer, useState } from "react";
 import Suit from "./../playing-cards/Suit.js";
 import Rank from "./../playing-cards/Rank.js";
 
+/**
+ * Note: To ensure coordination between users, it's important that
+ * everything after initialization/reset is deterministic.
+ * Only randomness is current on init or reset when no explicit deck
+ * is provided, in which case shuffle a sorted deck.
+ */
+
 //// Constants
 
 let allCards = [];
-for (let rank in [
+for (let rank of [
   Rank.ACE,
   Rank.TWO,
   Rank.THREE,
@@ -21,7 +28,7 @@ for (let rank in [
   Rank.QUEEN,
   Rank.KING,
 ]) {
-  for (let suit in [Suit.CLUB, Suit.DIAMOND, Suit.SPADE, Suit.HEART]) {
+  for (let suit of [Suit.CLUB, Suit.DIAMOND, Suit.SPADE, Suit.HEART]) {
     allCards.push({ rank, suit });
   }
 }
@@ -36,14 +43,12 @@ function cardsReducer(cards, action) {
       shuffle(newCards);
       break;
 
+    case "custom":
+      newCards = [...action.cards];
+      break;
+
     case "remove":
-      if (
-        newCards.length > 0 &&
-        newCards[newCards.length - 1].rank === action.rank &&
-        newCards[newCards.length - 1].suit === action.suit
-      ) {
-        newCards.pop();
-      }
+      if (newCards.length > 0) newCards.pop();
       break;
 
     default:
@@ -52,6 +57,8 @@ function cardsReducer(cards, action) {
   }
   return newCards;
 }
+
+//// Helpers
 
 /**
  * Shuffle an array in place.
@@ -70,7 +77,7 @@ function shuffle(arr) {
 
 //// Hook
 
-export function useDeck() {
+export function useDeck(initialCards) {
   //// Constants and States
 
   // is the deck currently split into two 'halves'
@@ -81,6 +88,7 @@ export function useDeck() {
     cardsReducer,
     [...allCards],
     (cards) => {
+      if (initialCards) return initialCards;
       shuffle(cards);
       return cards;
     }
@@ -94,8 +102,18 @@ export function useDeck() {
 
   //// Return Functions
 
-  function reset() {
-    dispatchCards({ type: "reset" });
+  /**
+   * Owners shuffle their own decks on reset.
+   * Non-owners must receive the order of cards from owners on reset.
+   *
+   * @param {Array} cards - Omit if owner.
+   */
+  function reset(cards) {
+    if (cards) {
+      dispatchCards({ type: "custom", cards });
+    } else {
+      dispatchCards({ type: "reset" });
+    }
     setIsCut(false);
   }
 
@@ -103,7 +121,7 @@ export function useDeck() {
   function draw() {
     if (isEmpty) return null;
     let card = cards[size - 1];
-    dispatchCards({ type: "remove", suit: card.suit, rank: card.rank });
+    dispatchCards({ type: "remove" });
     return card;
   }
 
