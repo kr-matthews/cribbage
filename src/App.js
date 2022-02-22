@@ -92,7 +92,7 @@ export default function App() {
   const playerCount = players.length;
 
   // the game
-  const game = useGame(position === 0);
+  const game = useGame(playerCount, position === 0);
   // sound effects (can be muted)
   const soundEffects = useSoundEffects();
   // track game points across multiple games

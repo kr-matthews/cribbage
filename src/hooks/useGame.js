@@ -8,7 +8,7 @@ import { useScores } from "./useScores.js";
 
 //
 
-export function useGame(isOwner) {
+export function useGame(playerCount, isOwner) {
   //// Constants and States
 
   // game status: reset, ongoing, over
@@ -28,7 +28,7 @@ export function useGame(isOwner) {
   const deck = useDeck();
 
   // the game plays rounds until someone wins
-  const round = useRound(deck);
+  const round = useRound(playerCount, dealer, deck);
 
   //// Helpers
 
@@ -50,7 +50,7 @@ export function useGame(isOwner) {
 // send to crib
 // cut
 // flip
-// play (possibly suboptions: play _-of-a-kind, play run-of-_, play 31, play)
+// play (possibly suboptions: play _-of-a-kind, play run-of-_, play 31, play) -- CAN HAVE MUTLTIPLE ( [16,] 5, 4, 6 )
 // go
 // [scoring] 15, pair, run, flush, his nobs, submit points
 // [opp scoring] accept score, claim missed points
