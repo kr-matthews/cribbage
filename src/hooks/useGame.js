@@ -46,12 +46,15 @@ export function useGame(playerCount, isOwner) {
 //// Possible actions:
 // start
 // cut for deal
-// deal
-// send to crib
-// cut
-// flip
-// play (possibly suboptions: play _-of-a-kind, play run-of-_, play 31, play) -- CAN HAVE MUTLTIPLE ( [16,] 5, 4, 6 )
-// go
-// [scoring] 15, pair, run, flush, his nobs, submit points
-// [opp scoring] accept score, claim missed points
-// [claiming] 15, pair, run, flush, his nobs, submit points
+// repeat (a round):
+//  deal
+//  send to crib
+//  cut
+//  flip
+//  play - suboptions: play, for 15, for _-of-a-kind, for a-run-of-_) -- CAN HAVE MUTLTIPLE (ex: 5, 4, 6)
+//  go
+//  [scoring] 15, pair, run, flush, his nobs, submit points
+//  [opp scoring] accept score, claim missed points
+//  [claiming] 15, pair, run, flush, his nobs, submit points
+//  reset
+// new game

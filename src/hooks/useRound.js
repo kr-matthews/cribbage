@@ -37,11 +37,14 @@ function reduceStates(states, action) {
       break;
 
     case "re-hand":
-      // TODO: return cards from piles to hands (and sort)
+      newStates.hands = newStates.piles;
+      newStates.hands.array.forEach((hand) => hand.sort());
+      newStates.piles = [[], [], []];
+      newStates.sharedStack = [];
       break;
 
     case "all-goed":
-      // TODO: reset sharedStack and flip piles
+      newStates.sharedStack = [];
       break;
 
     default:
@@ -118,10 +121,10 @@ export function useRound(playerCount, dealer, deck) {
     INITIAL_STATES
   );
 
-  const stackTotal = sharedStack.reduce(
-    (partialSum, { rank }) => partialSum + rank.points,
-    0
-  );
+  const stackTotal = totalPoints(sharedStack); // sharedStack.reduce(
+  //   (partialSum, { rank }) => partialSum + rank.points,
+  //   0
+  // );
 
   const [starter, setStarter] = useState(null);
 
@@ -133,11 +136,38 @@ export function useRound(playerCount, dealer, deck) {
   // players who have goed since sharedStack last reset
   const [goed, dispatchGoed] = useReducer(reduceGoed, new Set());
 
-  //// Helpers - Getters
+  //// Helpers - Getters & Checkers
 
   // use to get the unique player to play next when applicable
   function getToPlay() {
     return toPlay.values().next.value;
+  }
+
+  function totalPoints(cards) {
+    return cards.reduce((partialSum, { rank }) => partialSum + rank.points, 0);
+  }
+
+  function checkClaim(cards, claim) {
+    switch (claim) {
+      case "15":
+        return totalPoints(cards) === 15;
+
+      case "kind":
+        let { rank, suit } = cards[0];
+        return cards.every((card) => card.rank === rank && card.suit === suit);
+
+      case "run":
+        return cards
+          .map((card) => card.index)
+          .sort()
+          .every(
+            (num, index, nums) => index === 0 || num === nums[index - 1] + 1
+          );
+
+      default:
+        console.log("isValidPlay couldn't match claim:", claim);
+    }
+    return false;
   }
 
   //// Helpers - Actions
@@ -158,10 +188,10 @@ export function useRound(playerCount, dealer, deck) {
 
   // once everyone has submitted to the crib
   useEffect(() => {
-    if (crib.length === 4) {
+    if (stage === "discard" && crib.length === 4) {
       setNextPlay(dealer + 1, "cut");
     }
-  }, [crib.length]);
+  });
 
   // skip players out of cards in play stage, if stage not over
   useEffect(() => {
@@ -172,8 +202,7 @@ export function useRound(playerCount, dealer, deck) {
     ) {
       incrementNextPlay();
     }
-  }, [stage, hands, getToPlay()]);
-  // hands itself won't change as it's a pointer
+  });
 
   // once everyone has goed, reset sharedStack, if stage not over
   useEffect(() => {
@@ -192,8 +221,7 @@ export function useRound(playerCount, dealer, deck) {
       dispatchStates({ type: "re-hand" });
       setNextPlay(dealer + 1, "score");
     }
-  }, [stage, hands[0].length + hands[1].length + hands[2].length]);
-  // hands itself won't change as it's a pointer
+  });
 
   //// Functions
 
@@ -236,9 +264,19 @@ export function useRound(playerCount, dealer, deck) {
     setNextPlay(dealer + 1, "play");
   }
 
-  function isValidPlay(index, claim) {
-    return stackTotal + hands[getToPlay()][index].rank.points <= 31;
-    // TODO: ... and check claim is valid
+  function isValidPlay(index, claim, amount = sharedStack.length + 1) {
+    const card = hands[getToPlay()][index];
+
+    // can't play if it goes over 31
+    if (stackTotal + card.rank.points > 31) return false;
+
+    // can't claim if stack doesn't have enough cards
+    if (sharedStack.length + 1 < amount) return false;
+
+    const cards = [...sharedStack.slice(sharedStack.length - amount), card];
+
+    // now check claim
+    return checkClaim(cards, claim);
   }
 
   function play(index) {
@@ -257,8 +295,11 @@ export function useRound(playerCount, dealer, deck) {
 
   // may check opponent's hand, so need player param (-1 for crib)
   function canScorePoints(player, indices, claim) {
-    let hand = player === -1 ? crib : hands[player];
-    // TODO: check claim is valid
+    let hand = hands[player] || crib;
+    let cards = hand.filter((_, index) => indices.includes(index));
+    if (indices.includes(6)) cards.push(starter);
+
+    checkClaim(cards, claim);
   }
 
   function scoreHand() {
@@ -303,5 +344,3 @@ export function useRound(playerCount, dealer, deck) {
     reset,
   };
 }
-
-// TODO: NEXT: continue useRound
