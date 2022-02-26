@@ -17,8 +17,8 @@ import Links from "./links/Links.js";
 import "./game-components/gameComponents.css";
 import "./playing-cards/playingCards.css";
 
-import Rank from "./playing-cards/Rank.js"; // 2x TEMP: for PlayArea temp params
-import Suit from "./playing-cards/Suit.js";
+// import Rank from "./playing-cards/Rank.js"; // 2x TEMP: for PlayArea temp params
+// import Suit from "./playing-cards/Suit.js";
 
 //// Constants
 
@@ -121,7 +121,7 @@ export default function App() {
       <ScoreBoard
         gamePoints={gamePoints}
         currentScores={game.currentScores}
-        priorScores={game.priorScores}
+        priorScores={game.previousScores}
       />
       <Header
         hideEmptyColumns={HIDE_EMPTY_COLUMNS}
@@ -142,28 +142,46 @@ export default function App() {
       />
       <Hands
         hideEmptyColumns={HIDE_EMPTY_COLUMNS}
-        crib={crib} // FIX
-        hands={[hand1, hand2]} // FIX
-        activePosition={1} // FIX
+        crib={game.crib}
+        hands={game.hands}
+        activePosition={[...game.toPlay][0]} // FIX
         selectedCards={selected}
         clickCardHandler={(index) => dispatchSelected({ type: "click", index })} // TODO: only when clickable
       />
       <PlayArea
         hideEmptyColumns={HIDE_EMPTY_COLUMNS}
-        deckSize={52 - 13} //game.deckSize}
-        isDeckCut={false} //game.isDeckCut}
-        starter={{ rank: Rank.QUEEN, suit: Suit.DIAMOND, faceUp: false }} //game.starter}
+        deckSize={game.size}
+        isDeckCut={game.isDeckCut}
+        starter={game.starter}
         isStarterSelected={selected[6]}
-        clickDeckHandler={() => dispatchSelected({ type: "click", index: 6 })} // TODO: sometimes this might cut or flip, not just select
-        playStacks={[stack1, stack2]} // game.playStacks}
+        clickDeckHandler={() => dispatchSelected({ type: "click", index: 6 })} // TODO: only when clickable
+        playStacks={game.piles} // TODO: rename to piles
       />
       <Actions
         waiting={false} // ={game.nextToAct !== position}
         // nextToAct={game.nextToAct !== null && players[game.nextToAct].name}
         nextAction={game.nextAction}
-        labels={["Accept Score", "Claim Missed Points"]} // FIX
-        actions={[() => console.log("next action"), null]} // FIX
-        enabled={[true, true]} // FIX
+        labels={["Deal", "To Crib", "Cut", "Flip", "Play", "Go"]} // TEMP
+        actions={[
+          game.deal,
+          () => {
+            game.sendToCrib(
+              [...game.toPlay][0],
+              selected
+                .map((bool, index) => (bool ? index : null))
+                .filter((index) => index !== null)
+            );
+            dispatchSelected({ type: "reset" });
+          },
+          game.cut,
+          game.flip,
+          () => {
+            game.play(selected.findIndex((bool) => bool));
+            dispatchSelected({ type: "reset" });
+          },
+          game.go,
+        ]} // TEMP
+        enabled={[true, true, true, true, true, true, true, true, true, true]} // TEMP
       />
       <PlayHistory messages={messages} />
       <Links
@@ -173,30 +191,6 @@ export default function App() {
     </div>
   );
 }
-
-// TEMP: consts for temp params
-const stack1 = [{ rank: Rank.THREE, suit: Suit.CLUB, faceUp: true }];
-const stack2 = [
-  { rank: Rank.FIVE, suit: Suit.CLUB, faceUp: true },
-  { rank: Rank.JACK, suit: Suit.DIAMOND, faceUp: true },
-];
-
-const hand1 = [
-  { rank: Rank.ACE, suit: Suit.HEART, faceUp: false },
-  { rank: Rank.TWO, suit: Suit.DIAMOND, faceUp: false },
-  { rank: Rank.TWO, suit: Suit.HEART, faceUp: false },
-];
-const hand2 = [
-  { rank: Rank.FOUR, suit: Suit.SPADE, faceUp: true },
-  { rank: Rank.KING, suit: Suit.HEART, faceUp: true },
-];
-
-const crib = [
-  { faceUp: false },
-  { faceUp: false },
-  { faceUp: false },
-  { faceUp: false },
-];
 
 const messages = [
   {

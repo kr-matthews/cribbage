@@ -40,7 +40,28 @@ export function useGame(playerCount, isOwner) {
 
   //// Return
 
-  return { status, dealer, scores };
+  return {
+    status,
+    dealer,
+    // score
+    currentScores: scores.current,
+    previousScores: scores.previous,
+    // deck
+    deckSize: deck.size,
+    isDeckCut: deck.isCut,
+    // round
+    toPlay: round.toPlay,
+    deal: round.deal,
+    sendToCrib: round.sendToCrib,
+    cut: round.cut,
+    flip: round.flip,
+    play: round.play,
+    go: round.go,
+    crib: round.crib,
+    hands: round.hands,
+    piles: round.piles,
+    starter: round.starter,
+  };
 }
 
 //// Possible actions:

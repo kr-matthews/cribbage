@@ -9,10 +9,24 @@ const INITIAL_STATES = {
   sharedStack: [],
 };
 
+//// Helpers
+
+function cardSorter(card1, card2) {
+  return (
+    card1.rank.index - card2.rank.index || card1.suit.index - card2.suit.index
+  );
+}
+
 //// Reducers
 
 function reduceStates(states, action) {
-  let newStates = [...states];
+  // want to create new state, not alter existing state, so make copies of all changing pieces
+  let newStates = {
+    crib: [...states.crib],
+    hands: [[...states.hands[0]], [...states.hands[1]], [...states.hands[2]]],
+    piles: [[...states.piles[0]], [...states.piles[1]], [...states.piles[2]]],
+    sharedStack: [...states.sharedStack],
+  };
   switch (action.type) {
     case "reset":
       newStates = INITIAL_STATES;
@@ -20,6 +34,7 @@ function reduceStates(states, action) {
 
     case "deal-player":
       newStates.hands[action.player].push(action.card);
+      newStates.hands[action.player].sort(cardSorter);
       break;
 
     case "deal-crib":
@@ -27,18 +42,20 @@ function reduceStates(states, action) {
       break;
 
     case "discard":
-      newStates.crib.push(states.hands[action.player].splice(action.index, 1));
+      let card = newStates.hands[action.player].splice(action.index, 1)[0];
+      newStates.crib.push(card);
+      newStates.crib.sort(cardSorter);
       break;
 
     case "play":
       newStates.piles[action.player].push(
-        newStates.hands[action.player].splice(action.index, 1)
+        newStates.hands[action.player].splice(action.index, 1)[0]
       );
       break;
 
     case "re-hand":
       newStates.hands = newStates.piles;
-      newStates.hands.array.forEach((hand) => hand.sort());
+      newStates.hands.forEach((hand) => hand.sort(cardSorter));
       newStates.piles = [[], [], []];
       newStates.sharedStack = [];
       break;
@@ -55,9 +72,12 @@ function reduceStates(states, action) {
 }
 
 function reduceNextPlay(nextPlay, action) {
-  let newNextPlay = { ...nextPlay };
+  let newNextPlay = {
+    toPlay: new Set(nextPlay.toPlay),
+    stage: nextPlay.stage,
+  };
   switch (action.type) {
-    case "add":
+    case "add": // unused
       newNextPlay.toPlay.add(action.player);
       break;
 
@@ -73,9 +93,9 @@ function reduceNextPlay(nextPlay, action) {
       break;
 
     case "next":
-      if (nextPlay.size === 1) {
-        newNextPlay = new Set([
-          newNextPlay.toPlay.values().next().value % action.playerCount,
+      if (newNextPlay.toPlay.size === 1) {
+        newNextPlay.toPlay = new Set([
+          ([...newNextPlay.toPlay][0] + 1) % action.playerCount,
         ]);
       }
       action.stage && (newNextPlay.stage = action.stage);
@@ -94,14 +114,17 @@ function reduceNextPlay(nextPlay, action) {
   return newNextPlay;
 }
 
+// TODO: NEXT: fix goed (set might be wrong, and might not be skiping goeds at all)
 function reduceGoed(goed, action) {
-  let newGoed = new Set(...goed);
+  console.debug("before", goed.size); // TEMP
+  let newGoed = new Set(goed);
   switch (action.type) {
     case "reset":
       newGoed = new Set();
       break;
 
     case "add":
+      console.debug("adding", action.player);
       newGoed.add(action.player);
       break;
 
@@ -109,6 +132,8 @@ function reduceGoed(goed, action) {
       console.error("reduceGoed couldn't match action:", action);
       break;
   }
+  console.debug("after", goed.size); // TEMP
+  return newGoed;
 }
 
 //// Hook
@@ -130,8 +155,28 @@ export function useRound(playerCount, dealer, deck) {
 
   const [{ toPlay, stage }, dispatchNextPlay] = useReducer(reduceNextPlay, {
     toPlay: new Set([dealer]),
-    stage: "deal",
+    stage: "reset",
   });
+
+  // who to deal to next
+  const dealTo =
+    playerCount === 2
+      ? // 2 players
+        hands[0].length + hands[1].length === 12
+        ? null
+        : hands[0].length > hands[1].length
+        ? 1
+        : 0
+      : // 3 players
+      crib.length === 1
+      ? null
+      : hands[0].length + hands[1].length + hands[2].length === 15
+      ? -1
+      : hands[0].length > hands[1].length
+      ? 1
+      : hands[1].length > hands[2].length
+      ? 2
+      : 0;
 
   // players who have goed since sharedStack last reset
   const [goed, dispatchGoed] = useReducer(reduceGoed, new Set());
@@ -140,7 +185,7 @@ export function useRound(playerCount, dealer, deck) {
 
   // use to get the unique player to play next when applicable
   function getToPlay() {
-    return toPlay.values().next.value;
+    return [...toPlay][0];
   }
 
   function totalPoints(cards) {
@@ -186,6 +231,24 @@ export function useRound(playerCount, dealer, deck) {
 
   //// Effects
 
+  // deal - TODO: NEXT: NEXT: revert to function?
+  useEffect(() => {
+    if (stage === "deal") {
+      if (dealTo === null) {
+        // stop dealing
+        allToPlay("discard");
+      } else if (dealTo === -1) {
+        // deal to crib
+        let card = deck.draw(1)[0];
+        dispatchStates({ type: "deal-crib", card });
+      } else {
+        // deal to next player
+        let card = deck.draw(1)[0];
+        dispatchStates({ type: "deal-player", player: dealTo, card });
+      }
+    }
+  });
+
   // once everyone has submitted to the crib
   useEffect(() => {
     if (stage === "discard" && crib.length === 4) {
@@ -225,22 +288,26 @@ export function useRound(playerCount, dealer, deck) {
 
   //// Functions
 
-  function deal(playerCount) {
-    const amountToDeal = playerCount === 2 ? 6 : 5;
+  function deal() {
+    // const amountToDeal = playerCount === 2 ? 6 : 5;
 
-    for (let index = 0; index < amountToDeal; index++) {
-      for (let player = 0; player < playerCount; player++) {
-        let card = deck.draw();
-        dispatchStates({ type: "deal-player", player, card });
-      }
-    }
+    // for (let index = 0; index < amountToDeal; index++) {
+    //   for (let player = 0; player < playerCount; player++) {
+    //     let card = deck.draw(1)[0];
+    //     console.debug(
+    //       `Drew ${card.rank.symbol} of ${card.suit.name}s for ${player}`
+    //     ); // TEMP
+    //     dispatchStates({ type: "deal-player", player, card });
+    //   }
+    // }
 
-    if (playerCount === 3) {
-      let card = deck.draw();
-      dispatchStates({ type: "deal-crib", card });
-    }
+    // if (playerCount === 3) {
+    //   let card = deck.draw(1)[0];
+    //   console.debug(`Drew ${card.rank.symbol} of ${card.suit.name} for crib`); // TEMP
+    //   dispatchStates({ type: "deal-crib", card });
+    // }
 
-    allToPlay("discard");
+    setNextPlay(dealer, "deal");
   }
 
   function sendToCrib(player, indices) {
@@ -259,7 +326,7 @@ export function useRound(playerCount, dealer, deck) {
   }
 
   function flip() {
-    setStarter(deck.draw());
+    setStarter(deck.draw(1)[0]);
     deck.uncut();
     setNextPlay(dealer + 1, "play");
   }
@@ -290,7 +357,6 @@ export function useRound(playerCount, dealer, deck) {
 
   function go() {
     dispatchGoed({ type: "add", player: getToPlay() });
-    incrementNextPlay();
   }
 
   // may check opponent's hand, so need player param (-1 for crib)
