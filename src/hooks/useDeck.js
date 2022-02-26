@@ -12,6 +12,8 @@ import Rank from "./../playing-cards/Rank.js";
 
 //// Constants
 
+// TODO: export from file in /playing-cards
+
 let allCards = [];
 for (let rank of [
   Rank.ACE,
@@ -29,7 +31,7 @@ for (let rank of [
   Rank.KING,
 ]) {
   for (let suit of [Suit.CLUB, Suit.DIAMOND, Suit.SPADE, Suit.HEART]) {
-    allCards.push({ rank, suit });
+    allCards.push({ rank, suit, faceUp: true }); // TEMP: face up
   }
 }
 
@@ -48,7 +50,9 @@ function cardsReducer(cards, action) {
       break;
 
     case "remove":
-      if (newCards.length > 0) newCards.pop();
+      let size = newCards.length;
+      let count = action.count;
+      if (size >= action.count) newCards.splice(size - count, count);
       break;
 
     default:
@@ -118,11 +122,11 @@ export function useDeck(initialCards) {
   }
 
   // use to deal
-  function draw() {
-    if (isEmpty) return null;
-    let card = cards[size - 1];
-    dispatchCards({ type: "remove" });
-    return card;
+  function draw(count) {
+    if (size < count) return null;
+    let drawn = cards.slice(size - count);
+    dispatchCards({ type: "remove", count });
+    return drawn;
   }
 
   function cut() {

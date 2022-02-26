@@ -52,13 +52,25 @@ it("draw (without replacement) from random", () => {
   const { result } = renderHook(() => useDeck());
 
   let card;
+  let cards;
   act(() => {
-    card = result.current.draw();
+    card = result.current.draw(1)[0];
   });
 
   expect(card.suit).toHaveProperty("name");
   expect(card.rank).toHaveProperty("symbol");
   expect(result.current.size).toBe(51);
+  expect(result.current.isCut).toBe(false);
+
+  act(() => {
+    cards = result.current.draw(4);
+    card = cards[3];
+  });
+
+  expect(cards).toHaveLength(4);
+  expect(card.suit).toHaveProperty("name");
+  expect(card.rank).toHaveProperty("symbol");
+  expect(result.current.size).toBe(47);
   expect(result.current.isCut).toBe(false);
 });
 
@@ -66,13 +78,25 @@ it("draw (without replacement) from specific", () => {
   const { result } = renderHook(() => useDeck([...pseudoShuffledCards]));
 
   let card;
+  let cards;
   act(() => {
-    card = result.current.draw();
+    card = result.current.draw(1)[0];
   });
 
   expect(card.suit).toBe(Suit.HEART);
   expect(card.rank).toBe(Rank.FIVE);
   expect(result.current.size).toBe(51);
+  expect(result.current.isCut).toBe(false);
+
+  act(() => {
+    cards = result.current.draw(4);
+    card = cards[3];
+  });
+
+  expect(cards).toHaveLength(4);
+  expect(card.suit).toBe(Suit.SPADE);
+  expect(card.rank).toBe(Rank.FIVE);
+  expect(result.current.size).toBe(47);
   expect(result.current.isCut).toBe(false);
 });
 
@@ -81,7 +105,7 @@ it("draw then reset deck, unspecified", () => {
 
   for (let i = 0; i < 5; i++) {
     act(() => {
-      result.current.draw();
+      result.current.draw(1)[0];
     });
   }
 
@@ -101,7 +125,7 @@ it("draw then reset deck, specified", () => {
 
   for (let i = 0; i < 5; i++) {
     act(() => {
-      result.current.draw();
+      result.current.draw(1)[0];
     });
   }
 
@@ -119,18 +143,21 @@ it("draw then reset deck, specified", () => {
 it("empty then reset deck, unspecified", () => {
   const { result } = renderHook(() => useDeck());
 
-  for (let i = 0; i < 51; i++) {
+  for (let i = 0; i < 3; i++) {
     act(() => {
-      result.current.draw();
+      result.current.draw(13);
     });
   }
+  act(() => {
+    result.current.draw(12);
+  });
 
   expect(result.current.size).toBe(1);
   expect(result.current.isEmpty).toBe(false);
   expect(result.current.isCut).toBe(false);
 
   act(() => {
-    result.current.draw();
+    result.current.draw(1);
   });
 
   expect(result.current.size).toBe(0);
@@ -147,11 +174,14 @@ it("empty then reset deck, unspecified", () => {
 it("empty then reset deck, unspecified", () => {
   const { result } = renderHook(() => useDeck([...pseudoShuffledCards]));
 
-  for (let i = 0; i < 51; i++) {
+  for (let i = 0; i < 3; i++) {
     act(() => {
-      result.current.draw();
+      result.current.draw(13);
     });
   }
+  act(() => {
+    result.current.draw(12);
+  });
 
   expect(result.current.size).toBe(1);
   expect(result.current.isEmpty).toBe(false);
@@ -159,7 +189,7 @@ it("empty then reset deck, unspecified", () => {
 
   let card;
   act(() => {
-    card = result.current.draw();
+    card = result.current.draw(1)[0];
   });
 
   expect(result.current.size).toBe(0);
@@ -200,7 +230,7 @@ it("cut and draw", () => {
 
   let card;
   act(() => {
-    card = result.current.draw();
+    card = result.current.draw(1)[0];
   });
 
   expect(result.current.isCut).toBe(true);
