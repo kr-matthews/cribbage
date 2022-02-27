@@ -48,9 +48,12 @@ function reduceStates(states, action) {
       break;
 
     case "play":
-      newStates.piles[action.player].push(
-        newStates.hands[action.player].splice(action.index, 1)[0]
-      );
+      let playedCard = newStates.hands[action.player].splice(
+        action.index,
+        1
+      )[0];
+      newStates.piles[action.player].push(playedCard);
+      newStates.sharedStack.push(playedCard);
       break;
 
     case "re-hand":
@@ -151,7 +154,7 @@ export function useRound(playerCount, dealer, deck) {
 
   const [{ toPlay, stage }, dispatchNextPlay] = useReducer(reduceNextPlay, {
     toPlay: new Set([dealer]),
-    stage: "initial",
+    stage: "deal",
   });
 
   // who to deal to next
@@ -199,16 +202,22 @@ export function useRound(playerCount, dealer, deck) {
         return totalPoints(cards) === 15;
 
       case "kind":
-        let { rank, suit } = cards[0];
-        return cards.every((card) => card.rank === rank && card.suit === suit);
+        let rankIndex = cards[0].rank.index;
+        return (
+          cards.length >= 2 &&
+          cards.every((card) => card.rank.index === rankIndex)
+        );
 
       case "run":
-        return cards
-          .map((card) => card.index)
-          .sort()
-          .every(
-            (num, index, nums) => index === 0 || num === nums[index - 1] + 1
-          );
+        return (
+          cards.length >= 3 &&
+          cards
+            .map((card) => card.index)
+            .sort()
+            .every(
+              (num, index, nums) => index === 0 || num === nums[index - 1] + 1
+            )
+        );
 
       default:
         console.log("isValidPlay couldn't match claim:", claim);
@@ -234,7 +243,7 @@ export function useRound(playerCount, dealer, deck) {
 
   // deal - TODO: NEXT: revert to function?
   useEffect(() => {
-    if (stage === "deal") {
+    if (stage === "dealing") {
       if (dealTo === null) {
         // stop dealing
         allToPlay("discard");
@@ -263,6 +272,9 @@ export function useRound(playerCount, dealer, deck) {
       incrementNextPlay();
     }
   });
+
+  // inactive everyone at 31
+  // TODO: NEXT: auto-go at 31
 
   // once everyone is inactive, reset sharedStack, if stage not over
   useEffect(() => {
@@ -301,7 +313,7 @@ export function useRound(playerCount, dealer, deck) {
     //   dispatchStates({ type: "deal-crib", card });
     // }
 
-    setNextPlay(dealer, "deal");
+    setNextPlay(dealer, "dealing");
   }
 
   function sendToCrib(player, indices) {
@@ -331,10 +343,13 @@ export function useRound(playerCount, dealer, deck) {
     // can't play if it goes over 31
     if (stackTotal + card.rank.points > 31) return false;
 
+    // if no claim (for points) then it's good
+    if (!claim) return true;
+
     // can't claim if stack doesn't have enough cards
     if (sharedStack.length + 1 < amount) return false;
 
-    const cards = [...sharedStack.slice(sharedStack.length - amount), card];
+    const cards = [...sharedStack.slice(sharedStack.length - amount - 1), card];
 
     // now check claim
     return checkClaim(cards, claim);
@@ -346,7 +361,9 @@ export function useRound(playerCount, dealer, deck) {
   }
 
   function isValidGo() {
-    hands[getToPlay].every(({ rank }) => stackTotal + rank.points > 31);
+    return hands[getToPlay()].every(
+      ({ rank }) => stackTotal + rank.points > 31
+    );
   }
 
   function go() {
@@ -379,7 +396,7 @@ export function useRound(playerCount, dealer, deck) {
     dispatchStates({ type: "reset" });
     setStarter(null);
     deck.reset(cards);
-    setNextPlay(dealer, "initial");
+    setNextPlay(dealer, "deal");
   }
 
   //// Return

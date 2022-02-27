@@ -17,9 +17,6 @@ import Links from "./links/Links.js";
 import "./game-components/gameComponents.css";
 import "./playing-cards/playingCards.css";
 
-// import Rank from "./playing-cards/Rank.js"; // 2x TEMP: for PlayArea temp params
-// import Suit from "./playing-cards/Suit.js";
-
 //// Constants
 
 // always use four columns
@@ -112,7 +109,6 @@ export default function App() {
 
   //// Return
 
-  // TEMP: params for components
   return (
     // TEMP: WIP note
     <div className="app">
@@ -128,7 +124,7 @@ export default function App() {
         userName={userName}
         updateUserName={trySetUserName}
         userPosition={position}
-        dealerPosition={0} // FIX
+        dealerPosition={0} // TEMP
         mode={network.mode}
         isSoundOn={soundEffects.isOn}
         toggleSound={soundEffects.toggle}
@@ -138,13 +134,13 @@ export default function App() {
         leave={network.leave}
         players={players}
         colours={colours}
-        scores={[46, 67, 80]} // FIX
+        scores={[46, 67, 80]} // TEMP
       />
       <Hands
         hideEmptyColumns={HIDE_EMPTY_COLUMNS}
         crib={game.crib}
         hands={game.hands}
-        activePosition={[...game.toPlay][0]} // FIX
+        activePosition={[...game.toPlay][0]} // TEMP
         selectedCards={selected}
         clickCardHandler={(index) => dispatchSelected({ type: "click", index })} // TODO: only when clickable
       />
@@ -158,7 +154,7 @@ export default function App() {
         playStacks={game.piles} // TODO: rename to piles
       />
       <Actions
-        waiting={false} // ={game.nextToAct !== position}
+        waiting={false} // ={game.nextToAct !== position} TEMP
         // nextToAct={game.nextToAct !== null && players[game.nextToAct].name}
         nextAction={game.nextAction}
         labels={["Deal", "To Crib", "Cut", "Flip", "Play", "Go", "Reset"]} // TEMP
@@ -176,14 +172,26 @@ export default function App() {
           game.cut,
           game.flip,
           () => {
-            game.play(selected.findIndex((bool) => bool));
+            let index = selected.findIndex((bool) => bool);
+            if (game.isValidPlay(index)) {
+              game.play(index);
+            } else {
+              console.info("invalid play");
+            }
             dispatchSelected({ type: "reset" });
           },
-          game.go,
+          () => {
+            if (game.isValidGo()) {
+              game.go();
+            } else {
+              console.info("invalid go");
+            }
+          },
           () => game.resetRound(),
         ]} // TEMP
-        enabled={[true, true, true, true, true, true, true, true, true, true]} // TEMP
+        enabled={Array(20).fill(true)} // TEMP
       />
+      Round stage: player {game.toPlay} to {game.roundStage} // TEMP
       <PlayHistory messages={messages} />
       <Links
         gitHubLink="https://github.com/kr-matthews/cribbage"
