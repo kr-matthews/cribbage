@@ -57,6 +57,7 @@ export function useGame(playerCount, isOwner) {
     flip: round.flip,
     play: round.play,
     go: round.go,
+    resetRound: round.reset,
     crib: round.crib,
     hands: round.hands,
     piles: round.piles,

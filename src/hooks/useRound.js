@@ -114,9 +114,7 @@ function reduceNextPlay(nextPlay, action) {
   return newNextPlay;
 }
 
-// TODO: NEXT: fix goed (set might be wrong, and might not be skiping goeds at all)
 function reduceGoed(goed, action) {
-  console.debug("before", goed.size); // TEMP
   let newGoed = new Set(goed);
   switch (action.type) {
     case "reset":
@@ -124,7 +122,6 @@ function reduceGoed(goed, action) {
       break;
 
     case "add":
-      console.debug("adding", action.player);
       newGoed.add(action.player);
       break;
 
@@ -132,7 +129,6 @@ function reduceGoed(goed, action) {
       console.error("reduceGoed couldn't match action:", action);
       break;
   }
-  console.debug("after", goed.size); // TEMP
   return newGoed;
 }
 
@@ -155,7 +151,7 @@ export function useRound(playerCount, dealer, deck) {
 
   const [{ toPlay, stage }, dispatchNextPlay] = useReducer(reduceNextPlay, {
     toPlay: new Set([dealer]),
-    stage: "reset",
+    stage: "initial",
   });
 
   // who to deal to next
@@ -180,6 +176,11 @@ export function useRound(playerCount, dealer, deck) {
 
   // players who have goed since sharedStack last reset
   const [goed, dispatchGoed] = useReducer(reduceGoed, new Set());
+
+  // player is active in "play" stage if has cards and hasn't goed
+  const inactive = Array(playerCount)
+    .fill(null)
+    .map((_, player) => goed.has(player) || hands[player].length === 0);
 
   //// Helpers - Getters & Checkers
 
@@ -231,7 +232,7 @@ export function useRound(playerCount, dealer, deck) {
 
   //// Effects
 
-  // deal - TODO: NEXT: NEXT: revert to function?
+  // deal - TODO: NEXT: revert to function?
   useEffect(() => {
     if (stage === "deal") {
       if (dealTo === null) {
@@ -256,33 +257,26 @@ export function useRound(playerCount, dealer, deck) {
     }
   });
 
-  // skip players out of cards in play stage, if stage not over
+  // skip players who are inactive (if there are still active players)
   useEffect(() => {
-    if (
-      stage === "play" &&
-      hands[getToPlay()].length === 0 &&
-      hands[0].length + hands[1].length + hands[2].length > 0
-    ) {
+    if (stage === "play" && inactive[getToPlay()] && inactive.includes(false)) {
       incrementNextPlay();
     }
   });
 
-  // once everyone has goed, reset sharedStack, if stage not over
+  // once everyone is inactive, reset sharedStack, if stage not over
   useEffect(() => {
-    if (stage === "play" && goed.size === playerCount) {
+    if (stage === "play" && inactive.every((bool) => bool)) {
       dispatchGoed({ type: "reset" });
       dispatchStates({ type: "all-goed" });
     }
-  }, [stage, playerCount, goed.size]);
+  }, [stage, playerCount, goed.size, inactive]);
 
   // once all cards have been played in play stage
   useEffect(() => {
-    if (
-      stage === "play" &&
-      hands[0].length + hands[1].length + hands[2].length === 0
-    ) {
+    if (stage === "play" && hands.every((hand) => hand.length === 0)) {
       dispatchStates({ type: "re-hand" });
-      setNextPlay(dealer + 1, "score");
+      setNextPlay(dealer + 1, "post-play");
     }
   });
 
@@ -311,7 +305,7 @@ export function useRound(playerCount, dealer, deck) {
   }
 
   function sendToCrib(player, indices) {
-    // move cards in desc order so indices don't get changed mid-move
+    // move cards in desc order so indices don't get changed as we go
     const descIndices = indices.sort().reverse();
     for (let index of descIndices) {
       dispatchStates({ type: "discard", player, index });
@@ -357,6 +351,7 @@ export function useRound(playerCount, dealer, deck) {
 
   function go() {
     dispatchGoed({ type: "add", player: getToPlay() });
+    incrementNextPlay();
   }
 
   // may check opponent's hand, so need player param (-1 for crib)
@@ -369,7 +364,7 @@ export function useRound(playerCount, dealer, deck) {
   }
 
   function scoreHand() {
-    if (toPlay === dealer) {
+    if (getToPlay() === dealer) {
       setNextPlay(dealer, "crib");
     } else {
       incrementNextPlay();
@@ -377,14 +372,14 @@ export function useRound(playerCount, dealer, deck) {
   }
 
   function scoreCrib() {
-    setNextPlay(dealer + 1, "done"); // TODO: confirm dealer + 1
+    setNextPlay(null, "done");
   }
 
   function reset(cards) {
     dispatchStates({ type: "reset" });
     setStarter(null);
     deck.reset(cards);
-    setNextPlay(dealer, "deal");
+    setNextPlay(dealer, "initial");
   }
 
   //// Return

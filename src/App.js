@@ -161,7 +161,7 @@ export default function App() {
         waiting={false} // ={game.nextToAct !== position}
         // nextToAct={game.nextToAct !== null && players[game.nextToAct].name}
         nextAction={game.nextAction}
-        labels={["Deal", "To Crib", "Cut", "Flip", "Play", "Go"]} // TEMP
+        labels={["Deal", "To Crib", "Cut", "Flip", "Play", "Go", "Reset"]} // TEMP
         actions={[
           game.deal,
           () => {
@@ -180,6 +180,7 @@ export default function App() {
             dispatchSelected({ type: "reset" });
           },
           game.go,
+          () => game.resetRound(),
         ]} // TEMP
         enabled={[true, true, true, true, true, true, true, true, true, true]} // TEMP
       />
