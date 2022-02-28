@@ -386,6 +386,10 @@ it("full play stage", () => {
 
   // start new 'sub-play' with 2
   expect(result.current.toPlay).toStrictEqual(new Set([2]));
+  expect(result.current.stage).toBe("proceed-to-next-play");
+  act(() => result.current.proceed());
+  expect(result.current.stage).toBe("play");
+
   // 2 plays J: J -> 10
   expect(result.current.isValidGo()).toBe(false);
   expect(result.current.isValidPlay(2)).toBe(true);
@@ -446,7 +450,12 @@ it("full play stage", () => {
     2, 3, 3,
   ]);
 
-  // play remaning cards
+  // 0 restarts
+  expect(result.current.stage).toBe("proceed-to-next-play");
+  act(() => result.current.proceed());
+  expect(result.current.stage).toBe("play");
+
+  // play remaining cards
   expect(result.current.isValidPlay(0)).toBe(true);
   act(() => result.current.play(0));
   expect(result.current.isValidPlay(0)).toBe(true);
@@ -457,8 +466,100 @@ it("full play stage", () => {
   expect(result.current.isValidPlay(0)).toBe(true);
   act(() => result.current.play(0));
 
-  expect(result.current.stage).toBe("post-play");
+  expect(result.current.stage).toBe("proceed-to-scoring");
   expect(result.current.toPlay).toStrictEqual(new Set([0]));
+});
+
+it("score first hand", () => {
+  act(() => result.current.deal());
+  act(() => result.current.sendToCrib(1, [4]));
+  act(() => result.current.sendToCrib(0, [3]));
+  act(() => result.current.sendToCrib(2, [2]));
+  act(() => result.current.cut());
+  act(() => result.current.flip());
+  // 0 plays K: K -> 10
+  act(() => result.current.play(3));
+  // 1 plays J: K, J -> 20
+  act(() => result.current.play(3));
+  // 2 plays Q: K, J, Q -> 30
+  act(() => result.current.play(3));
+  // 0 can't play
+  act(() => result.current.go());
+  // 1 must play A -> 31
+  act(() => result.current.play(0));
+  // start new 'sub-play' with 2
+  act(() => result.current.proceed());
+  // 2 plays J: J -> 10
+  act(() => result.current.play(2));
+  // 0 plays 5 for 15: J, 5 -> 15
+  act(() => result.current.play(1));
+  // 1 plays 10: J, 5, 10 -> 25
+  act(() => result.current.play(1));
+  // 2 must play 5: J, 5, 10, 5 -> 30
+  act(() => result.current.play(0));
+  // 0, 1, 2 must go
+  act(() => result.current.go());
+  act(() => result.current.go());
+  act(() => result.current.go());
+  // play remaning cards
+  act(() => result.current.proceed());
+  act(() => result.current.play(0));
+  act(() => result.current.play(0));
+  act(() => result.current.play(0));
+  act(() => result.current.play(0));
+
+  expect(result.current.stage).toBe("proceed-to-scoring");
+  expect(result.current.toPlay).toStrictEqual(new Set([0]));
+
+  // current hands/crib
+  expect(result.current.hands[0]).toStrictEqual([
+    { rank: Rank.THREE, suit: Suit.HEART },
+    { rank: Rank.FIVE, suit: Suit.CLUB },
+    { rank: Rank.FIVE, suit: Suit.HEART },
+    { rank: Rank.KING, suit: Suit.CLUB },
+  ]);
+  expect(result.current.hands[1]).toStrictEqual([
+    { rank: Rank.ACE, suit: Suit.DIAMOND },
+    { rank: Rank.TWO, suit: Suit.HEART },
+    { rank: Rank.TEN, suit: Suit.SPADE },
+    { rank: Rank.JACK, suit: Suit.CLUB },
+  ]);
+  expect(result.current.hands[2]).toStrictEqual([
+    { rank: Rank.FIVE, suit: Suit.SPADE },
+    { rank: Rank.NINE, suit: Suit.HEART },
+    { rank: Rank.JACK, suit: Suit.HEART },
+    { rank: Rank.QUEEN, suit: Suit.DIAMOND },
+  ]);
+  expect(result.current.crib).toStrictEqual([
+    { rank: Rank.FIVE, suit: Suit.DIAMOND },
+    { rank: Rank.SIX, suit: Suit.SPADE },
+    { rank: Rank.JACK, suit: Suit.DIAMOND },
+    { rank: Rank.QUEEN, suit: Suit.HEART },
+  ]);
+  expect(result.current.starter).toStrictEqual({
+    rank: Rank.TEN,
+    suit: Suit.DIAMOND,
+  });
+
+  // try scoring hand 2
+  expect(result.current.canScorePoints(2, [], "15")).toBe(false); // TODO
+  expect(result.current.canScorePoints(2, [], "15")).toBe(false);
+  expect(result.current.canScorePoints(2, [], "15")).toBe(false);
+  expect(result.current.canScorePoints(2, [], "15")).toBe(false);
+  expect(result.current.canScorePoints(2, [], "run")).toBe(false);
+  expect(result.current.canScorePoints(2, [], "run")).toBe(false);
+  expect(result.current.canScorePoints(2, [], "run")).toBe(false);
+  expect(result.current.canScorePoints(2, [], "run")).toBe(false);
+  expect(result.current.canScorePoints(2, [], "kind")).toBe(false);
+  expect(result.current.canScorePoints(2, [], "kind")).toBe(false);
+  expect(result.current.canScorePoints(2, [], "kind")).toBe(false);
+  expect(result.current.canScorePoints(2, [], "kind")).toBe(false);
+  expect(result.current.canScorePoints(2, [], "flush")).toBe(false);
+  expect(result.current.canScorePoints(2, [], "flush")).toBe(false);
+  expect(result.current.canScorePoints(2, [], "flush")).toBe(false);
+  expect(result.current.canScorePoints(2, [], "flush")).toBe(false);
+
+  // try scoring crib
 });
 
 // TODO: NEXT: continue testing round: scoring hands/crib

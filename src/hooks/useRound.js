@@ -196,6 +196,7 @@ export function useRound(playerCount, dealer, deck) {
   }
 
   function checkClaim(cards, claim) {
+    if (cards.length < 2) return false;
     switch (claim) {
       case "15":
         return totalPoints(cards) === 15;
@@ -216,6 +217,13 @@ export function useRound(playerCount, dealer, deck) {
             .every(
               (num, index, nums) => index === 0 || num === nums[index - 1] + 1
             )
+        );
+
+      case "flush":
+        let suitIndex = cards[0].suit.index;
+        return (
+          cards.length >= 4 &&
+          cards.every((card) => card.suit.index === suitIndex)
         );
 
       default:
@@ -240,7 +248,7 @@ export function useRound(playerCount, dealer, deck) {
 
   //// Effects
 
-  // deal - TODO: NEXT: revert to function?
+  // deal - TODO: revert to function?
   useEffect(() => {
     if (stage === "dealing") {
       if (dealTo === null) {
@@ -267,7 +275,11 @@ export function useRound(playerCount, dealer, deck) {
 
   // skip players who are inactive (if there are still active players)
   useEffect(() => {
-    if (stage === "play" && inactive[getToPlay()] && inactive.includes(false)) {
+    if (
+      ["play", "proceed-to-next-play"].includes(stage) &&
+      inactive[getToPlay()] &&
+      inactive.includes(false)
+    ) {
       incrementNextPlay();
     }
   });
@@ -280,38 +292,21 @@ export function useRound(playerCount, dealer, deck) {
     ) {
       dispatchGoed({ type: "reset" });
       dispatchStates({ type: "all-goed" });
+      setNextPlay(getToPlay(), "proceed-to-next-play");
     }
-  }, [stage, playerCount, goed.size, stackTotal, inactive]);
+  });
 
   // once all cards have been played in play stage
   useEffect(() => {
     if (stage === "play" && hands.every((hand) => hand.length === 0)) {
       dispatchStates({ type: "re-hand" });
-      setNextPlay(dealer + 1, "post-play");
+      setNextPlay(dealer + 1, "proceed-to-scoring");
     }
   });
 
   //// Functions
 
   function deal() {
-    // const amountToDeal = playerCount === 2 ? 6 : 5;
-
-    // for (let index = 0; index < amountToDeal; index++) {
-    //   for (let player = 0; player < playerCount; player++) {
-    //     let card = deck.draw(1)[0];
-    //     console.debug(
-    //       `Drew ${card.rank.symbol} of ${card.suit.name}s for ${player}`
-    //     ); // TEMP
-    //     dispatchStates({ type: "deal-player", player, card });
-    //   }
-    // }
-
-    // if (playerCount === 3) {
-    //   let card = deck.draw(1)[0];
-    //   console.debug(`Drew ${card.rank.symbol} of ${card.suit.name} for crib`); // TEMP
-    //   dispatchStates({ type: "deal-crib", card });
-    // }
-
     setNextPlay(dealer, "dealing");
   }
 
@@ -371,12 +366,21 @@ export function useRound(playerCount, dealer, deck) {
   }
 
   // may check opponent's hand, so need player param (-1 for crib)
+  /**
+   * Checks if specified cards in specified hand/crib add up to 15,
+   * form a run, are _-of-a-kind, or form a (valid) flush.
+   *
+   * @param {int} player Index of player, or -1 for crib
+   * @param {Array<int>} indices indices of cards in hand/crib plus starter
+   * @param {string} claim "15", "run", "kind", or "flush"
+   */
   function canScorePoints(player, indices, claim) {
     let hand = hands[player] || crib;
     let cards = hand.filter((_, index) => indices.includes(index));
     if (indices.includes(6)) cards.push(starter);
 
-    checkClaim(cards, claim);
+    // TODO: NEXT: special consideration for flush in crib
+    return checkClaim(cards, claim);
   }
 
   function scoreHand() {
@@ -396,6 +400,26 @@ export function useRound(playerCount, dealer, deck) {
     setStarter(null);
     deck.reset(cards);
     setNextPlay(dealer, "deal");
+  }
+
+  /**
+   * Manually continue past an intermediary stage which only
+   * exists so players can review the state before moving on.
+   */
+  function proceed() {
+    switch (stage) {
+      case "proceed-to-next-play":
+        setNextPlay(getToPlay(), "play");
+        break;
+
+      case "proceed-to-scoring":
+        setNextPlay(getToPlay(), "score");
+        break;
+
+      default:
+        console.warn("proceed didn't match any stage", stage);
+        break;
+    }
   }
 
   //// Return
@@ -419,5 +443,6 @@ export function useRound(playerCount, dealer, deck) {
     scoreHand,
     scoreCrib,
     reset,
+    proceed,
   };
 }

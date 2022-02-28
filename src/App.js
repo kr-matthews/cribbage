@@ -150,14 +150,23 @@ export default function App() {
         isDeckCut={game.isDeckCut}
         starter={game.starter}
         isStarterSelected={selected[6]}
-        clickDeckHandler={() => dispatchSelected({ type: "click", index: 6 })} // TODO: only when clickable
+        clickDeckHandler={() => dispatchSelected({ type: "click", index: 6 })} // TODO: only when clickable; allow click to cut or flip
         playStacks={game.piles} // TODO: rename to piles
       />
       <Actions
         waiting={false} // ={game.nextToAct !== position} TEMP
         // nextToAct={game.nextToAct !== null && players[game.nextToAct].name}
         nextAction={game.nextAction}
-        labels={["Deal", "To Crib", "Cut", "Flip", "Play", "Go", "Reset"]} // TEMP
+        labels={[
+          "Deal",
+          "To Crib",
+          "Cut",
+          "Flip",
+          "Play",
+          "Go",
+          "Proceed",
+          "Reset",
+        ]} // TEMP
         actions={[
           game.deal,
           () => {
@@ -187,8 +196,9 @@ export default function App() {
               console.info("invalid go");
             }
           },
-          () => game.resetRound(),
-        ]} // TEMP
+          game.proceed,
+          game.resetRound,
+        ]} // TEMP: these need validation checks - correct player, stage, valid input
         enabled={Array(20).fill(true)} // TEMP
       />
       Round stage: player {game.toPlay} to {game.roundStage} // TEMP
