@@ -22,7 +22,7 @@ function scoresReducer({ current, previous }, { type, player, points }) {
       break;
 
     default:
-      console.debug("scoresReducer couldn't recognize action type", type);
+      console.error("scoresReducer couldn't recognize action type", type);
   }
   return { current: newCurrent, previous: newPrevious };
 }

@@ -105,8 +105,7 @@ function reduceNextPlay(nextPlay, action) {
       break;
 
     case "set":
-      action.player &&
-        (newNextPlay.toPlay = new Set([action.player % action.playerCount]));
+      newNextPlay.toPlay = new Set([action.player % action.playerCount]);
       action.stage && (newNextPlay.stage = action.stage);
       break;
 
@@ -212,7 +211,7 @@ export function useRound(playerCount, dealer, deck) {
         return (
           cards.length >= 3 &&
           cards
-            .map((card) => card.index)
+            .map((card) => card.rank.index)
             .sort()
             .every(
               (num, index, nums) => index === 0 || num === nums[index - 1] + 1
@@ -220,7 +219,7 @@ export function useRound(playerCount, dealer, deck) {
         );
 
       default:
-        console.log("isValidPlay couldn't match claim:", claim);
+        console.error("checkClaim couldn't match claim:", claim);
     }
     return false;
   }
@@ -273,16 +272,16 @@ export function useRound(playerCount, dealer, deck) {
     }
   });
 
-  // inactive everyone at 31
-  // TODO: NEXT: auto-go at 31
-
-  // once everyone is inactive, reset sharedStack, if stage not over
+  // if stage not over, once everyone is inactive (or 31 is hit), reset sharedStack
   useEffect(() => {
-    if (stage === "play" && inactive.every((bool) => bool)) {
+    if (
+      stage === "play" &&
+      (inactive.every((bool) => bool) || stackTotal === 31)
+    ) {
       dispatchGoed({ type: "reset" });
       dispatchStates({ type: "all-goed" });
     }
-  }, [stage, playerCount, goed.size, inactive]);
+  }, [stage, playerCount, goed.size, stackTotal, inactive]);
 
   // once all cards have been played in play stage
   useEffect(() => {
@@ -328,7 +327,7 @@ export function useRound(playerCount, dealer, deck) {
 
   function cut() {
     deck.cut();
-    incrementNextPlay("flip");
+    setNextPlay(dealer, "flip");
   }
 
   function flip() {

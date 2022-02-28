@@ -7,8 +7,6 @@ import { useDeck } from "./useDeck.js";
 import Rank from "./../playing-cards/Rank.js";
 import Suit from "./../playing-cards/Suit.js";
 
-// TODO: NEXT: NEXT: review these tests
-
 //// Setup
 
 const playerCount = 3;
@@ -176,7 +174,7 @@ it("cut and flip", () => {
   expect(result.current.crib).toStrictEqual(crib);
   expect(result.current.hands).toStrictEqual(hands);
   expect(result.current.piles).toStrictEqual([[], [], []]);
-  expect(result.current.toPlay).toStrictEqual(new Set([1]));
+  expect(result.current.toPlay).toStrictEqual(new Set([2]));
   expect(result.current.stage).toBe("flip");
 
   act(() => result.current.flip());
@@ -318,4 +316,149 @@ it("follow-up plays", () => {
   expect(result.current.isValidGo()).toBe(false);
 });
 
-// TODO: NEXT: continue testing round flow
+it("full play stage", () => {
+  act(() => result.current.deal());
+  act(() => result.current.sendToCrib(1, [4]));
+  act(() => result.current.sendToCrib(0, [3]));
+  act(() => result.current.sendToCrib(2, [2]));
+  act(() => result.current.cut());
+  act(() => result.current.flip());
+
+  expect(result.current.hands[0]).toStrictEqual([
+    { rank: Rank.THREE, suit: Suit.HEART },
+    { rank: Rank.FIVE, suit: Suit.CLUB },
+    { rank: Rank.FIVE, suit: Suit.HEART },
+    { rank: Rank.KING, suit: Suit.CLUB },
+  ]);
+  expect(result.current.hands[1]).toStrictEqual([
+    { rank: Rank.ACE, suit: Suit.DIAMOND },
+    { rank: Rank.TWO, suit: Suit.HEART },
+    { rank: Rank.TEN, suit: Suit.SPADE },
+    { rank: Rank.JACK, suit: Suit.CLUB },
+  ]);
+  expect(result.current.hands[2]).toStrictEqual([
+    { rank: Rank.FIVE, suit: Suit.SPADE },
+    { rank: Rank.NINE, suit: Suit.HEART },
+    { rank: Rank.JACK, suit: Suit.HEART },
+    { rank: Rank.QUEEN, suit: Suit.DIAMOND },
+  ]);
+  expect(result.current.toPlay).toStrictEqual(new Set([0]));
+
+  // 0 plays K: K -> 10
+  expect(result.current.isValidGo()).toBe(false);
+  expect(result.current.isValidPlay(3)).toBe(true);
+  expect(result.current.isValidPlay(3, "run", 2)).toBe(false);
+  expect(result.current.isValidPlay(3, "kind", 2)).toBe(false);
+  expect(result.current.isValidPlay(3, "15")).toBe(false);
+  act(() => result.current.play(3));
+
+  // 1 plays J: K, J -> 20
+  expect(result.current.isValidGo()).toBe(false);
+  expect(result.current.isValidPlay(3)).toBe(true);
+  expect(result.current.isValidPlay(3, "run", 2)).toBe(false);
+  expect(result.current.isValidPlay(3, "kind", 2)).toBe(false);
+  expect(result.current.isValidPlay(3, "15")).toBe(false);
+  act(() => result.current.play(3));
+
+  // 2 plays Q: K, J, Q -> 30
+  expect(result.current.isValidGo()).toBe(false);
+  expect(result.current.isValidPlay(3)).toBe(true);
+  expect(result.current.isValidPlay(3, "run", 2)).toBe(false);
+  expect(result.current.isValidPlay(3, "run", 3)).toBe(true); // out-of-order run
+  expect(result.current.isValidPlay(3, "kind", 2)).toBe(false);
+  expect(result.current.isValidPlay(3, "kind", 3)).toBe(false);
+  expect(result.current.isValidPlay(3, "15")).toBe(false);
+  act(() => result.current.play(3));
+
+  // 0 can't play
+  expect(result.current.isValidPlay(0)).toBe(false);
+  expect(result.current.isValidPlay(1)).toBe(false);
+  expect(result.current.isValidPlay(2)).toBe(false);
+  expect(result.current.isValidGo()).toBe(true);
+  act(() => result.current.go());
+
+  // 1 must play A -> 31
+  expect(result.current.isValidPlay(0)).toBe(true);
+  expect(result.current.isValidPlay(1)).toBe(false);
+  expect(result.current.isValidPlay(2)).toBe(false);
+  expect(result.current.isValidGo()).toBe(false);
+  act(() => result.current.play(0));
+
+  // start new 'sub-play' with 2
+  expect(result.current.toPlay).toStrictEqual(new Set([2]));
+  // 2 plays J: J -> 10
+  expect(result.current.isValidGo()).toBe(false);
+  expect(result.current.isValidPlay(2)).toBe(true);
+  expect(result.current.isValidPlay(2, "run", 2)).toBe(false);
+  expect(result.current.isValidPlay(2, "kind", 2)).toBe(false);
+  expect(result.current.isValidPlay(2, "15")).toBe(false);
+  act(() => result.current.play(2));
+
+  // 0 plays 5 for 15: J, 5 -> 15
+  expect(result.current.isValidGo()).toBe(false);
+  expect(result.current.isValidPlay(1)).toBe(true);
+  expect(result.current.isValidPlay(1, "run", 2)).toBe(false);
+  expect(result.current.isValidPlay(1, "kind", 2)).toBe(false);
+  expect(result.current.isValidPlay(1, "15")).toBe(true);
+  act(() => result.current.play(1));
+
+  // 1 plays 10: J, 5, 10 -> 25
+  expect(result.current.isValidGo()).toBe(false);
+  expect(result.current.isValidPlay(1)).toBe(true);
+  expect(result.current.isValidPlay(1, "run", 2)).toBe(false);
+  expect(result.current.isValidPlay(1, "kind", 2)).toBe(false);
+  expect(result.current.isValidPlay(1, "15")).toBe(false);
+  act(() => result.current.play(1));
+
+  // 2 must play 5: J, 5, 10, 5 -> 30
+  expect(result.current.isValidGo()).toBe(false);
+  expect(result.current.isValidPlay(1)).toBe(false);
+  expect(result.current.isValidPlay(0)).toBe(true);
+  expect(result.current.isValidPlay(0, "run", 2)).toBe(false);
+  expect(result.current.isValidPlay(0, "kind", 2)).toBe(false);
+  expect(result.current.isValidPlay(0, "15")).toBe(false);
+  expect(result.current.isValidPlay(0, "15", 2)).toBe(false);
+  act(() => result.current.play(0));
+
+  // 0, 1, 2 must go
+  expect(result.current.isValidGo()).toBe(true);
+  expect(result.current.isValidPlay(0)).toBe(false);
+  act(() => result.current.go());
+  expect(result.current.isValidGo()).toBe(true);
+  expect(result.current.isValidPlay(0)).toBe(false);
+  act(() => result.current.go());
+  expect(result.current.isValidGo()).toBe(true);
+  expect(result.current.isValidPlay(0)).toBe(false);
+  act(() => result.current.go());
+
+  // remaining
+  expect(result.current.hands[0]).toStrictEqual([
+    { rank: Rank.THREE, suit: Suit.HEART },
+    { rank: Rank.FIVE, suit: Suit.HEART },
+  ]);
+  expect(result.current.hands[1]).toStrictEqual([
+    { rank: Rank.TWO, suit: Suit.HEART },
+  ]);
+  expect(result.current.hands[2]).toStrictEqual([
+    { rank: Rank.NINE, suit: Suit.HEART },
+  ]);
+  expect(result.current.piles.map((pile) => pile.length)).toStrictEqual([
+    2, 3, 3,
+  ]);
+
+  // play remaning cards
+  expect(result.current.isValidPlay(0)).toBe(true);
+  act(() => result.current.play(0));
+  expect(result.current.isValidPlay(0)).toBe(true);
+  act(() => result.current.play(0));
+  expect(result.current.isValidPlay(0)).toBe(true);
+  act(() => result.current.play(0));
+  expect(result.current.stage).toBe("play");
+  expect(result.current.isValidPlay(0)).toBe(true);
+  act(() => result.current.play(0));
+
+  expect(result.current.stage).toBe("post-play");
+  expect(result.current.toPlay).toStrictEqual(new Set([0]));
+});
+
+// TODO: NEXT: continue testing round: scoring hands/crib
