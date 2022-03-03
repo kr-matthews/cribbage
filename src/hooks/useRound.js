@@ -375,11 +375,24 @@ export function useRound(playerCount, dealer, deck) {
    * @param {string} claim "15", "run", "kind", or "flush"
    */
   function canScorePoints(player, indices, claim) {
+    let isCrib = !hands[player];
+    let amount = indices.length;
+    let isUsingStarter = indices.includes(6);
+
     let hand = hands[player] || crib;
     let cards = hand.filter((_, index) => indices.includes(index));
-    if (indices.includes(6)) cards.push(starter);
+    if (isUsingStarter) cards.push(starter);
 
-    // TODO: NEXT: special consideration for flush in crib
+    // flush considerations
+
+    // crib can only score a flush with all 5 cards
+    if (isCrib && claim === "flush" && amount !== 5) return false;
+
+    // 4-card flush cannot use starter
+    if (claim === "flush" && amount === 4 && isUsingStarter) return false;
+
+    // NOTE: TODO: avoid double-counting sub-kinds and sub-runs and sub-flushes
+
     return checkClaim(cards, claim);
   }
 
