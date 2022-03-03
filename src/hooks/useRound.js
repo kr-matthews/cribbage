@@ -213,7 +213,7 @@ export function useRound(playerCount, dealer, deck) {
           cards.length >= 3 &&
           cards
             .map((card) => card.rank.index)
-            .sort()
+            .sort((a, b) => a - b)
             .every(
               (num, index, nums) => index === 0 || num === nums[index - 1] + 1
             )

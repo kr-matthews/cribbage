@@ -10,7 +10,7 @@ import Suit from "./../playing-cards/Suit.js";
 //// Setup
 
 const playerCount = 3;
-const dealer = 2;
+let dealer = 2;
 const cards = [
   { rank: Rank.TEN, suit: Suit.HEART },
   { rank: Rank.TEN, suit: Suit.DIAMOND },
@@ -470,7 +470,7 @@ it("full play stage", () => {
   expect(result.current.toPlay).toStrictEqual(new Set([0]));
 });
 
-it("score first hand", () => {
+it("query scoring", () => {
   act(() => result.current.deal());
   act(() => result.current.sendToCrib(1, [4]));
   act(() => result.current.sendToCrib(0, [3]));
@@ -542,24 +542,181 @@ it("score first hand", () => {
   });
 
   // try scoring hand 2
-  expect(result.current.canScorePoints(2, [], "15")).toBe(false); // TODO
   expect(result.current.canScorePoints(2, [], "15")).toBe(false);
-  expect(result.current.canScorePoints(2, [], "15")).toBe(false);
-  expect(result.current.canScorePoints(2, [], "15")).toBe(false);
+  expect(result.current.canScorePoints(2, [3], "15")).toBe(false);
+  expect(result.current.canScorePoints(2, [6], "15")).toBe(false);
+  expect(result.current.canScorePoints(2, [0, 1], "15")).toBe(false);
+  expect(result.current.canScorePoints(2, [0, 2], "15")).toBe(true);
+  expect(result.current.canScorePoints(2, [0, 3], "15")).toBe(true);
+  expect(result.current.canScorePoints(2, [0, 6], "15")).toBe(true);
+  expect(result.current.canScorePoints(2, [1, 3], "15")).toBe(false);
+  expect(result.current.canScorePoints(2, [0, 2, 3], "15")).toBe(false);
+  expect(result.current.canScorePoints(2, [3, 4], "15")).toBe(false);
   expect(result.current.canScorePoints(2, [], "run")).toBe(false);
-  expect(result.current.canScorePoints(2, [], "run")).toBe(false);
-  expect(result.current.canScorePoints(2, [], "run")).toBe(false);
-  expect(result.current.canScorePoints(2, [], "run")).toBe(false);
+  expect(result.current.canScorePoints(2, [0, 1, 2, 3], "run")).toBe(false);
+  expect(result.current.canScorePoints(2, [0, 1, 2, 3, 6], "run")).toBe(false);
+  expect(result.current.canScorePoints(2, [2, 3], "run")).toBe(false);
+  expect(result.current.canScorePoints(2, [6, 1], "run")).toBe(false);
+  expect(result.current.canScorePoints(2, [6, 2, 3], "run")).toBe(true);
+  expect(result.current.canScorePoints(2, [1, 6, 2], "run")).toBe(true);
+  expect(result.current.canScorePoints(2, [2, 3, 6, 1], "run")).toBe(true);
+  expect(result.current.canScorePoints(2, [2, 3], "run")).toBe(false);
   expect(result.current.canScorePoints(2, [], "kind")).toBe(false);
-  expect(result.current.canScorePoints(2, [], "kind")).toBe(false);
-  expect(result.current.canScorePoints(2, [], "kind")).toBe(false);
-  expect(result.current.canScorePoints(2, [], "kind")).toBe(false);
+  expect(result.current.canScorePoints(2, [0], "kind")).toBe(false);
+  expect(result.current.canScorePoints(2, [1, 2], "kind")).toBe(false);
+  expect(result.current.canScorePoints(2, [0, 6, 3], "kind")).toBe(false);
+  expect(result.current.canScorePoints(2, [2, 3], "kind")).toBe(false);
   expect(result.current.canScorePoints(2, [], "flush")).toBe(false);
-  expect(result.current.canScorePoints(2, [], "flush")).toBe(false);
-  expect(result.current.canScorePoints(2, [], "flush")).toBe(false);
-  expect(result.current.canScorePoints(2, [], "flush")).toBe(false);
+  expect(result.current.canScorePoints(2, [0], "flush")).toBe(false);
+  expect(result.current.canScorePoints(2, [1, 2], "flush")).toBe(false);
+  expect(result.current.canScorePoints(2, [6, 3], "flush")).toBe(false);
+  expect(result.current.canScorePoints(2, [0, 3, 2, 1], "flush")).toBe(false);
 
   // try scoring crib
+  expect(result.current.canScorePoints(-1, [], "15")).toBe(false);
+  expect(result.current.canScorePoints(-1, [0, 1], "15")).toBe(false);
+  expect(result.current.canScorePoints(-1, [1, 2], "15")).toBe(false);
+  expect(result.current.canScorePoints(-1, [0, 2], "15")).toBe(true);
+  expect(result.current.canScorePoints(-1, [0, 3], "15")).toBe(true);
+  expect(result.current.canScorePoints(-1, [0, 6], "15")).toBe(true);
+  expect(result.current.canScorePoints(-1, [0, 1], "run")).toBe(false);
+  expect(result.current.canScorePoints(-1, [0, 1, 6], "run")).toBe(false);
+  expect(result.current.canScorePoints(-1, [6, 2, 3], "run")).toBe(true);
+  expect(result.current.canScorePoints(-1, [6, 3], "run")).toBe(false);
+  expect(result.current.canScorePoints(-1, [], "kind")).toBe(false);
+  expect(result.current.canScorePoints(-1, [0], "kind")).toBe(false);
+  expect(result.current.canScorePoints(-1, [6], "kind")).toBe(false);
+  expect(result.current.canScorePoints(-1, [2, 3], "kind")).toBe(false);
+  expect(result.current.canScorePoints(-1, [], "flush")).toBe(false);
+  expect(result.current.canScorePoints(-1, [0, 1, 2, 3], "flush")).toBe(false);
+  expect(result.current.canScorePoints(-1, [6, 0, 1, 2], "flush")).toBe(false);
+  expect(result.current.canScorePoints(-1, [0, 2, 6], "flush")).toBe(false);
+
+  // a pair
+  expect(result.current.canScorePoints(0, [2, 1], "kind")).toBe(true);
 });
 
-// TODO: NEXT: continue testing round: scoring hands/crib
+it("score hands and crib, finish round", () => {
+  act(() => result.current.deal());
+  act(() => result.current.sendToCrib(1, [4]));
+  act(() => result.current.sendToCrib(0, [3]));
+  act(() => result.current.sendToCrib(2, [2]));
+  act(() => result.current.cut());
+  act(() => result.current.flip());
+  // 0 plays K: K -> 10
+  act(() => result.current.play(3));
+  // 1 plays J: K, J -> 20
+  act(() => result.current.play(3));
+  // 2 plays Q: K, J, Q -> 30
+  act(() => result.current.play(3));
+  // 0 can't play
+  act(() => result.current.go());
+  // 1 must play A -> 31
+  act(() => result.current.play(0));
+  // start new 'sub-play' with 2
+  act(() => result.current.proceed());
+  // 2 plays J: J -> 10
+  act(() => result.current.play(2));
+  // 0 plays 5 for 15: J, 5 -> 15
+  act(() => result.current.play(1));
+  // 1 plays 10: J, 5, 10 -> 25
+  act(() => result.current.play(1));
+  // 2 must play 5: J, 5, 10, 5 -> 30
+  act(() => result.current.play(0));
+  // 0, 1, 2 must go
+  act(() => result.current.go());
+  act(() => result.current.go());
+  act(() => result.current.go());
+  // play remaning cards
+  act(() => result.current.proceed());
+  act(() => result.current.play(0));
+  act(() => result.current.play(0));
+  act(() => result.current.play(0));
+  act(() => result.current.play(0));
+
+  expect(result.current.stage).toBe("proceed-to-scoring");
+  expect(result.current.toPlay).toStrictEqual(new Set([0]));
+
+  act(() => result.current.proceed());
+
+  expect(result.current.stage).toBe("score");
+  expect(result.current.toPlay).toStrictEqual(new Set([0]));
+
+  act(() => result.current.scoreHand());
+
+  expect(result.current.stage).toBe("score");
+  expect(result.current.toPlay).toStrictEqual(new Set([1]));
+
+  act(() => result.current.scoreHand());
+
+  expect(result.current.stage).toBe("score");
+  expect(result.current.toPlay).toStrictEqual(new Set([2]));
+
+  act(() => result.current.scoreHand());
+
+  expect(result.current.stage).toBe("crib");
+  expect(result.current.toPlay).toStrictEqual(new Set([2]));
+
+  act(() => result.current.scoreCrib());
+
+  expect(result.current.stage).toBe("done");
+  expect(result.current.toPlay).toStrictEqual(new Set([0]));
+});
+
+it("play round then reset", () => {
+  act(() => result.current.deal());
+  act(() => result.current.sendToCrib(1, [4]));
+  act(() => result.current.sendToCrib(0, [3]));
+  act(() => result.current.sendToCrib(2, [2]));
+  act(() => result.current.cut());
+  act(() => result.current.flip());
+  // 0 plays K: K -> 10
+  act(() => result.current.play(3));
+  // 1 plays J: K, J -> 20
+  act(() => result.current.play(3));
+  // 2 plays Q: K, J, Q -> 30
+  act(() => result.current.play(3));
+  // 0 can't play
+  act(() => result.current.go());
+  // 1 must play A -> 31
+  act(() => result.current.play(0));
+  // start new 'sub-play' with 2
+  act(() => result.current.proceed());
+  // 2 plays J: J -> 10
+  act(() => result.current.play(2));
+  // 0 plays 5 for 15: J, 5 -> 15
+  act(() => result.current.play(1));
+  // 1 plays 10: J, 5, 10 -> 25
+  act(() => result.current.play(1));
+  // 2 must play 5: J, 5, 10, 5 -> 30
+  act(() => result.current.play(0));
+  // 0, 1, 2 must go
+  act(() => result.current.go());
+  act(() => result.current.go());
+  act(() => result.current.go());
+  // play remaning cards
+  act(() => result.current.proceed());
+  act(() => result.current.play(0));
+  act(() => result.current.play(0));
+  act(() => result.current.play(0));
+  act(() => result.current.play(0));
+
+  act(() => result.current.proceed());
+  act(() => result.current.scoreHand());
+  act(() => result.current.scoreHand());
+  act(() => result.current.scoreHand());
+  act(() => result.current.scoreCrib());
+
+  expect(result.current.stage).toBe("done");
+  expect(result.current.toPlay).toStrictEqual(new Set([0]));
+
+  // in practice, dealer param would have incremented, but not sure how to mock
+  act(() => result.current.reset());
+
+  expect(result.current.starter).toBeNull;
+  expect(result.current.crib).toStrictEqual([]);
+  expect(result.current.hands).toStrictEqual([[], [], []]);
+  expect(result.current.piles).toStrictEqual([[], [], []]);
+  expect(result.current.toPlay).toStrictEqual(new Set([2]));
+  expect(result.current.stage).toBe("deal");
+});
