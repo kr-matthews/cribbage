@@ -8,6 +8,8 @@ import { useScores } from "./useScores.js";
 
 //
 
+//// Hook
+
 export function useGame(playerCount, isOwner) {
   //// Constants and States
 
@@ -50,7 +52,7 @@ export function useGame(playerCount, isOwner) {
     deckSize: deck.size,
     isDeckCut: deck.isCut,
     // round
-    roundStage: round.stage,
+    nextAction: round.nextAction,
     toPlay: round.toPlay,
     deal: round.deal,
     sendToCrib: round.sendToCrib,
@@ -60,8 +62,10 @@ export function useGame(playerCount, isOwner) {
     play: round.play,
     isValidGo: round.isValidGo,
     go: round.go,
-    resetRound: round.reset,
     proceed: round.proceed,
+    scoreHand: round.scoreHand,
+    scoreCrib: round.scoreCrib,
+    resetRound: round.reset,
     crib: round.crib,
     hands: round.hands,
     piles: round.piles,

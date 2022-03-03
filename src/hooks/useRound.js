@@ -77,7 +77,7 @@ function reduceStates(states, action) {
 function reduceNextPlay(nextPlay, action) {
   let newNextPlay = {
     toPlay: new Set(nextPlay.toPlay),
-    stage: nextPlay.stage,
+    nextAction: nextPlay.nextAction,
   };
   switch (action.type) {
     case "add": // unused
@@ -92,7 +92,7 @@ function reduceNextPlay(nextPlay, action) {
       for (let player = 0; player < action.playerCount; player++) {
         newNextPlay.toPlay.add(player);
       }
-      newNextPlay.stage = action.stage;
+      newNextPlay.nextAction = action.nextAction;
       break;
 
     case "next":
@@ -101,12 +101,12 @@ function reduceNextPlay(nextPlay, action) {
           ([...newNextPlay.toPlay][0] + 1) % action.playerCount,
         ]);
       }
-      action.stage && (newNextPlay.stage = action.stage);
+      action.nextAction && (newNextPlay.nextAction = action.nextAction);
       break;
 
     case "set":
       newNextPlay.toPlay = new Set([action.player % action.playerCount]);
-      action.stage && (newNextPlay.stage = action.stage);
+      action.nextAction && (newNextPlay.nextAction = action.nextAction);
       break;
 
     default:
@@ -134,7 +134,7 @@ function reduceGoed(goed, action) {
   return newGoed;
 }
 
-//// Hook
+//// Hook ////
 
 export function useRound(playerCount, dealer, deck) {
   //// States and Constants
@@ -151,10 +151,15 @@ export function useRound(playerCount, dealer, deck) {
 
   const [starter, setStarter] = useState(null);
 
-  const [{ toPlay, stage }, dispatchNextPlay] = useReducer(reduceNextPlay, {
-    toPlay: new Set([dealer]),
-    stage: "deal",
-  });
+  // set of players who can act next, and the action they should do
+  // set will have size 1, except when discarding to the crib
+  const [{ toPlay, nextAction }, dispatchNextPlay] = useReducer(
+    reduceNextPlay,
+    {
+      toPlay: new Set([dealer]),
+      nextAction: "deal",
+    }
+  );
 
   // who to deal to next
   const dealTo =
@@ -234,23 +239,23 @@ export function useRound(playerCount, dealer, deck) {
 
   //// Helpers - Actions
 
-  function incrementNextPlay(stage) {
-    dispatchNextPlay({ type: "next", playerCount, stage });
+  function incrementNextPlay(nextAction) {
+    dispatchNextPlay({ type: "next", playerCount, nextAction });
   }
 
-  function setNextPlay(player, stage) {
-    dispatchNextPlay({ type: "set", player, playerCount, stage });
+  function setNextPlay(player, nextAction) {
+    dispatchNextPlay({ type: "set", player, playerCount, nextAction });
   }
 
-  function allToPlay(stage) {
-    dispatchNextPlay({ type: "all", playerCount, stage });
+  function allToPlay(nextAction) {
+    dispatchNextPlay({ type: "all", playerCount, nextAction });
   }
 
   //// Effects
 
   // deal - TODO: revert to function?
   useEffect(() => {
-    if (stage === "dealing") {
+    if (nextAction === "dealing") {
       if (dealTo === null) {
         // stop dealing
         allToPlay("discard");
@@ -268,7 +273,7 @@ export function useRound(playerCount, dealer, deck) {
 
   // once everyone has submitted to the crib
   useEffect(() => {
-    if (stage === "discard" && crib.length === 4) {
+    if (nextAction === "discard" && crib.length === 4) {
       setNextPlay(dealer + 1, "cut");
     }
   });
@@ -276,7 +281,7 @@ export function useRound(playerCount, dealer, deck) {
   // skip players who are inactive (if there are still active players)
   useEffect(() => {
     if (
-      ["play", "proceed-to-next-play"].includes(stage) &&
+      ["play", "proceed-to-next-play"].includes(nextAction) &&
       inactive[getToPlay()] &&
       inactive.includes(false)
     ) {
@@ -284,10 +289,10 @@ export function useRound(playerCount, dealer, deck) {
     }
   });
 
-  // if stage not over, once everyone is inactive (or 31 is hit), reset sharedStack
+  // if play stage not over, once everyone is inactive (or 31 is hit), reset sharedStack
   useEffect(() => {
     if (
-      stage === "play" &&
+      nextAction === "play" &&
       (inactive.every((bool) => bool) || stackTotal === 31)
     ) {
       dispatchGoed({ type: "reset" });
@@ -298,8 +303,7 @@ export function useRound(playerCount, dealer, deck) {
 
   // once all cards have been played in play stage
   useEffect(() => {
-    if (stage === "play" && hands.every((hand) => hand.length === 0)) {
-      dispatchStates({ type: "re-hand" });
+    if (nextAction === "play" && hands.every((hand) => hand.length === 0)) {
       setNextPlay(dealer + 1, "proceed-to-scoring");
     }
   });
@@ -398,14 +402,14 @@ export function useRound(playerCount, dealer, deck) {
 
   function scoreHand() {
     if (getToPlay() === dealer) {
-      setNextPlay(dealer, "crib");
+      setNextPlay(dealer, "score-crib");
     } else {
       incrementNextPlay();
     }
   }
 
   function scoreCrib() {
-    setNextPlay(null, "done");
+    setNextPlay(null, "reset");
   }
 
   function reset(cards) {
@@ -420,17 +424,19 @@ export function useRound(playerCount, dealer, deck) {
    * exists so players can review the state before moving on.
    */
   function proceed() {
-    switch (stage) {
+    switch (nextAction) {
       case "proceed-to-next-play":
+        // TODO: flip current piles face-down
         setNextPlay(getToPlay(), "play");
         break;
 
       case "proceed-to-scoring":
-        setNextPlay(getToPlay(), "score");
+        dispatchStates({ type: "re-hand" });
+        setNextPlay(getToPlay(), "score-hand");
         break;
 
       default:
-        console.warn("proceed didn't match any stage", stage);
+        console.warn("proceed didn't match any nextAction", nextAction);
         break;
     }
   }
@@ -443,7 +449,7 @@ export function useRound(playerCount, dealer, deck) {
     hands,
     piles,
     toPlay,
-    stage,
+    nextAction,
     deal,
     sendToCrib,
     cut,

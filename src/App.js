@@ -102,10 +102,88 @@ export default function App() {
     selectedReducer,
     HAND_ALL_UNSELECTED
   );
+  const selectedCount = selected.filter((bool) => bool).length;
 
   // colours on the board; don't use middle track when 2 players
   var colours = ["DarkRed", "DarkGreen", "DarkBlue"];
   playerCount === 2 && colours.splice(1, 1);
+
+  //// Temporary sample functionality
+
+  const sampleLabels = [
+    "Deal",
+    "To Crib",
+    "Cut",
+    "Flip",
+    "Play",
+    "Go",
+    "Proceed",
+    "Score Hand",
+    "Score Crib",
+    "Reset",
+  ];
+
+  const sampleActions = [
+    () => {
+      if (game.nextAction === "deal") game.deal();
+    },
+    () => {
+      if (
+        game.nextAction === "discard" &&
+        selectedCount === 4 - playerCount &&
+        !selected[6]
+      ) {
+        game.sendToCrib(
+          [...game.toPlay][0],
+          selected
+            .map((bool, index) => (bool ? index : null))
+            .filter((index) => index !== null)
+        );
+      }
+      dispatchSelected({ type: "reset" });
+    },
+    () => {
+      if (game.nextAction === "cut") game.cut();
+    },
+    () => {
+      if (game.nextAction === "flip") game.flip();
+    },
+    () => {
+      let index = selected.findIndex((bool) => bool);
+      if (
+        game.nextAction === "play" &&
+        selectedCount === 1 &&
+        index !== 6 &&
+        game.isValidPlay(index)
+      ) {
+        game.play(index);
+      } else {
+        console.info("invalid play");
+      }
+      dispatchSelected({ type: "reset" });
+    },
+    () => {
+      if (game.nextAction === "play" && game.isValidGo()) {
+        game.go();
+      } else {
+        console.info("invalid go");
+      }
+      dispatchSelected({ type: "reset" });
+    },
+    () => {
+      if (
+        ["proceed-to-next-play", "proceed-to-scoring"].includes(game.nextAction)
+      )
+        game.proceed();
+    },
+    () => {
+      if (game.nextAction === "score-hand") game.scoreHand();
+    },
+    () => {
+      if (game.nextAction === "score-crib") game.scoreCrib();
+    },
+    () => game.resetRound(),
+  ];
 
   //// Return
 
@@ -157,52 +235,12 @@ export default function App() {
         waiting={false} // ={game.nextToAct !== position} TEMP
         // nextToAct={game.nextToAct !== null && players[game.nextToAct].name}
         nextAction={game.nextAction}
-        labels={[
-          "Deal",
-          "To Crib",
-          "Cut",
-          "Flip",
-          "Play",
-          "Go",
-          "Proceed",
-          "Reset",
-        ]} // TEMP
-        actions={[
-          game.deal,
-          () => {
-            game.sendToCrib(
-              [...game.toPlay][0],
-              selected
-                .map((bool, index) => (bool ? index : null))
-                .filter((index) => index !== null)
-            );
-            dispatchSelected({ type: "reset" });
-          },
-          game.cut,
-          game.flip,
-          () => {
-            let index = selected.findIndex((bool) => bool);
-            if (game.isValidPlay(index)) {
-              game.play(index);
-            } else {
-              console.info("invalid play");
-            }
-            dispatchSelected({ type: "reset" });
-          },
-          () => {
-            if (game.isValidGo()) {
-              game.go();
-            } else {
-              console.info("invalid go");
-            }
-          },
-          game.proceed,
-          game.resetRound,
-        ]} // TEMP: these need validation checks - correct player, stage, valid input
-        enabled={Array(20).fill(true)} // TEMP
+        labels={sampleLabels} // TEMP
+        actions={sampleActions} // TEMP: these need validation checks - correct player, stage, valid input
+        enabled={sampleEnabled}
       />
-      Round stage: player {game.toPlay} to {game.roundStage} // TEMP
-      <PlayHistory messages={messages} />
+      Round stage: player {game.toPlay} to {game.nextAction} // TEMP
+      <PlayHistory messages={sampleMessages} />
       <Links
         gitHubLink="https://github.com/kr-matthews/cribbage"
         themeType="light"
@@ -211,7 +249,7 @@ export default function App() {
   );
 }
 
-const messages = [
+const sampleMessages = [
   {
     type: "auto",
     colour: "blue",
@@ -243,3 +281,5 @@ const messages = [
     timestamp: Date.now() + 50454,
   },
 ];
+
+const sampleEnabled = Array(20).fill(true); // TEMP

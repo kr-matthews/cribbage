@@ -55,7 +55,7 @@ it("initial state", () => {
   expect(result.current.hands).toStrictEqual([[], [], []]);
   expect(result.current.piles).toStrictEqual([[], [], []]);
   expect(result.current.toPlay).toStrictEqual(new Set([dealer]));
-  expect(result.current.stage).toBe("deal");
+  expect(result.current.nextAction).toBe("deal");
 });
 
 it("deal", () => {
@@ -80,7 +80,7 @@ it("deal", () => {
 
   expect(result.current.piles).toStrictEqual([[], [], []]);
   expect(result.current.toPlay).toStrictEqual(new Set([0, 1, 2]));
-  expect(result.current.stage).toBe("discard");
+  expect(result.current.nextAction).toBe("discard");
 });
 
 it("to crib", () => {
@@ -107,7 +107,7 @@ it("to crib", () => {
   ]);
   expect(result.current.piles).toStrictEqual([[], [], []]);
   expect(result.current.toPlay).toStrictEqual(new Set([0, 1]));
-  expect(result.current.stage).toBe("discard");
+  expect(result.current.nextAction).toBe("discard");
 
   act(() => result.current.sendToCrib(0, [3]));
 
@@ -131,7 +131,7 @@ it("to crib", () => {
   ]);
   expect(result.current.piles).toStrictEqual([[], [], []]);
   expect(result.current.toPlay).toStrictEqual(new Set([1]));
-  expect(result.current.stage).toBe("discard");
+  expect(result.current.nextAction).toBe("discard");
 
   act(() => result.current.sendToCrib(1, [4]));
 
@@ -156,7 +156,7 @@ it("to crib", () => {
   ]);
   expect(result.current.piles).toStrictEqual([[], [], []]);
   expect(result.current.toPlay).toStrictEqual(new Set([0]));
-  expect(result.current.stage).toBe("cut");
+  expect(result.current.nextAction).toBe("cut");
 });
 
 it("cut and flip", () => {
@@ -175,7 +175,7 @@ it("cut and flip", () => {
   expect(result.current.hands).toStrictEqual(hands);
   expect(result.current.piles).toStrictEqual([[], [], []]);
   expect(result.current.toPlay).toStrictEqual(new Set([2]));
-  expect(result.current.stage).toBe("flip");
+  expect(result.current.nextAction).toBe("flip");
 
   act(() => result.current.flip());
 
@@ -187,7 +187,7 @@ it("cut and flip", () => {
   expect(result.current.hands).toStrictEqual(hands);
   expect(result.current.piles).toStrictEqual([[], [], []]);
   expect(result.current.toPlay).toStrictEqual(new Set([0]));
-  expect(result.current.stage).toBe("play");
+  expect(result.current.nextAction).toBe("play");
 });
 
 it("valid opening play", () => {
@@ -262,7 +262,7 @@ it("opening plays", () => {
     suit: Suit.DIAMOND,
   });
   expect(result.current.toPlay).toStrictEqual(new Set([1]));
-  expect(result.current.stage).toBe("play");
+  expect(result.current.nextAction).toBe("play");
 });
 
 it("follow-up plays", () => {
@@ -316,7 +316,7 @@ it("follow-up plays", () => {
   expect(result.current.isValidGo()).toBe(false);
 });
 
-it("full play stage", () => {
+it("full play nextAction", () => {
   act(() => result.current.deal());
   act(() => result.current.sendToCrib(1, [4]));
   act(() => result.current.sendToCrib(0, [3]));
@@ -386,9 +386,9 @@ it("full play stage", () => {
 
   // start new 'sub-play' with 2
   expect(result.current.toPlay).toStrictEqual(new Set([2]));
-  expect(result.current.stage).toBe("proceed-to-next-play");
+  expect(result.current.nextAction).toBe("proceed-to-next-play");
   act(() => result.current.proceed());
-  expect(result.current.stage).toBe("play");
+  expect(result.current.nextAction).toBe("play");
 
   // 2 plays J: J -> 10
   expect(result.current.isValidGo()).toBe(false);
@@ -451,9 +451,9 @@ it("full play stage", () => {
   ]);
 
   // 0 restarts
-  expect(result.current.stage).toBe("proceed-to-next-play");
+  expect(result.current.nextAction).toBe("proceed-to-next-play");
   act(() => result.current.proceed());
-  expect(result.current.stage).toBe("play");
+  expect(result.current.nextAction).toBe("play");
 
   // play remaining cards
   expect(result.current.isValidPlay(0)).toBe(true);
@@ -462,11 +462,11 @@ it("full play stage", () => {
   act(() => result.current.play(0));
   expect(result.current.isValidPlay(0)).toBe(true);
   act(() => result.current.play(0));
-  expect(result.current.stage).toBe("play");
+  expect(result.current.nextAction).toBe("play");
   expect(result.current.isValidPlay(0)).toBe(true);
   act(() => result.current.play(0));
 
-  expect(result.current.stage).toBe("proceed-to-scoring");
+  expect(result.current.nextAction).toBe("proceed-to-scoring");
   expect(result.current.toPlay).toStrictEqual(new Set([0]));
 });
 
@@ -508,7 +508,12 @@ it("query scoring", () => {
   act(() => result.current.play(0));
   act(() => result.current.play(0));
 
-  expect(result.current.stage).toBe("proceed-to-scoring");
+  expect(result.current.nextAction).toBe("proceed-to-scoring");
+  expect(result.current.toPlay).toStrictEqual(new Set([0]));
+
+  act(() => result.current.proceed());
+
+  expect(result.current.nextAction).toBe("score-hand");
   expect(result.current.toPlay).toStrictEqual(new Set([0]));
 
   // current hands/crib
@@ -634,32 +639,32 @@ it("score hands and crib, finish round", () => {
   act(() => result.current.play(0));
   act(() => result.current.play(0));
 
-  expect(result.current.stage).toBe("proceed-to-scoring");
+  expect(result.current.nextAction).toBe("proceed-to-scoring");
   expect(result.current.toPlay).toStrictEqual(new Set([0]));
 
   act(() => result.current.proceed());
 
-  expect(result.current.stage).toBe("score");
+  expect(result.current.nextAction).toBe("score-hand");
   expect(result.current.toPlay).toStrictEqual(new Set([0]));
 
   act(() => result.current.scoreHand());
 
-  expect(result.current.stage).toBe("score");
+  expect(result.current.nextAction).toBe("score-hand");
   expect(result.current.toPlay).toStrictEqual(new Set([1]));
 
   act(() => result.current.scoreHand());
 
-  expect(result.current.stage).toBe("score");
+  expect(result.current.nextAction).toBe("score-hand");
   expect(result.current.toPlay).toStrictEqual(new Set([2]));
 
   act(() => result.current.scoreHand());
 
-  expect(result.current.stage).toBe("crib");
+  expect(result.current.nextAction).toBe("score-crib");
   expect(result.current.toPlay).toStrictEqual(new Set([2]));
 
   act(() => result.current.scoreCrib());
 
-  expect(result.current.stage).toBe("done");
+  expect(result.current.nextAction).toBe("reset");
   expect(result.current.toPlay).toStrictEqual(new Set([0]));
 });
 
@@ -707,7 +712,7 @@ it("play round then reset", () => {
   act(() => result.current.scoreHand());
   act(() => result.current.scoreCrib());
 
-  expect(result.current.stage).toBe("done");
+  expect(result.current.nextAction).toBe("reset");
   expect(result.current.toPlay).toStrictEqual(new Set([0]));
 
   // in practice, dealer param would have incremented, but not sure how to mock
@@ -718,5 +723,5 @@ it("play round then reset", () => {
   expect(result.current.hands).toStrictEqual([[], [], []]);
   expect(result.current.piles).toStrictEqual([[], [], []]);
   expect(result.current.toPlay).toStrictEqual(new Set([2]));
-  expect(result.current.stage).toBe("deal");
+  expect(result.current.nextAction).toBe("deal");
 });
