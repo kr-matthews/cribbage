@@ -6,10 +6,25 @@ import { useScores } from "./useScores.js";
 
 import Action from "./Action.js";
 
+//// Helpers ////
+
+function initialNextPlay(playerCount) {
+  let arr = Array(playerCount).fill(false);
+  arr[0] = true;
+  return {
+    nextPlayers: arr,
+    nextAction: Action.START,
+  };
+}
+
 //// Reducers ////
 
-function reduceNextPlay(nextPlay, { type, player, nextAction }) {
-  let playerCount = nextPlay.nextPlayers.length;
+function reduceNextPlay(nextPlay, { type, player, nextAction, playerCount }) {
+  // if new game with new players, need to adjust player count
+  if (type === "reset") return initialNextPlay(playerCount);
+
+  // otherwise just use the same player count
+  playerCount ||= nextPlay.nextPlayers.length;
   let newNextPlay = {
     // copy current players
     nextPlayers: [...nextPlay.nextPlayers],
@@ -51,18 +66,11 @@ export function useGame(playerCount, isOwner) {
   const [{ nextPlayers, nextAction }, dispatchNextPlay] = useReducer(
     reduceNextPlay,
     playerCount,
-    (playerCount) => {
-      let arr = Array(playerCount).fill(false);
-      arr[0] = true;
-      return {
-        nextPlayers: arr,
-        nextAction: Action.DEAL, // TEMP: Action.START
-      };
-    }
+    initialNextPlay
   );
 
   // current dealer, via player index
-  const [dealer, setDealer] = useState(0); // TEMP: null
+  const [dealer, setDealer] = useState(null);
 
   //// Custom Hooks ////
 
@@ -76,6 +84,7 @@ export function useGame(playerCount, isOwner) {
   const round = useRound(
     playerCount,
     dealer,
+    setDealer,
     nextPlayers.indexOf(true), // nextPlayer
     nextAction,
     dispatchNextPlay,
@@ -91,14 +100,26 @@ export function useGame(playerCount, isOwner) {
   function start(cards) {
     if (2 <= playerCount && playerCount <= 3) {
       // TODO: prevent new players from joining/being added
+      // TODO: reset everything
       // if owner started game remotely, then they sent the deck configuration
-      if (cards) deck.reset(cards);
-      // TOOD: NEXT: update next action
+      deck.reset(cards);
+      dispatchNextPlay({ player: 0, nextAction: Action.CUT_FOR_DEAL });
+    } else {
+      alert("The game can only be played with 2 or 3 players.");
     }
   }
 
-  function cutForDeal() {
-    // TODO
+  function cutForDeal(player) {
+    // TODO: break into 2 steps
+    if (nextPlayers[playerCount - 1]) {
+      // last player just cut
+      // TODO: deduce dealer
+      const newDealer = Math.floor(Math.random() * playerCount);
+      setDealer(newDealer);
+      dispatchNextPlay({ player: newDealer, nextAction: Action.DEAL });
+    } else {
+      dispatchNextPlay({ type: "next" });
+    }
   }
 
   //// Return ////

@@ -19,14 +19,14 @@ import Links from "./links/Links.js";
 import "./game-components/gameComponents.css";
 import "./playing-cards/playingCards.css";
 
-//// Constants
+//// Constants ////
 
 // always use four columns
 const HIDE_EMPTY_COLUMNS = false; // TODO: make empty cols uniform
 // hand of size up to 6, plus starter card on the end
 const HAND_ALL_UNSELECTED = Array(7).fill(false);
 
-//// Reducers
+//// Reducers ////
 
 function playersReducer(players, action) {
   const newPlayers = [...players];
@@ -67,7 +67,7 @@ function selectedReducer(selected, action) {
 ////// App //////
 
 export default function App() {
-  //// States
+  //// States ////
 
   // user's name (persists)
   const [userName, setUserName] = useLocalStorage("userName", "Undecided");
@@ -78,17 +78,18 @@ export default function App() {
     }
   }
 
-  // list of 3 players (players may be null)
+  // list of up to 3 players
   const [players, dispatchPlayers] = useReducer(playersReducer, [
     // TEMP players
     { name: "Joe", type: "Human" },
     { name: "You", type: "Human" },
     { name: "Claire", type: "Computer" },
   ]);
-  // what spot the user is 'sitting' in (can't be 'standing')
-  const [position, setPosition] = useState(1);
   // amount of players present (user is always present)
   const playerCount = players.length;
+
+  // what spot the user is 'sitting' in (can't be 'standing')
+  const [position, setPosition] = useState(1); // TEMP: 0
 
   // the game
   const game = useGame(playerCount, position === 0);
@@ -110,22 +111,30 @@ export default function App() {
   var colours = ["DarkRed", "DarkGreen", "DarkBlue"];
   playerCount === 2 && colours.splice(1, 1);
 
-  //// Temporary sample functionality
+  //// Temporary sample functionality ////
 
   const sampleLabels = [
+    "New Game",
+    "Cut for Deal",
     "Deal",
-    "To Crib",
-    "Cut",
-    "Flip",
+    "Discard",
+    "Cut for Starter",
+    "Flip Starter",
     "Play",
     "Go",
     "Proceed",
     "Score Hand",
     "Score Crib",
-    "Reset",
+    "New Round",
   ];
 
   const sampleActions = [
+    () => {
+      if (game.nextAction === Action.START) game.start();
+    },
+    () => {
+      if (game.nextAction === Action.CUT_FOR_DEAL) game.cutForDeal();
+    },
     () => {
       if (game.nextAction === Action.DEAL) game.deal();
     },
@@ -184,10 +193,12 @@ export default function App() {
     () => {
       if (game.nextAction === Action.SCORE_CRIB) game.scoreCrib();
     },
-    () => game.resetRound(),
+    () => {
+      if (game.nextAction === Action.RESET_ROUND) game.resetRound();
+    },
   ];
 
-  //// Return
+  //// Return ////
 
   return (
     // TEMP: WIP note
@@ -234,15 +245,20 @@ export default function App() {
         playStacks={game.piles} // TODO: rename to piles
       />
       <Actions
-        waiting={false} // ={game.nextToAct !== position} TEMP
-        // nextToAct={game.nextToAct !== null && players[game.nextToAct].name}
-        nextAction={game.nextAction}
+        waiting={!game.nextPlayers[position]}
+        nextToAct={
+          game.nextPlayers.reduce(
+            (count, curr) => count + (curr ? 1 : 0),
+            0
+          ) === 1
+            ? players[game.nextPlayers.indexOf(true)].name
+            : "everyone else"
+        }
+        nextAction={game.nextAction.externalMessage}
         labels={sampleLabels} // TEMP
         actions={sampleActions} // TEMP: these need validation checks - correct player, stage, valid input
         enabled={sampleEnabled}
       />
-      TEMP: Round stage: player {game.nextPlayers.indexOf(true)} to{" "}
-      {game.nextAction.externalMessage}.
       <PlayHistory messages={sampleMessages} />
       <Links
         gitHubLink="https://github.com/kr-matthews/cribbage"

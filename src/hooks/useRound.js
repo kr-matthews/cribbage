@@ -69,7 +69,9 @@ function checkClaim(cards, claim) {
 //// Reducers ////
 
 function reduceStates(states, action) {
-  let playerCount = states.hands.length;
+  // if new game with new players, need to specify player count
+  let playerCount = action.playerCount || states.hands.length;
+
   // want to create new state, not alter existing state, so make copies of all changing pieces
   let newHands = Array(playerCount);
   let newPiles = Array(playerCount);
@@ -83,6 +85,7 @@ function reduceStates(states, action) {
     piles: newPiles,
     sharedStack: [...states.sharedStack],
   };
+
   switch (action.type) {
     case "reset":
       newStates = initialStates(playerCount);
@@ -153,6 +156,7 @@ function reduceGoed(goed, action) {
 export function useRound(
   playerCount,
   dealer,
+  setDealer,
   nextPlayer,
   nextAction,
   dispatchNextPlay,
@@ -384,10 +388,12 @@ export function useRound(
   }
 
   function reset(cards) {
+    let newDealer = (dealer + 1) % playerCount;
+    setDealer(newDealer);
     dispatchStates({ type: "reset" });
     setStarter(null);
     deck.reset(cards);
-    dispatchNextPlay({ player: dealer, nextAction: Action.DEAL });
+    dispatchNextPlay({ player: newDealer, nextAction: Action.DEAL });
   }
 
   /**
