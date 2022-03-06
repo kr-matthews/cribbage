@@ -6,6 +6,8 @@ import { useSoundEffects } from "./hooks/useSoundEffects.js";
 import { useGamePoints } from "./hooks/useGamePoints.js";
 import { useNetwork } from "./hooks/useNetwork.js";
 
+import Action from "./hooks/Action.js";
+
 import Header from "./game-components/Header.js";
 import Hands from "./game-components/Hands.js";
 import PlayArea from "./game-components/PlayArea.js";
@@ -125,11 +127,11 @@ export default function App() {
 
   const sampleActions = [
     () => {
-      if (game.nextAction === "deal") game.deal();
+      if (game.nextAction === Action.DEAL) game.deal();
     },
     () => {
       if (
-        game.nextAction === "discard" &&
+        game.nextAction === Action.DISCARD &&
         selectedCount === 4 - playerCount &&
         !selected[6]
       ) {
@@ -143,44 +145,44 @@ export default function App() {
       dispatchSelected({ type: "reset" });
     },
     () => {
-      if (game.nextAction === "cut") game.cut();
+      if (game.nextAction === Action.CUT_FOR_STARTER) game.cut();
     },
     () => {
-      if (game.nextAction === "flip") game.flip();
+      if (game.nextAction === Action.FLIP_STARTER) game.flip();
     },
     () => {
       let index = selected.findIndex((bool) => bool);
       if (
-        game.nextAction === "play" &&
+        game.nextAction === Action.PLAY &&
         selectedCount === 1 &&
         index !== 6 &&
         game.isValidPlay(index)
       ) {
         game.play(index);
       } else {
-        console.info("invalid play");
+        alert("invalid play");
       }
       dispatchSelected({ type: "reset" });
     },
     () => {
-      if (game.nextAction === "play" && game.isValidGo()) {
+      if (game.nextAction === Action.PLAY && game.isValidGo()) {
         game.go();
       } else {
-        console.info("invalid go");
+        alert("invalid go");
       }
       dispatchSelected({ type: "reset" });
     },
     () => {
       if (
-        ["proceed-to-next-play", "proceed-to-scoring"].includes(game.nextAction)
+        [Action.PROCEED_PLAY, Action.PROCEED_SCORING].includes(game.nextAction)
       )
         game.proceed();
     },
     () => {
-      if (game.nextAction === "score-hand") game.scoreHand();
+      if (game.nextAction === Action.SCORE_HAND) game.scoreHand();
     },
     () => {
-      if (game.nextAction === "score-crib") game.scoreCrib();
+      if (game.nextAction === Action.SCORE_CRIB) game.scoreCrib();
     },
     () => game.resetRound(),
   ];
@@ -240,7 +242,7 @@ export default function App() {
         enabled={sampleEnabled}
       />
       TEMP: Round stage: player {game.nextPlayers.indexOf(true)} to{" "}
-      {game.nextAction}
+      {game.nextAction.externalMessage}.
       <PlayHistory messages={sampleMessages} />
       <Links
         gitHubLink="https://github.com/kr-matthews/cribbage"

@@ -1,5 +1,7 @@
 import { useEffect, useReducer, useState } from "react";
 
+import Action from "./Action";
+
 //// Constants ////
 
 //
@@ -14,6 +16,8 @@ function initialStates(playerCount) {
     sharedStack: [],
   };
 }
+
+// TODO: move these helpers to new file in /playing-cards?
 
 function cardSorter(card1, card2) {
   return (
@@ -205,10 +209,10 @@ export function useRound(
 
   // deal
   useEffect(() => {
-    if (nextAction === "dealing") {
+    if (nextAction === Action.DEALING) {
       if (dealTo === null) {
         // stop dealing
-        dispatchNextPlay({ type: "all", nextAction: "discard" });
+        dispatchNextPlay({ type: "all", nextAction: Action.DISCARD });
       } else if (dealTo === -1) {
         // deal to crib
         let card = deck.draw(1)[0];
@@ -223,15 +227,18 @@ export function useRound(
 
   // once everyone has submitted to the crib
   useEffect(() => {
-    if (nextAction === "discard" && crib.length === 4) {
-      dispatchNextPlay({ player: dealer + 1, nextAction: "cut" });
+    if (nextAction === Action.DISCARD && crib.length === 4) {
+      dispatchNextPlay({
+        player: dealer + 1,
+        nextAction: Action.CUT_FOR_STARTER,
+      });
     }
   }, [nextAction, crib.length, dispatchNextPlay, dealer]);
 
   // skip players who are inactive (if there are still active players)
   useEffect(() => {
     if (
-      ["play", "proceed-to-next-play"].includes(nextAction) &&
+      [Action.PLAY, Action.PROCEED_PLAY].includes(nextAction) &&
       inactive[nextPlayer] &&
       inactive.includes(false)
     ) {
@@ -242,14 +249,14 @@ export function useRound(
   // if play stage not over, once everyone is inactive (or 31 is hit), reset sharedStack
   useEffect(() => {
     if (
-      nextAction === "play" &&
+      nextAction === Action.PLAY &&
       (inactive.every((bool) => bool) || stackTotal === 31)
     ) {
       dispatchGoed({ type: "reset" });
       dispatchStates({ type: "all-goed" });
       dispatchNextPlay({
         player: nextPlayer,
-        nextAction: "proceed-to-next-play",
+        nextAction: Action.PROCEED_PLAY,
       });
     }
   }, [
@@ -264,10 +271,13 @@ export function useRound(
 
   // once all cards have been played in play stage
   useEffect(() => {
-    if (nextAction === "play" && hands.every((hand) => hand.length === 0)) {
+    if (
+      nextAction === Action.PLAY &&
+      hands.every((hand) => hand.length === 0)
+    ) {
       dispatchNextPlay({
         player: dealer + 1,
-        nextAction: "proceed-to-scoring",
+        nextAction: Action.PROCEED_SCORING,
       });
     }
   }, [nextAction, hands, dispatchNextPlay, dealer]);
@@ -275,7 +285,7 @@ export function useRound(
   //// Functions
 
   function deal() {
-    dispatchNextPlay({ player: dealer, nextAction: "dealing" });
+    dispatchNextPlay({ player: dealer, nextAction: Action.DEALING });
   }
 
   function sendToCrib(player, indices) {
@@ -290,13 +300,13 @@ export function useRound(
 
   function cut() {
     deck.cut();
-    dispatchNextPlay({ player: dealer, nextAction: "flip" });
+    dispatchNextPlay({ player: dealer, nextAction: Action.FLIP_STARTER });
   }
 
   function flip() {
     setStarter(deck.draw(1)[0]);
     deck.uncut();
-    dispatchNextPlay({ player: dealer + 1, nextAction: "play" });
+    dispatchNextPlay({ player: dealer + 1, nextAction: Action.PLAY });
   }
 
   function isValidPlay(index, claim, amount = sharedStack.length + 1) {
@@ -336,8 +346,8 @@ export function useRound(
    * Checks if specified cards in specified hand/crib add up to 15,
    * form a run, are _-of-a-kind, or form a (valid) flush.
    *
-   * @param {int} player Index of player, or -1 for crib
-   * @param {Array<int>} indices indices of cards in hand/crib plus starter
+   * @param {int} player Index of player, or -1 for crib.
+   * @param {Array<int>} indices Indices of cards in hand/crib plus starter.
    * @param {string} claim "15", "run", "kind", or "flush"
    */
   function canScorePoints(player, indices, isUsingStarter, claim) {
@@ -363,21 +373,21 @@ export function useRound(
 
   function scoreHand() {
     if (nextPlayer === dealer) {
-      dispatchNextPlay({ player: dealer, nextAction: "score-crib" });
+      dispatchNextPlay({ player: dealer, nextAction: Action.SCORE_CRIB });
     } else {
       dispatchNextPlay({ type: "next" });
     }
   }
 
   function scoreCrib() {
-    dispatchNextPlay({ player: dealer + 1, nextAction: "reset" });
+    dispatchNextPlay({ player: dealer + 1, nextAction: Action.RESET_ROUND });
   }
 
   function reset(cards) {
     dispatchStates({ type: "reset" });
     setStarter(null);
     deck.reset(cards);
-    dispatchNextPlay({ player: dealer, nextAction: "deal" });
+    dispatchNextPlay({ player: dealer, nextAction: Action.DEAL });
   }
 
   /**
@@ -386,14 +396,14 @@ export function useRound(
    */
   function proceed() {
     switch (nextAction) {
-      case "proceed-to-next-play":
+      case Action.PROCEED_PLAY:
         // TODO: flip current piles face-down
-        dispatchNextPlay({ player: nextPlayer, nextAction: "play" });
+        dispatchNextPlay({ player: nextPlayer, nextAction: Action.PLAY });
         break;
 
-      case "proceed-to-scoring":
+      case Action.PROCEED_SCORING:
         dispatchStates({ type: "re-hand" });
-        dispatchNextPlay({ player: nextPlayer, nextAction: "score-hand" });
+        dispatchNextPlay({ player: nextPlayer, nextAction: Action.SCORE_HAND });
         break;
 
       default:

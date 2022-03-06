@@ -4,7 +4,9 @@ import { useDeck } from "./useDeck.js";
 import { useRound } from "./useRound.js";
 import { useScores } from "./useScores.js";
 
-//// Reducers
+import Action from "./Action.js";
+
+//// Reducers ////
 
 function reduceNextPlay(nextPlay, { type, player, nextAction }) {
   let playerCount = nextPlay.nextPlayers.length;
@@ -42,9 +44,7 @@ function reduceNextPlay(nextPlay, { type, player, nextAction }) {
 ////// Hook //////
 
 export function useGame(playerCount, isOwner) {
-  //// Constants and States
-
-  // TODO: NEXT: add enums for actions
+  //// Constants and States ////
 
   // the next action to be taken, and by who
   // (only 1 player to play next, unless discarding to crib)
@@ -56,7 +56,7 @@ export function useGame(playerCount, isOwner) {
       arr[0] = true;
       return {
         nextPlayers: arr,
-        nextAction: "deal", // TEMP: "start"
+        nextAction: Action.DEAL, // TEMP: Action.START
       };
     }
   );
@@ -64,7 +64,7 @@ export function useGame(playerCount, isOwner) {
   // current dealer, via player index
   const [dealer, setDealer] = useState(0); // TEMP: null
 
-  //// Custom Hooks
+  //// Custom Hooks ////
 
   // current scores
   const scores = useScores();
@@ -82,11 +82,11 @@ export function useGame(playerCount, isOwner) {
     deck
   );
 
-  //// Helpers
+  //// Helpers ////
 
   //
 
-  //// Functions to return
+  //// Functions to return ////
 
   function start(cards) {
     if (2 <= playerCount && playerCount <= 3) {
@@ -101,7 +101,7 @@ export function useGame(playerCount, isOwner) {
     // TODO
   }
 
-  //// Return
+  //// Return ////
 
   return {
     // score
@@ -141,19 +141,3 @@ export function useGame(playerCount, isOwner) {
 
 // for tests
 export { reduceNextPlay };
-
-//// Possible actions:
-// start
-// cut for deal
-// repeat (a round):
-//  deal
-//  send to crib
-//  cut
-//  flip
-//  play - suboptions: play, for 15, for _-of-a-kind, for a-run-of-_) -- CAN HAVE MUTLTIPLE (ex: 5, 4, 6)
-//  go
-//  [scoring] 15, pair, run, flush, his nobs, submit points
-//  [opp scoring] accept score, claim missed points
-//  [claiming] 15, pair, run, flush, his nobs, submit points
-//  reset
-// new game
