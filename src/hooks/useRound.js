@@ -1,15 +1,19 @@
 import { useEffect, useReducer, useState } from "react";
 
-//// Constants
+//// Constants ////
 
-const INITIAL_STATES = {
-  crib: [],
-  hands: [[], [], []],
-  piles: [[], [], []],
-  sharedStack: [],
-};
+//
 
-//// Helpers
+//// Helpers ////
+
+function initialStates(playerCount) {
+  return {
+    crib: [],
+    hands: [[], [], []].slice(0, playerCount),
+    piles: [[], [], []].slice(0, playerCount),
+    sharedStack: [],
+  };
+}
 
 function cardSorter(card1, card2) {
   return (
@@ -17,19 +21,67 @@ function cardSorter(card1, card2) {
   );
 }
 
-//// Reducers
+function totalPoints(cards) {
+  return cards.reduce((partialSum, { rank }) => partialSum + rank.points, 0);
+}
+
+function checkClaim(cards, claim) {
+  if (cards.length < 2) return false;
+  switch (claim) {
+    case "15":
+      return totalPoints(cards) === 15;
+
+    case "kind":
+      let rankIndex = cards[0].rank.index;
+      return (
+        cards.length >= 2 &&
+        cards.every((card) => card.rank.index === rankIndex)
+      );
+
+    case "run":
+      return (
+        cards.length >= 3 &&
+        cards
+          .map((card) => card.rank.index)
+          .sort((a, b) => a - b)
+          .every(
+            (num, index, nums) => index === 0 || num === nums[index - 1] + 1
+          )
+      );
+
+    case "flush":
+      let suitIndex = cards[0].suit.index;
+      return (
+        cards.length >= 4 &&
+        cards.every((card) => card.suit.index === suitIndex)
+      );
+
+    default:
+      console.error("checkClaim couldn't match claim:", claim);
+  }
+  return false;
+}
+
+//// Reducers ////
 
 function reduceStates(states, action) {
+  let playerCount = states.hands.length;
   // want to create new state, not alter existing state, so make copies of all changing pieces
+  let newHands = Array(playerCount);
+  let newPiles = Array(playerCount);
+  for (let ind = 0; ind < playerCount; ind++) {
+    newHands[ind] = [...states.hands[ind]];
+    newPiles[ind] = [...states.piles[ind]];
+  }
   let newStates = {
     crib: [...states.crib],
-    hands: [[...states.hands[0]], [...states.hands[1]], [...states.hands[2]]],
-    piles: [[...states.piles[0]], [...states.piles[1]], [...states.piles[2]]],
+    hands: newHands,
+    piles: newPiles,
     sharedStack: [...states.sharedStack],
   };
   switch (action.type) {
     case "reset":
-      newStates = INITIAL_STATES;
+      newStates = initialStates(playerCount);
       break;
 
     case "deal-player":
@@ -59,7 +111,7 @@ function reduceStates(states, action) {
     case "re-hand":
       newStates.hands = newStates.piles;
       newStates.hands.forEach((hand) => hand.sort(cardSorter));
-      newStates.piles = [[], [], []];
+      newStates.piles = [[], [], []].slice(0, playerCount);
       newStates.sharedStack = [];
       break;
 
@@ -72,48 +124,6 @@ function reduceStates(states, action) {
       break;
   }
   return newStates;
-}
-
-function reduceNextPlay(nextPlay, action) {
-  let newNextPlay = {
-    toPlay: new Set(nextPlay.toPlay),
-    nextAction: nextPlay.nextAction,
-  };
-  switch (action.type) {
-    case "add": // unused
-      newNextPlay.toPlay.add(action.player);
-      break;
-
-    case "remove":
-      newNextPlay.toPlay.delete(action.player);
-      break;
-
-    case "all":
-      for (let player = 0; player < action.playerCount; player++) {
-        newNextPlay.toPlay.add(player);
-      }
-      newNextPlay.nextAction = action.nextAction;
-      break;
-
-    case "next":
-      if (newNextPlay.toPlay.size === 1) {
-        newNextPlay.toPlay = new Set([
-          ([...newNextPlay.toPlay][0] + 1) % action.playerCount,
-        ]);
-      }
-      action.nextAction && (newNextPlay.nextAction = action.nextAction);
-      break;
-
-    case "set":
-      newNextPlay.toPlay = new Set([action.player % action.playerCount]);
-      action.nextAction && (newNextPlay.nextAction = action.nextAction);
-      break;
-
-    default:
-      console.error("reduceToPlay couldn't match action:", action);
-      break;
-  }
-  return newNextPlay;
 }
 
 function reduceGoed(goed, action) {
@@ -134,14 +144,22 @@ function reduceGoed(goed, action) {
   return newGoed;
 }
 
-//// Hook ////
+////// Hook //////
 
-export function useRound(playerCount, dealer, deck) {
-  //// States and Constants
+export function useRound(
+  playerCount,
+  dealer,
+  nextPlayer,
+  nextAction,
+  dispatchNextPlay,
+  deck
+) {
+  //// States and Constants ////
 
   const [{ crib, hands, piles, sharedStack }, dispatchStates] = useReducer(
     reduceStates,
-    INITIAL_STATES
+    playerCount,
+    initialStates
   );
 
   const stackTotal = totalPoints(sharedStack); // sharedStack.reduce(
@@ -150,16 +168,6 @@ export function useRound(playerCount, dealer, deck) {
   // );
 
   const [starter, setStarter] = useState(null);
-
-  // set of players who can act next, and the action they should do
-  // set will have size 1, except when discarding to the crib
-  const [{ toPlay, nextAction }, dispatchNextPlay] = useReducer(
-    reduceNextPlay,
-    {
-      toPlay: new Set([dealer]),
-      nextAction: "deal",
-    }
-  );
 
   // who to deal to next
   const dealTo =
@@ -189,76 +197,18 @@ export function useRound(playerCount, dealer, deck) {
     .fill(null)
     .map((_, player) => goed.has(player) || hands[player].length === 0);
 
-  //// Helpers - Getters & Checkers
+  //// Helpers ////
 
-  // use to get the unique player to play next when applicable
-  function getToPlay() {
-    return [...toPlay][0];
-  }
+  //
 
-  function totalPoints(cards) {
-    return cards.reduce((partialSum, { rank }) => partialSum + rank.points, 0);
-  }
+  //// Effects ////
 
-  function checkClaim(cards, claim) {
-    if (cards.length < 2) return false;
-    switch (claim) {
-      case "15":
-        return totalPoints(cards) === 15;
-
-      case "kind":
-        let rankIndex = cards[0].rank.index;
-        return (
-          cards.length >= 2 &&
-          cards.every((card) => card.rank.index === rankIndex)
-        );
-
-      case "run":
-        return (
-          cards.length >= 3 &&
-          cards
-            .map((card) => card.rank.index)
-            .sort((a, b) => a - b)
-            .every(
-              (num, index, nums) => index === 0 || num === nums[index - 1] + 1
-            )
-        );
-
-      case "flush":
-        let suitIndex = cards[0].suit.index;
-        return (
-          cards.length >= 4 &&
-          cards.every((card) => card.suit.index === suitIndex)
-        );
-
-      default:
-        console.error("checkClaim couldn't match claim:", claim);
-    }
-    return false;
-  }
-
-  //// Helpers - Actions
-
-  function incrementNextPlay(nextAction) {
-    dispatchNextPlay({ type: "next", playerCount, nextAction });
-  }
-
-  function setNextPlay(player, nextAction) {
-    dispatchNextPlay({ type: "set", player, playerCount, nextAction });
-  }
-
-  function allToPlay(nextAction) {
-    dispatchNextPlay({ type: "all", playerCount, nextAction });
-  }
-
-  //// Effects
-
-  // deal - TODO: revert to function?
+  // deal
   useEffect(() => {
     if (nextAction === "dealing") {
       if (dealTo === null) {
         // stop dealing
-        allToPlay("discard");
+        dispatchNextPlay({ type: "all", nextAction: "discard" });
       } else if (dealTo === -1) {
         // deal to crib
         let card = deck.draw(1)[0];
@@ -269,25 +219,25 @@ export function useRound(playerCount, dealer, deck) {
         dispatchStates({ type: "deal-player", player: dealTo, card });
       }
     }
-  });
+  }, [nextAction, dealTo, deck, dispatchNextPlay]);
 
   // once everyone has submitted to the crib
   useEffect(() => {
     if (nextAction === "discard" && crib.length === 4) {
-      setNextPlay(dealer + 1, "cut");
+      dispatchNextPlay({ player: dealer + 1, nextAction: "cut" });
     }
-  });
+  }, [nextAction, crib.length, dispatchNextPlay, dealer]);
 
   // skip players who are inactive (if there are still active players)
   useEffect(() => {
     if (
       ["play", "proceed-to-next-play"].includes(nextAction) &&
-      inactive[getToPlay()] &&
+      inactive[nextPlayer] &&
       inactive.includes(false)
     ) {
-      incrementNextPlay();
+      dispatchNextPlay({ type: "next" });
     }
-  });
+  }, [nextAction, nextPlayer, inactive, dispatchNextPlay]);
 
   // if play stage not over, once everyone is inactive (or 31 is hit), reset sharedStack
   useEffect(() => {
@@ -297,21 +247,35 @@ export function useRound(playerCount, dealer, deck) {
     ) {
       dispatchGoed({ type: "reset" });
       dispatchStates({ type: "all-goed" });
-      setNextPlay(getToPlay(), "proceed-to-next-play");
+      dispatchNextPlay({
+        player: nextPlayer,
+        nextAction: "proceed-to-next-play",
+      });
     }
-  });
+  }, [
+    nextAction,
+    inactive,
+    stackTotal,
+    dispatchGoed,
+    dispatchStates,
+    dispatchNextPlay,
+    nextPlayer,
+  ]);
 
   // once all cards have been played in play stage
   useEffect(() => {
     if (nextAction === "play" && hands.every((hand) => hand.length === 0)) {
-      setNextPlay(dealer + 1, "proceed-to-scoring");
+      dispatchNextPlay({
+        player: dealer + 1,
+        nextAction: "proceed-to-scoring",
+      });
     }
-  });
+  }, [nextAction, hands, dispatchNextPlay, dealer]);
 
   //// Functions
 
   function deal() {
-    setNextPlay(dealer, "dealing");
+    dispatchNextPlay({ player: dealer, nextAction: "dealing" });
   }
 
   function sendToCrib(player, indices) {
@@ -326,17 +290,17 @@ export function useRound(playerCount, dealer, deck) {
 
   function cut() {
     deck.cut();
-    setNextPlay(dealer, "flip");
+    dispatchNextPlay({ player: dealer, nextAction: "flip" });
   }
 
   function flip() {
     setStarter(deck.draw(1)[0]);
     deck.uncut();
-    setNextPlay(dealer + 1, "play");
+    dispatchNextPlay({ player: dealer + 1, nextAction: "play" });
   }
 
   function isValidPlay(index, claim, amount = sharedStack.length + 1) {
-    const card = hands[getToPlay()][index];
+    const card = hands[nextPlayer][index];
 
     // can't play if it goes over 31
     if (stackTotal + card.rank.points > 31) return false;
@@ -354,19 +318,17 @@ export function useRound(playerCount, dealer, deck) {
   }
 
   function play(index) {
-    dispatchStates({ type: "play", player: getToPlay(), index });
-    incrementNextPlay();
+    dispatchStates({ type: "play", player: nextPlayer, index });
+    dispatchNextPlay({ type: "next" });
   }
 
   function isValidGo() {
-    return hands[getToPlay()].every(
-      ({ rank }) => stackTotal + rank.points > 31
-    );
+    return hands[nextPlayer].every(({ rank }) => stackTotal + rank.points > 31);
   }
 
   function go() {
-    dispatchGoed({ type: "add", player: getToPlay() });
-    incrementNextPlay();
+    dispatchGoed({ type: "add", player: nextPlayer });
+    dispatchNextPlay({ type: "next" });
   }
 
   // may check opponent's hand, so need player param (-1 for crib)
@@ -378,10 +340,9 @@ export function useRound(playerCount, dealer, deck) {
    * @param {Array<int>} indices indices of cards in hand/crib plus starter
    * @param {string} claim "15", "run", "kind", or "flush"
    */
-  function canScorePoints(player, indices, claim) {
+  function canScorePoints(player, indices, isUsingStarter, claim) {
     let isCrib = !hands[player];
     let amount = indices.length;
-    let isUsingStarter = indices.includes(6);
 
     let hand = hands[player] || crib;
     let cards = hand.filter((_, index) => indices.includes(index));
@@ -401,22 +362,22 @@ export function useRound(playerCount, dealer, deck) {
   }
 
   function scoreHand() {
-    if (getToPlay() === dealer) {
-      setNextPlay(dealer, "score-crib");
+    if (nextPlayer === dealer) {
+      dispatchNextPlay({ player: dealer, nextAction: "score-crib" });
     } else {
-      incrementNextPlay();
+      dispatchNextPlay({ type: "next" });
     }
   }
 
   function scoreCrib() {
-    setNextPlay(null, "reset");
+    dispatchNextPlay({ player: dealer + 1, nextAction: "reset" });
   }
 
   function reset(cards) {
     dispatchStates({ type: "reset" });
     setStarter(null);
     deck.reset(cards);
-    setNextPlay(dealer, "deal");
+    dispatchNextPlay({ player: dealer, nextAction: "deal" });
   }
 
   /**
@@ -427,12 +388,12 @@ export function useRound(playerCount, dealer, deck) {
     switch (nextAction) {
       case "proceed-to-next-play":
         // TODO: flip current piles face-down
-        setNextPlay(getToPlay(), "play");
+        dispatchNextPlay({ player: nextPlayer, nextAction: "play" });
         break;
 
       case "proceed-to-scoring":
         dispatchStates({ type: "re-hand" });
-        setNextPlay(getToPlay(), "score-hand");
+        dispatchNextPlay({ player: nextPlayer, nextAction: "score-hand" });
         break;
 
       default:
@@ -448,8 +409,6 @@ export function useRound(playerCount, dealer, deck) {
     crib,
     hands,
     piles,
-    toPlay,
-    nextAction,
     deal,
     sendToCrib,
     cut,

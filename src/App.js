@@ -22,7 +22,7 @@ import "./playing-cards/playingCards.css";
 // always use four columns
 const HIDE_EMPTY_COLUMNS = false; // TODO: make empty cols uniform
 // hand of size up to 6, plus starter card on the end
-const HAND_ALL_UNSELECTED = Array(7).fill(0);
+const HAND_ALL_UNSELECTED = Array(7).fill(false);
 
 //// Reducers
 
@@ -134,7 +134,7 @@ export default function App() {
         !selected[6]
       ) {
         game.sendToCrib(
-          [...game.toPlay][0],
+          game.nextPlayers.indexOf(true),
           selected
             .map((bool, index) => (bool ? index : null))
             .filter((index) => index !== null)
@@ -202,7 +202,7 @@ export default function App() {
         userName={userName}
         updateUserName={trySetUserName}
         userPosition={position}
-        dealerPosition={0} // TEMP
+        dealerPosition={game.dealer}
         mode={network.mode}
         isSoundOn={soundEffects.isOn}
         toggleSound={soundEffects.toggle}
@@ -218,7 +218,7 @@ export default function App() {
         hideEmptyColumns={HIDE_EMPTY_COLUMNS}
         crib={game.crib}
         hands={game.hands}
-        activePosition={[...game.toPlay][0]} // TEMP
+        activePosition={game.nextPlayers.indexOf(true)} // TEMP
         selectedCards={selected}
         clickCardHandler={(index) => dispatchSelected({ type: "click", index })} // TODO: only when clickable
       />
@@ -239,7 +239,8 @@ export default function App() {
         actions={sampleActions} // TEMP: these need validation checks - correct player, stage, valid input
         enabled={sampleEnabled}
       />
-      Round stage: player {game.toPlay} to {game.nextAction} // TEMP
+      TEMP: Round stage: player {game.nextPlayers.indexOf(true)} to{" "}
+      {game.nextAction}
       <PlayHistory messages={sampleMessages} />
       <Links
         gitHubLink="https://github.com/kr-matthews/cribbage"
