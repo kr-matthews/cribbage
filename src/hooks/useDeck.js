@@ -3,14 +3,7 @@ import { useReducer, useState } from "react";
 import Suit from "./../playing-cards/Suit.js";
 import Rank from "./../playing-cards/Rank.js";
 
-/**
- * Note: To ensure coordination between users, it's important that
- * everything after initialization/reset is deterministic.
- * Only randomness is current on init or reset when no explicit deck
- * is provided, in which case shuffle a sorted deck.
- */
-
-//// Constants
+//// Constants ////
 
 // TODO: export from file in /playing-cards
 
@@ -35,7 +28,7 @@ for (let rank of [
   }
 }
 
-//// Reducers
+//// Reducers ////
 
 function cardsReducer(cards, action) {
   let newCards = [...cards];
@@ -52,7 +45,7 @@ function cardsReducer(cards, action) {
     case "remove":
       let size = newCards.length;
       let count = action.count;
-      if (size >= action.count) newCards.splice(size - count, count);
+      if (size >= count) newCards.splice(size - count, count);
       break;
 
     default:
@@ -62,7 +55,7 @@ function cardsReducer(cards, action) {
   return newCards;
 }
 
-//// Helpers
+//// Helpers ////
 
 /**
  * Shuffle an array in place.
@@ -79,14 +72,17 @@ function shuffle(arr) {
   }
 }
 
-//// Hook
+////// Hook //////
 
+/**
+ * Note: To ensure coordination between users, it's important that
+ * everything after initialization/reset is deterministic.
+ * Only randomness is current on init or reset when no explicit deck
+ * is provided, in which case shuffle a sorted deck.
+ * (Except cutCount, which is for visual purposes only.)
+ */
 export function useDeck(initialCards) {
-  //// Constants and States
-
-  // is the deck currently split into two 'halves'
-  const [isCut, setIsCut] = useState(false);
-
+  //// Constants and States ////
   // the deck, stored in an array in shuffled order
   const [cards, dispatchCards] = useReducer(
     cardsReducer,
@@ -100,11 +96,16 @@ export function useDeck(initialCards) {
   const size = cards.length;
   const isEmpty = size < 1;
 
-  //// Helpers
+  // how many cards are cut off of the top
+  const [cutCount, setCutCount] = useState(0);
+  const unCutCount = size - cutCount;
+  const isCut = cutCount > 0;
+
+  //// Helpers ////
 
   //
 
-  //// Return Functions
+  //// Return Functions ////
 
   /**
    * Owners shuffle their own decks on reset.
@@ -118,7 +119,7 @@ export function useDeck(initialCards) {
     } else {
       dispatchCards({ type: "reset" });
     }
-    setIsCut(false);
+    setCutCount(0);
   }
 
   // use to deal
@@ -129,21 +130,25 @@ export function useDeck(initialCards) {
     return drawn;
   }
 
-  function cut() {
-    setIsCut(true);
+  function cut(buffer) {
+    // by default, leave at least 3 cards if possible
+    buffer ||= Math.min(3, Math.floor(unCutCount / 2));
+    let toCut = Math.floor(Math.random() * (unCutCount - 2 * buffer)) + buffer;
+    setCutCount((cutCount) => cutCount + toCut);
   }
 
   function uncut() {
-    setIsCut(false);
+    setCutCount(0);
   }
 
-  //// Return
+  //// Return ////
 
   return {
     size,
     isEmpty,
     draw,
     isCut,
+    cutCount,
     cut,
     uncut,
     reset,
