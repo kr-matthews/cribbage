@@ -22,8 +22,10 @@ function initialStates(playerCount) {
 //// Reducers ////
 
 function reduceStates(states, action) {
-  // if new game with new players, need to specify player count
   let playerCount = action.playerCount || states.hands.length;
+
+  // if new game with new players, need to adjust player count
+  if (action.type === "reset") return initialStates(playerCount);
 
   // want to create new state, not alter existing state, so make copies of all changing pieces
   let newHands = Array(playerCount);
@@ -40,10 +42,6 @@ function reduceStates(states, action) {
   };
 
   switch (action.type) {
-    case "reset":
-      newStates = initialStates(playerCount);
-      break;
-
     case "deal-player":
       newStates.hands[action.player].push(action.card);
       newStates.hands[action.player].sort(cardSorter);
@@ -132,37 +130,46 @@ export function useRound(
 
   // who to deal to next
   const dealTo =
-    playerCount === 2
-      ? // 2 players
-        hands[0].length + hands[1].length === 12
+    nextAction === Action.DEALING // T ODO: NEXT: NEXT: remove?
+      ? playerCount === 2
+        ? // 2 players
+          hands[0].length + hands[1].length === 12
+          ? null
+          : hands[0].length > hands[1].length
+          ? 1
+          : 0
+        : // 3 players
+        crib.length === 1
         ? null
+        : hands[0].length + hands[1].length + hands[2].length === 15
+        ? -1
         : hands[0].length > hands[1].length
         ? 1
+        : hands[1].length > hands[2].length
+        ? 2
         : 0
-      : // 3 players
-      crib.length === 1
-      ? null
-      : hands[0].length + hands[1].length + hands[2].length === 15
-      ? -1
-      : hands[0].length > hands[1].length
-      ? 1
-      : hands[1].length > hands[2].length
-      ? 2
-      : 0;
+      : null;
 
   // players who have goed since sharedStack last reset
   const [goed, dispatchGoed] = useReducer(reduceGoed, new Set());
 
   // player is active in "play" stage if has cards and hasn't goed
-  const inactive = Array(playerCount)
-    .fill(null)
-    .map((_, player) => goed.has(player) || hands[player].length === 0);
+  const inactive =
+    nextAction === Action.PLAY && // T ODO: NEXT: NEXT: remove?
+    Array(playerCount)
+      .fill(null)
+      .map((_, player) => goed.has(player) || hands[player].length === 0);
 
   //// Helpers ////
 
   //
 
   //// Effects ////
+
+  // reset if player count changes
+  useEffect(() => {
+    dispatchStates({ type: "reset", playerCount });
+  }, [playerCount]);
 
   // deal
   useEffect(() => {
@@ -340,13 +347,21 @@ export function useRound(
     dispatchNextPlay({ player: dealer + 1, nextAction: Action.RESET_ROUND });
   }
 
-  function reset(cards) {
+  /** mid-game, post round, to start a new round */
+  function restart(cards) {
     let newDealer = (dealer + 1) % playerCount;
     setDealer(newDealer);
     dispatchStates({ type: "reset" });
     setStarter(null);
     deck.reset(cards);
     dispatchNextPlay({ player: newDealer, nextAction: Action.DEAL });
+  }
+
+  /** pre-game, when game started */
+  function reset(cards) {
+    dispatchStates({ type: "reset" });
+    // if owner started game remotely, then they sent the deck configuration
+    deck.reset(cards);
   }
 
   /**
@@ -378,6 +393,7 @@ export function useRound(
     crib,
     hands,
     piles,
+    reset,
     deal,
     sendToCrib,
     cut,
@@ -389,7 +405,7 @@ export function useRound(
     canScorePoints,
     scoreHand,
     scoreCrib,
-    reset,
     proceed,
+    restart,
   };
 }

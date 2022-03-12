@@ -32,17 +32,18 @@ function playersReducer(players, action) {
   const newPlayers = [...players];
   switch (action.type) {
     case "add":
+      newPlayers.push({});
     // intentional fall-through
     // eslint-disable-next-line
     case "update":
-      const ind = action.player;
+      const ind = action.player || newPlayers.length - 1;
       const isComputer = action.isComputer || newPlayers[ind].isComputer;
       const name = action.name || newPlayers[ind].name;
-      const colour = action.colour || newPlayers[ind].colour;
-      newPlayers[ind] = { isComputer, name, colour };
+      // const colour = action.colour || newPlayers[ind].colour;
+      newPlayers[ind] = { isComputer, name };
       break;
     case "remove":
-      newPlayers[action.player] = null;
+      newPlayers.splice(action.player, 1);
       break;
     default:
       console.error("playersReducer couldn't recognize action", action);
@@ -80,16 +81,13 @@ export default function App() {
 
   // list of up to 3 players
   const [players, dispatchPlayers] = useReducer(playersReducer, [
-    // TEMP players
-    { name: "Joe", type: "Human" },
-    { name: "You", type: "Human" },
-    { name: "Claire", type: "Computer" },
+    { name: "You", isComputer: false },
   ]);
   // amount of players present (user is always present)
   const playerCount = players.length;
 
   // what spot the user is 'sitting' in (can't be 'standing')
-  const [position, setPosition] = useState(1); // TEMP: 0
+  const [position, setPosition] = useState(0);
 
   // the game
   const game = useGame(playerCount, position === 0);
@@ -99,6 +97,9 @@ export default function App() {
   const gamePoints = useGamePoints();
   // handle network connection, for remote play (can still play locally if there's no connection)
   const network = useNetwork({ capacityPerCode: 3, playerCount });
+
+  // whether the game has started (ie whether new players can join)
+  const isGameStarted = game.nextAction !== Action.START;
 
   // which cards from user's hand (plus deck top card) are selected
   const [selected, dispatchSelected] = useReducer(
@@ -111,9 +112,44 @@ export default function App() {
   var colours = ["DarkRed", "DarkGreen", "DarkBlue"];
   playerCount === 2 && colours.splice(1, 1);
 
+  //// Functions ////
+
+  function getRandomName() {
+    let names = [
+      "Skynet",
+      "Ava",
+      "Jarvis",
+      "HAL 900",
+      "Matrix",
+      "Alie",
+      "Tardis",
+    ];
+    return names[Math.floor(Math.random() * names.length)];
+  }
+
+  function addComputerPlayer() {
+    // TODO: NEXT: leave remote play if starting game with only computers (not here)
+    if (playerCount < 3) {
+      dispatchPlayers({
+        type: "add",
+        isComputer: true,
+        name: getRandomName(),
+      });
+    }
+  }
+
+  // TODO: NEXT: use removePlayer
+  function removePlayer(player) {
+    // only owner can remove, only pre-game, and can't remove self
+    if (!isGameStarted && position === 0 && player > 0 && players[player]) {
+      dispatchPlayers({ type: "remove", player });
+    }
+  }
+
   //// Temporary sample functionality ////
 
   const sampleLabels = [
+    "Add Player",
     "New Game",
     "Cut for Deal",
     "Deal",
@@ -129,6 +165,9 @@ export default function App() {
   ];
 
   const sampleActions = [
+    () => {
+      if (!isGameStarted) addComputerPlayer();
+    },
     () => {
       if (game.nextAction === Action.START) game.start();
     },
@@ -194,7 +233,7 @@ export default function App() {
       if (game.nextAction === Action.SCORE_CRIB) game.scoreCrib();
     },
     () => {
-      if (game.nextAction === Action.RESET_ROUND) game.resetRound();
+      if (game.nextAction === Action.RESET_ROUND) game.restartRound();
     },
   ];
 
@@ -260,7 +299,7 @@ export default function App() {
         nextAction={game.nextAction.externalMessage}
         labels={sampleLabels} // TEMP
         actions={sampleActions} // TEMP: these need validation checks - correct player, stage, valid input
-        enabled={sampleEnabled}
+        enabled={sampleEnabled} // TEMP
       />
       <PlayHistory messages={sampleMessages} />
       <Links
@@ -304,4 +343,4 @@ const sampleMessages = [
   },
 ];
 
-const sampleEnabled = Array(20).fill(true); // TEMP
+const sampleEnabled = Array(20).fill(true);

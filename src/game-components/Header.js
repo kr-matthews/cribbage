@@ -32,7 +32,7 @@ export default function Header({
         join={join}
         leave={leave}
       />
-      {players.map(({ name, type }, index) => {
+      {players.map(({ name, isComputer }, index) => {
         return (
           <InfoBox
             key={index}
@@ -40,7 +40,7 @@ export default function Header({
             isUser={index === userPosition}
             isDealer={index === dealerPosition}
             name={name}
-            type={type}
+            type={isComputer ? "Computer" : "Human"}
             colour={colours[index]}
             score={scores[index]}
           />

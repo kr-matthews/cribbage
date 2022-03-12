@@ -1,4 +1,4 @@
-import { useState, useReducer } from "react";
+import { useState, useReducer, useEffect } from "react";
 
 import { useDeck } from "./useDeck.js";
 import { useRound } from "./useRound.js";
@@ -91,18 +91,32 @@ export function useGame(playerCount, isOwner) {
     deck
   );
 
+  //// Effects ////
+
+  // reset if player count changes
+  useEffect(() => {
+    dispatchNextPlay({ type: "reset", playerCount });
+  }, [playerCount]);
+
   //// Helpers ////
 
   //
 
   //// Functions to return ////
 
+  /** for starting with a new set of players; all history erased */
+  function reset(cards) {
+    scores.reset();
+    round.reset(cards);
+    dispatchNextPlay({ type: "reset" });
+    setDealer(null);
+  }
+
+  /** locking in players for current game, or starting rematch */
   function start(cards) {
     if (2 <= playerCount && playerCount <= 3) {
-      // TODO: prevent new players from joining/being added
-      // TODO: reset everything
-      // if owner started game remotely, then they sent the deck configuration
-      deck.reset(cards);
+      round.reset(cards);
+      // TODO: NEXT: different action if starting rematch
       dispatchNextPlay({ player: 0, nextAction: Action.CUT_FOR_DEAL });
     } else {
       alert("The game can only be played with 2 or 3 players.");
@@ -139,6 +153,7 @@ export function useGame(playerCount, isOwner) {
     dealer,
     nextPlayers,
     nextAction,
+    reset,
     start,
     cutForDeal,
 
@@ -154,6 +169,7 @@ export function useGame(playerCount, isOwner) {
     proceed: round.proceed,
     scoreHand: round.scoreHand,
     scoreCrib: round.scoreCrib,
+    restartRound: round.restart,
     resetRound: round.reset,
     crib: round.crib,
     hands: round.hands,
