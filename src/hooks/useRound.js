@@ -2,9 +2,11 @@ import { useEffect, useReducer, useState } from "react";
 
 import Action from "./Action";
 
-//// Constants ////
-
-//
+import {
+  cardSorter,
+  totalPoints,
+  checkClaim,
+} from "../playing-cards/cardHelpers.js";
 
 //// Helpers ////
 
@@ -15,55 +17,6 @@ function initialStates(playerCount) {
     piles: [[], [], []].slice(0, playerCount),
     sharedStack: [],
   };
-}
-
-// TODO: move these helpers to new file in /playing-cards?
-
-function cardSorter(card1, card2) {
-  return (
-    card1.rank.index - card2.rank.index || card1.suit.index - card2.suit.index
-  );
-}
-
-function totalPoints(cards) {
-  return cards.reduce((partialSum, { rank }) => partialSum + rank.points, 0);
-}
-
-function checkClaim(cards, claim) {
-  if (cards.length < 2) return false;
-  switch (claim) {
-    case "15":
-      return totalPoints(cards) === 15;
-
-    case "kind":
-      let rankIndex = cards[0].rank.index;
-      return (
-        cards.length >= 2 &&
-        cards.every((card) => card.rank.index === rankIndex)
-      );
-
-    case "run":
-      return (
-        cards.length >= 3 &&
-        cards
-          .map((card) => card.rank.index)
-          .sort((a, b) => a - b)
-          .every(
-            (num, index, nums) => index === 0 || num === nums[index - 1] + 1
-          )
-      );
-
-    case "flush":
-      let suitIndex = cards[0].suit.index;
-      return (
-        cards.length >= 4 &&
-        cards.every((card) => card.suit.index === suitIndex)
-      );
-
-    default:
-      console.error("checkClaim couldn't match claim:", claim);
-  }
-  return false;
 }
 
 //// Reducers ////
@@ -286,7 +239,7 @@ export function useRound(
     }
   }, [nextAction, hands, dispatchNextPlay, dealer]);
 
-  //// Functions
+  //// Functions ////
 
   function deal() {
     dispatchNextPlay({ player: dealer, nextAction: Action.DEALING });
@@ -418,7 +371,7 @@ export function useRound(
     }
   }
 
-  //// Return
+  //// Return ////
 
   return {
     starter,

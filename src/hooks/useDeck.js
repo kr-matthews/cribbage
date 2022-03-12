@@ -1,32 +1,6 @@
 import { useReducer, useState } from "react";
 
-import Suit from "./../playing-cards/Suit.js";
-import Rank from "./../playing-cards/Rank.js";
-
-//// Constants ////
-
-// TODO: export from file in /playing-cards
-
-let allCards = [];
-for (let rank of [
-  Rank.ACE,
-  Rank.TWO,
-  Rank.THREE,
-  Rank.FOUR,
-  Rank.FIVE,
-  Rank.SIX,
-  Rank.SEVEN,
-  Rank.EIGHT,
-  Rank.NINE,
-  Rank.TEN,
-  Rank.JACK,
-  Rank.QUEEN,
-  Rank.KING,
-]) {
-  for (let suit of [Suit.CLUB, Suit.DIAMOND, Suit.SPADE, Suit.HEART]) {
-    allCards.push({ rank, suit, faceUp: true }); // TEMP: face up
-  }
-}
+import { allCards, shuffle } from "../playing-cards/cardHelpers.js";
 
 //// Reducers ////
 
@@ -55,23 +29,6 @@ function cardsReducer(cards, action) {
   return newCards;
 }
 
-//// Helpers ////
-
-/**
- * Shuffle an array in place.
- *
- * @param {Array} arr
- */
-function shuffle(arr) {
-  for (let i = 1; i < arr.length; i++) {
-    let j = Math.floor(Math.random() * (i + 1));
-    // swap i and j
-    let x = arr[i];
-    arr[i] = arr[j];
-    arr[j] = x;
-  }
-}
-
 ////// Hook //////
 
 /**
@@ -83,6 +40,7 @@ function shuffle(arr) {
  */
 export function useDeck(initialCards) {
   //// Constants and States ////
+
   // the deck, stored in an array in shuffled order
   const [cards, dispatchCards] = useReducer(
     cardsReducer,
@@ -122,14 +80,24 @@ export function useDeck(initialCards) {
     setCutCount(0);
   }
 
-  // use to deal
-  function draw(count) {
-    if (size < count) return null;
+  /**
+   * Remove cards from the deck.
+   *
+   * @param {Int} count (Optional) Number of cards to draw.
+   * @returns {Array<Object>} Cards which were drawn.
+   */
+  function draw(count = 1) {
+    if (count < 0 || size < count) return null;
     let drawn = cards.slice(size - count);
     dispatchCards({ type: "remove", count });
     return drawn;
   }
 
+  /**
+   * Cut some cards from the top of the (remaining, if already cut) deck.
+   *
+   * @param {Int} buffer (Optional) Minimum number of cards to (try to) leave in both halves.
+   */
   function cut(buffer) {
     // by default, leave at least 3 cards if possible
     buffer ||= Math.min(3, Math.floor(unCutCount / 2));
@@ -137,6 +105,10 @@ export function useDeck(initialCards) {
     setCutCount((cutCount) => cutCount + toCut);
   }
 
+  /**
+   * Replace all cards which were cut (besides those drawn during the cut)
+   * back onto the deck.
+   */
   function uncut() {
     setCutCount(0);
   }
