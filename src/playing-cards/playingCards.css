@@ -6,8 +6,9 @@
 
   --card-info-width: calc(var(--card-width) * 9 / 32);
 
-  --stack-vert-spacing: calc(var(--card-height) / 200);
+  --stack-vert-spacing: calc(var(--card-height) / 800);
   --stack-hori-spacing: calc(var(--card-width) / 16);
+  --stack-hori-spacing-thin: calc(var(--card-width) / 194);
 
   --hand-spacing: calc(var(--card-info-width) * 11 / 10);
 }
@@ -65,23 +66,28 @@
 
 .stack {
   display: flex;
+  /* border: dotted 1px Black; TEMP: border lines */
+  width: 50%;
+  margin: 0 auto;
   /* margin: 0 auto; */
 }
 
 .hand {
   display: flex;
-  /* margin: 0 auto; */
+  width: 50%;
+  margin: 0 auto;
+  height: calc(var(--card-height) + (2 * var(--border-width)));
 }
 
 .deck {
   display: flex; /* puts both halves on the same row when cut */
-  /* the max size that a split full deck takes up */
+  /* the max size that a full (52-card) deck takes up */
   height: calc(
     var(--card-height) + (2 * var(--border-width)) +
-      (var(--stack-vert-spacing) * 17)
+      (var(--stack-vert-spacing) * 51)
   );
   width: calc(
-    (2 * var(--card-width)) + (2 * var(--border-width)) +
-      (var(--stack-hori-spacing) * 17)
+    (1 * var(--card-width)) + (2 * var(--border-width)) +
+      (var(--stack-hori-spacing-thin) * 51)
   );
 }

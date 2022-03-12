@@ -22,7 +22,7 @@ import "./playing-cards/playingCards.css";
 //// Constants ////
 
 // always use four columns
-const HIDE_EMPTY_COLUMNS = false; // TODO: make empty cols uniform
+const HIDE_EMPTY_COLUMNS = true;
 // hand of size up to 6, plus starter card on the end
 const HAND_ALL_UNSELECTED = Array(7).fill(false);
 
@@ -234,10 +234,13 @@ export default function App() {
         activePosition={game.nextPlayers.indexOf(true)} // TEMP
         selectedCards={selected}
         clickCardHandler={(index) => dispatchSelected({ type: "click", index })} // TODO: only when clickable
+        maxSize={8 - playerCount}
       />
       <PlayArea
         hideEmptyColumns={HIDE_EMPTY_COLUMNS}
-        deckSize={game.size}
+        deckSize={game.deckSize}
+        deckBottomSize={game.deckBottomSize}
+        deckTopSize={game.deckTopSize}
         isDeckCut={game.isDeckCut}
         starter={game.starter}
         isStarterSelected={selected[6]}

@@ -7,6 +7,7 @@ export default function Hands({
   activePosition,
   selectedCards,
   clickCardHandler,
+  maxSize,
 }) {
   const dummyArray = hideEmptyColumns ? [] : Array(3 - hands.length).fill(0);
 
@@ -17,6 +18,7 @@ export default function Hands({
           cards={crib}
           isSelected={-1 === activePosition && selectedCards}
           clickHandler={-1 === activePosition && clickCardHandler}
+          maxSize={4}
         />
       </div>
       {hands.map((cards, index) => (
@@ -25,6 +27,7 @@ export default function Hands({
             cards={cards}
             isSelected={index === activePosition && selectedCards}
             clickHandler={index === activePosition && clickCardHandler}
+            maxSize={maxSize} // TODO: make it 4 after discarding?
           />
         </div>
       ))}

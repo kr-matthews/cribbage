@@ -131,6 +131,8 @@ export function useGame(playerCount, isOwner) {
 
     // deck
     deckSize: deck.size,
+    deckBottomSize: deck.size - deck.cutCount,
+    deckTopSize: deck.cutCount,
     isDeckCut: deck.isCut,
 
     // game

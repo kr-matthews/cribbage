@@ -5,6 +5,8 @@ import CardStack from "../playing-cards/CardStack.js";
 export default function PlayArea({
   hideEmptyColumns,
   deckSize,
+  deckBottomSize,
+  deckTopSize,
   isDeckCut,
   starter,
   isStarterSelected,
@@ -19,7 +21,11 @@ export default function PlayArea({
     <div className="game-component play-area">
       <div className="col">
         {isDeckCut ? (
-          <CutDeck size={deckSize} clickDeckHandler={clickDeckHandler} />
+          <CutDeck
+            bottomSize={deckBottomSize}
+            topSize={deckTopSize}
+            clickDeckHandler={clickDeckHandler}
+          />
         ) : (
           <Deck
             size={deckSize}
@@ -32,7 +38,7 @@ export default function PlayArea({
       {playStacks.map((cards, index) => {
         return (
           <div key={index} className="col">
-            <CardStack cards={cards} />
+            <CardStack cards={cards} maxSize={4} />
           </div>
         );
       })}
