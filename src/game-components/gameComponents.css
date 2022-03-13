@@ -12,7 +12,7 @@
   margin: 0 auto;
   padding: var(--padding);
 
-  /* border: dotted 1px Black; TEMP: border lines */
+  /* border: dotted 1px Black; */
 }
 
 /* Some game components are divided into 4 columns */
@@ -22,7 +22,7 @@
   padding: 0 var(--padding);
   width: 250px;
 
-  /* border: dashed 1px DarkGrey; TEMP: border lines */
+  /* border: dashed 1px DarkGrey; */
 }
 
 /* Specific game components */

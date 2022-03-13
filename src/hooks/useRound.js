@@ -77,6 +77,10 @@ function reduceStates(states, action) {
       newStates.sharedStack = [];
       break;
 
+    case "display":
+      newStates.piles[action.player].push(action.card);
+      break;
+
     default:
       console.error("reduceStates couldn't match action:", action);
       break;
@@ -130,7 +134,7 @@ export function useRound(
 
   // who to deal to next
   const dealTo =
-    nextAction === Action.DEALING // T ODO: NEXT: NEXT: remove?
+    nextAction === Action.DEALING
       ? playerCount === 2
         ? // 2 players
           hands[0].length + hands[1].length === 12
@@ -155,7 +159,7 @@ export function useRound(
 
   // player is active in "play" stage if has cards and hasn't goed
   const inactive =
-    nextAction === Action.PLAY && // T ODO: NEXT: NEXT: remove?
+    nextAction === Action.PLAY &&
     Array(playerCount)
       .fill(null)
       .map((_, player) => goed.has(player) || hands[player].length === 0);
@@ -247,6 +251,10 @@ export function useRound(
   }, [nextAction, hands, dispatchNextPlay, dealer]);
 
   //// Functions ////
+
+  function displayInPile(player, card) {
+    dispatchStates({ type: "display", player, card });
+  }
 
   function deal() {
     dispatchNextPlay({ player: dealer, nextAction: Action.DEALING });
@@ -368,7 +376,7 @@ export function useRound(
    * Manually continue past an intermediary stage which only
    * exists so players can review the state before moving on.
    */
-  function proceed() {
+  function proceed(cards) {
     switch (nextAction) {
       case Action.PROCEED_PLAY:
         // TODO: flip current piles face-down
@@ -378,6 +386,12 @@ export function useRound(
       case Action.PROCEED_SCORING:
         dispatchStates({ type: "re-hand" });
         dispatchNextPlay({ player: nextPlayer, nextAction: Action.SCORE_HAND });
+        break;
+
+      case Action.PROCEED_DEAL:
+        deck.reset(cards);
+        dispatchStates({ type: "reset" });
+        dispatchNextPlay({ player: nextPlayer, nextAction: Action.DEAL });
         break;
 
       default:
@@ -393,6 +407,7 @@ export function useRound(
     crib,
     hands,
     piles,
+    displayInPile,
     reset,
     deal,
     sendToCrib,

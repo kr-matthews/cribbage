@@ -68,6 +68,8 @@ export function useGame(playerCount, isOwner) {
     playerCount,
     initialNextPlay
   );
+  // if there's a unique next player, get them from here
+  const nextPlayer = nextPlayers.indexOf(true);
 
   // current dealer, via player index
   const [dealer, setDealer] = useState(null);
@@ -85,7 +87,7 @@ export function useGame(playerCount, isOwner) {
     playerCount,
     dealer,
     setDealer,
-    nextPlayers.indexOf(true), // nextPlayer
+    nextPlayer,
     nextAction,
     dispatchNextPlay,
     deck
@@ -104,35 +106,53 @@ export function useGame(playerCount, isOwner) {
 
   //// Functions to return ////
 
+  // QUESTION: is this needed?
   /** for starting with a new set of players; all history erased */
-  function reset(cards) {
+  function reset() {
     scores.reset();
-    round.reset(cards);
-    dispatchNextPlay({ type: "reset" });
+    dispatchNextPlay({ type: "reset", playerCount });
     setDealer(null);
   }
 
-  /** locking in players for current game, or starting rematch */
+  /** locking in players for a fresh game */
   function start(cards) {
+    // TODO: NEXT: move validation checks to App
     if (2 <= playerCount && playerCount <= 3) {
       round.reset(cards);
-      // TODO: NEXT: different action if starting rematch
       dispatchNextPlay({ player: 0, nextAction: Action.CUT_FOR_DEAL });
     } else {
       alert("The game can only be played with 2 or 3 players.");
     }
   }
 
-  function cutForDeal(player) {
-    // TODO: break into 2 steps
+  /** for starting rematch with same players (loser goes first, gamePoints preserved) */
+  function rematch(cards) {
+    round.reset(cards);
+    scores.reset();
+    dispatchNextPlay({
+      // loser had new-game power, and now get to deal it
+      player: nextPlayer,
+      nextAction: Action.DEAL,
+    });
+  }
+
+  function cutForDeal() {
+    deck.cut();
+    dispatchNextPlay({ player: nextPlayer, nextAction: Action.FLIP_FOR_DEAL });
+  }
+
+  function flipForDeal() {
+    let card = deck.draw(1)[0];
+    round.displayInPile(nextPlayer, card);
     if (nextPlayers[playerCount - 1]) {
-      // last player just cut
-      // TODO: deduce dealer
+      // last player just went
+      // deck.uncut();
+      // TODO: NEXT: deduce dealer
       const newDealer = Math.floor(Math.random() * playerCount);
       setDealer(newDealer);
-      dispatchNextPlay({ player: newDealer, nextAction: Action.DEAL });
+      dispatchNextPlay({ player: newDealer, nextAction: Action.PROCEED_DEAL });
     } else {
-      dispatchNextPlay({ type: "next" });
+      dispatchNextPlay({ type: "next", nextAction: Action.CUT_FOR_DEAL });
     }
   }
 
@@ -153,9 +173,10 @@ export function useGame(playerCount, isOwner) {
     dealer,
     nextPlayers,
     nextAction,
-    reset,
     start,
+    rematch,
     cutForDeal,
+    flipForDeal,
 
     // round
     deal: round.deal,

@@ -152,13 +152,14 @@ export default function App() {
     "Add Player",
     "New Game",
     "Cut for Deal",
+    "Flip for Deal",
     "Deal",
     "Discard",
     "Cut for Starter",
     "Flip Starter",
     "Play",
     "Go",
-    "Proceed",
+    "Gather/ Flip/ Return",
     "Score Hand",
     "Score Crib",
     "New Round",
@@ -173,6 +174,9 @@ export default function App() {
     },
     () => {
       if (game.nextAction === Action.CUT_FOR_DEAL) game.cutForDeal();
+    },
+    () => {
+      if (game.nextAction === Action.FLIP_FOR_DEAL) game.flipForDeal();
     },
     () => {
       if (game.nextAction === Action.DEAL) game.deal();
@@ -222,7 +226,11 @@ export default function App() {
     },
     () => {
       if (
-        [Action.PROCEED_PLAY, Action.PROCEED_SCORING].includes(game.nextAction)
+        [
+          Action.PROCEED_PLAY,
+          Action.PROCEED_SCORING,
+          Action.PROCEED_DEAL,
+        ].includes(game.nextAction)
       )
         game.proceed();
     },
@@ -297,9 +305,9 @@ export default function App() {
             : "everyone else"
         }
         nextAction={game.nextAction.externalMessage}
-        labels={sampleLabels} // TEMP
-        actions={sampleActions} // TEMP: these need validation checks - correct player, stage, valid input
-        enabled={sampleEnabled} // TEMP
+        labels={sampleLabels} // TEMP: these 3 samples
+        actions={sampleActions}
+        enabled={sampleEnabled}
       />
       <PlayHistory messages={sampleMessages} />
       <Links

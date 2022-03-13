@@ -2,6 +2,8 @@ export default class Action {
   // Pre-Rounds
   static START = new Action("start the game");
   static CUT_FOR_DEAL = new Action("cut for deal");
+  static FLIP_FOR_DEAL = new Action("flip a card");
+  static PROCEED_DEAL = new Action("gather the deck");
 
   // Round
   static DEAL = new Action("deal the round");
@@ -10,8 +12,8 @@ export default class Action {
   static CUT_FOR_STARTER = new Action("cut the deck");
   static FLIP_STARTER = new Action("flip the starter");
   static PLAY = new Action("play a card, or go");
-  static PROCEED_PLAY = new Action("proceed to the next play");
-  static PROCEED_SCORING = new Action("proceed to the scoring phase");
+  static PROCEED_PLAY = new Action("flip the cards");
+  static PROCEED_SCORING = new Action("return cards to hands");
   static SCORE_HAND = new Action("score your hand", "score their hand");
   static SCORE_CRIB = new Action("score your crib", "score the crib");
   static RESET_ROUND = new Action("start the next round");
