@@ -11,11 +11,9 @@ export default function PlayArea({
   starter,
   isStarterSelected,
   clickDeckHandler,
-  playStacks = [],
+  piles = [],
 }) {
-  const dummyArray = hideEmptyColumns
-    ? []
-    : Array(3 - playStacks.length).fill(0);
+  const dummyArray = hideEmptyColumns ? [] : Array(3 - piles.length).fill(0);
 
   return (
     <div className="game-component play-area">
@@ -35,7 +33,7 @@ export default function PlayArea({
           />
         )}
       </div>
-      {playStacks.map((cards, index) => {
+      {piles.map((cards, index) => {
         return (
           <div key={index} className="col">
             <CardStack cards={cards} maxSize={4} />
@@ -43,7 +41,7 @@ export default function PlayArea({
         );
       })}
       {dummyArray.map((_, index) => {
-        return <div key={playStacks.length + index} className="col"></div>;
+        return <div key={piles.length + index} className="col"></div>;
       })}
     </div>
   );

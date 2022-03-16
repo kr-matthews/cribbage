@@ -77,10 +77,6 @@ function reduceStates(states, action) {
       newStates.sharedStack = [];
       break;
 
-    case "display":
-      newStates.piles[action.player].push(action.card);
-      break;
-
     default:
       console.error("reduceStates couldn't match action:", action);
       break;
@@ -109,13 +105,13 @@ function reduceGoed(goed, action) {
 ////// Hook //////
 
 export function useRound(
+  deck,
   playerCount,
   dealer,
   setDealer,
   nextPlayer,
   nextAction,
-  dispatchNextPlay,
-  deck
+  dispatchNextPlay
 ) {
   //// States and Constants ////
 
@@ -252,10 +248,6 @@ export function useRound(
 
   //// Functions ////
 
-  function displayInPile(player, card) {
-    dispatchStates({ type: "display", player, card });
-  }
-
   function deal() {
     dispatchNextPlay({ player: dealer, nextAction: Action.DEALING });
   }
@@ -271,7 +263,7 @@ export function useRound(
   }
 
   function cut() {
-    deck.cut();
+    deck.cut(4);
     dispatchNextPlay({ player: dealer, nextAction: Action.FLIP_STARTER });
   }
 
@@ -407,7 +399,6 @@ export function useRound(
     crib,
     hands,
     piles,
-    displayInPile,
     reset,
     deal,
     sendToCrib,

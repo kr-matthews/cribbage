@@ -1,10 +1,13 @@
 import { useState, useReducer, useEffect } from "react";
 
-import { useDeck } from "./useDeck.js";
 import { useRound } from "./useRound.js";
 import { useScores } from "./useScores.js";
 
 import Action from "./Action.js";
+
+// TODO: NEXT: NEXT: move next player/action states to app, to share with cut for deal
+// TODO: NEXT: NEXT: put next player/action logic in correct locations (split across files)
+// TODO: NEXT: finish cut-for-deal stage entirely
 
 //// Helpers ////
 
@@ -13,7 +16,7 @@ function initialNextPlay(playerCount) {
   arr[0] = true;
   return {
     nextPlayers: arr,
-    nextAction: Action.START,
+    nextAction: Action.LOCK_IN_PLAYERS,
   };
 }
 
@@ -58,7 +61,7 @@ function reduceNextPlay(nextPlay, { type, player, nextAction, playerCount }) {
 
 ////// Hook //////
 
-export function useGame(playerCount, isOwner) {
+export function useGame(deck, playerCount, isOwner) {
   //// Constants and States ////
 
   // the next action to be taken, and by who
@@ -79,18 +82,15 @@ export function useGame(playerCount, isOwner) {
   // current scores
   const scores = useScores();
 
-  // the deck; non-owners receive a card stack to pass in later
-  const deck = useDeck();
-
   // the game plays rounds until someone wins
   const round = useRound(
+    deck,
     playerCount,
     dealer,
     setDealer,
     nextPlayer,
     nextAction,
-    dispatchNextPlay,
-    deck
+    dispatchNextPlay
   );
 
   //// Effects ////
@@ -130,29 +130,18 @@ export function useGame(playerCount, isOwner) {
     round.reset(cards);
     scores.reset();
     dispatchNextPlay({
-      // loser had new-game power, and now get to deal it
+      // loser had new-game power, and now gets to deal it
       player: nextPlayer,
       nextAction: Action.DEAL,
     });
   }
 
-  function cutForDeal() {
-    deck.cut();
-    dispatchNextPlay({ player: nextPlayer, nextAction: Action.FLIP_FOR_DEAL });
-  }
-
-  function flipForDeal() {
-    let card = deck.draw(1)[0];
-    round.displayInPile(nextPlayer, card);
-    if (nextPlayers[playerCount - 1]) {
-      // last player just went
-      // deck.uncut();
-      // TODO: NEXT: deduce dealer
-      const newDealer = Math.floor(Math.random() * playerCount);
-      setDealer(newDealer);
-      dispatchNextPlay({ player: newDealer, nextAction: Action.PROCEED_DEAL });
+  // TEMP
+  function tempcut(player, dealer) {
+    if (player === playerCount - 1) {
+      dispatchNextPlay({ player: dealer, nextAction: Action.PROCEED_DEAL });
     } else {
-      dispatchNextPlay({ type: "next", nextAction: Action.CUT_FOR_DEAL });
+      dispatchNextPlay({ type: "next" });
     }
   }
 
@@ -163,20 +152,13 @@ export function useGame(playerCount, isOwner) {
     currentScores: scores.current,
     previousScores: scores.previous,
 
-    // deck
-    deckSize: deck.size,
-    deckBottomSize: deck.size - deck.cutCount,
-    deckTopSize: deck.cutCount,
-    isDeckCut: deck.isCut,
-
     // game
     dealer,
     nextPlayers,
     nextAction,
     start,
     rematch,
-    cutForDeal,
-    flipForDeal,
+    tempcut,
 
     // round
     deal: round.deal,

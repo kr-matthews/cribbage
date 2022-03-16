@@ -1,9 +1,11 @@
-import { useState, useReducer } from "react";
+import { useState, useReducer, useEffect } from "react";
 
 import { useLocalStorage } from "./hooks/useLocalStorage.js";
+import { useDeck } from "./hooks/useDeck.js";
+import useCutForDeal from "./hooks/useCutForDeal.js";
 import { useGame } from "./hooks/useGame.js";
-import { useSoundEffects } from "./hooks/useSoundEffects.js";
 import { useGamePoints } from "./hooks/useGamePoints.js";
+import { useSoundEffects } from "./hooks/useSoundEffects.js";
 import { useNetwork } from "./hooks/useNetwork.js";
 
 import Action from "./hooks/Action.js";
@@ -65,10 +67,26 @@ function selectedReducer(selected, action) {
   return newSelected;
 }
 
+//// Helpers ////
+
+function getRandomName() {
+  // TODO: avoid duplicate names within game?
+  let names = [
+    "Skynet",
+    "Ava",
+    "Jarvis",
+    "HAL 900",
+    "Matrix",
+    "Alie",
+    "Tardis",
+  ];
+  return names[Math.floor(Math.random() * names.length)];
+}
+
 ////// App //////
 
 export default function App() {
-  //// States ////
+  //// User and Players ////
 
   // user's name (persists)
   const [userName, setUserName] = useLocalStorage("userName", "Undecided");
@@ -83,49 +101,12 @@ export default function App() {
   const [players, dispatchPlayers] = useReducer(playersReducer, [
     { name: "You", isComputer: false },
   ]);
-  // amount of players present (user is always present)
-  const playerCount = players.length;
 
   // what spot the user is 'sitting' in (can't be 'standing')
   const [position, setPosition] = useState(0);
 
-  // the game
-  const game = useGame(playerCount, position === 0);
-  // sound effects (can be muted)
-  const soundEffects = useSoundEffects();
-  // track game points across multiple games
-  const gamePoints = useGamePoints();
-  // handle network connection, for remote play (can still play locally if there's no connection)
-  const network = useNetwork({ capacityPerCode: 3, playerCount });
-
-  // whether the game has started (ie whether new players can join)
-  const isGameStarted = game.nextAction !== Action.START;
-
-  // which cards from user's hand (plus deck top card) are selected
-  const [selected, dispatchSelected] = useReducer(
-    selectedReducer,
-    HAND_ALL_UNSELECTED
-  );
-  const selectedCount = selected.filter((bool) => bool).length;
-
-  // colours on the board; don't use middle track when 2 players
-  var colours = ["DarkRed", "DarkGreen", "DarkBlue"];
-  playerCount === 2 && colours.splice(1, 1);
-
-  //// Functions ////
-
-  function getRandomName() {
-    let names = [
-      "Skynet",
-      "Ava",
-      "Jarvis",
-      "HAL 900",
-      "Matrix",
-      "Alie",
-      "Tardis",
-    ];
-    return names[Math.floor(Math.random() * names.length)];
-  }
+  // amount of players present (user is always present)
+  const playerCount = players.length;
 
   function addComputerPlayer() {
     // TODO: NEXT: leave remote play if starting game with only computers (not here)
@@ -146,13 +127,52 @@ export default function App() {
     }
   }
 
+  //// User Experience ////
+
+  // colours on the board; don't use middle track when 2 players
+  var colours = ["DarkRed", "DarkGreen", "DarkBlue"];
+  playerCount === 2 && colours.splice(1, 1);
+
+  // sound effects (can be muted)
+  const soundEffects = useSoundEffects();
+
+  //// Network/Remote ////
+
+  // handle network connection, for remote play (can still play locally if there's no connection)
+  const network = useNetwork({ capacityPerCode: 3, playerCount });
+
+  //// Cards and Play ////
+
+  // the deck (used pre-game, to cut for deal); pass in card stack on reset
+  const deck = useDeck();
+
+  // to decide who goes first in the first game
+  const cutForDeal = useCutForDeal(deck, playerCount);
+
+  // a single iteration of the game, which can be restarted
+  const game = useGame(deck, playerCount, position === 0);
+
+  // track game points across multiple games
+  const gamePoints = useGamePoints();
+
+  // whether the game has started (ie whether new players can join)
+  const isGameStarted = game.nextAction !== Action.LOCK_IN_PLAYERS;
+
+  // which cards from user's hand (plus deck top card) are selected
+  const [selected, dispatchSelected] = useReducer(
+    selectedReducer,
+    HAND_ALL_UNSELECTED
+  );
+  const selectedCount = selected.filter((bool) => bool).length;
+
+  //// Functions ////
+
   //// Temporary sample functionality ////
 
   const sampleLabels = [
     "Add Player",
     "New Game",
     "Cut for Deal",
-    "Flip for Deal",
     "Deal",
     "Discard",
     "Cut for Starter",
@@ -170,13 +190,17 @@ export default function App() {
       if (!isGameStarted) addComputerPlayer();
     },
     () => {
-      if (game.nextAction === Action.START) game.start();
+      if (game.nextAction === Action.LOCK_IN_PLAYERS) game.start();
     },
     () => {
-      if (game.nextAction === Action.CUT_FOR_DEAL) game.cutForDeal();
-    },
-    () => {
-      if (game.nextAction === Action.FLIP_FOR_DEAL) game.flipForDeal();
+      if (game.nextAction === Action.CUT_FOR_DEAL) {
+        let player = game.nextPlayers.indexOf(true);
+        cutForDeal.cut(player);
+        if (player === playerCount - 1) {
+          // TODO: NEXT: increment next action
+        }
+        game.tempcut(player, 1); // TEMP: need to move actions to game
+      }
     },
     () => {
       if (game.nextAction === Action.DEAL) game.deal();
@@ -283,16 +307,18 @@ export default function App() {
         clickCardHandler={(index) => dispatchSelected({ type: "click", index })} // TODO: only when clickable
         maxSize={8 - playerCount}
       />
-      <PlayArea
+      <PlayArea // TODO: NEXT: show cut cards
         hideEmptyColumns={HIDE_EMPTY_COLUMNS}
-        deckSize={game.deckSize}
-        deckBottomSize={game.deckBottomSize}
-        deckTopSize={game.deckTopSize}
-        isDeckCut={game.isDeckCut}
+        deckSize={deck.size}
+        deckBottomSize={deck.unCutCount}
+        deckTopSize={deck.cutCounts[0]} // only used when there is a single cut
+        isDeckCut={deck.isCut}
         starter={game.starter}
         isStarterSelected={selected[6]}
         clickDeckHandler={() => dispatchSelected({ type: "click", index: 6 })} // TODO: only when clickable; allow click to cut or flip
-        playStacks={game.piles} // TODO: rename to piles
+        piles={game.piles}
+        cutCards={cutForDeal.cuts}
+        cutCounts={deck.cutCounts}
       />
       <Actions
         waiting={!game.nextPlayers[position]}

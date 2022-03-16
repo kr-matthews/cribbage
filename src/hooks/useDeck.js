@@ -1,5 +1,7 @@
 import { useReducer, useState } from "react";
 
+import _ from "lodash";
+
 import { allCards, shuffle } from "../playing-cards/cardHelpers.js";
 
 //// Reducers ////
@@ -55,9 +57,9 @@ export function useDeck(initialCards) {
   const isEmpty = size < 1;
 
   // how many cards are cut off of the top
-  const [cutCount, setCutCount] = useState(0);
-  const unCutCount = size - cutCount;
-  const isCut = cutCount > 0;
+  const [cutCounts, setCutCounts] = useState([]);
+  const unCutCount = size - _.sum(cutCounts);
+  const isCut = cutCounts.length > 0;
 
   //// Helpers ////
 
@@ -77,7 +79,7 @@ export function useDeck(initialCards) {
     } else {
       dispatchCards({ type: "reset" });
     }
-    setCutCount(0);
+    setCutCounts([]);
   }
 
   /**
@@ -96,13 +98,23 @@ export function useDeck(initialCards) {
   /**
    * Cut some cards from the top of the (remaining, if already cut) deck.
    *
-   * @param {Int} buffer (Optional) Minimum number of cards to (try to) leave in both halves.
+   * @param {Int} bottomBuffer (Optional) Minimum number of cards to (try to) leave on the bottom.
+   * @param {Int} topBuffer (Optional) Minimum number of cards to (try to) leave on the top.
    */
-  function cut(buffer) {
-    // by default, leave at least 3 cards if possible
-    buffer ||= Math.min(3, Math.floor(unCutCount / 2));
-    let toCut = Math.floor(Math.random() * (unCutCount - 2 * buffer)) + buffer;
-    setCutCount((cutCount) => cutCount + toCut);
+  function cut(bottomBuffer, topBuffer) {
+    if (size < 2) return;
+    // if no top buffer given, default to bottom buffer
+    // if no buffers given, defautl to leaving at least 3 cards if possible
+    topBuffer ||= bottomBuffer || Math.min(3, Math.floor(unCutCount / 2));
+    bottomBuffer ||= Math.min(3, Math.floor(unCutCount / 2));
+    let toCut =
+      Math.floor(Math.random() * (unCutCount - bottomBuffer - topBuffer)) +
+      topBuffer;
+    setCutCounts((cutCounts) => {
+      let newCounts = [...cutCounts];
+      newCounts.push(toCut);
+      return newCounts;
+    });
   }
 
   /**
@@ -110,7 +122,7 @@ export function useDeck(initialCards) {
    * back onto the deck.
    */
   function uncut() {
-    setCutCount(0);
+    setCutCounts([]);
   }
 
   //// Return ////
@@ -120,7 +132,8 @@ export function useDeck(initialCards) {
     isEmpty,
     draw,
     isCut,
-    cutCount,
+    unCutCount,
+    cutCounts,
     cut,
     uncut,
     reset,

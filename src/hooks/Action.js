@@ -1,8 +1,7 @@
 export default class Action {
-  // Pre-Rounds
-  static START = new Action("start the game");
+  // Pre-Games
+  static LOCK_IN_PLAYERS = new Action("lock in players");
   static CUT_FOR_DEAL = new Action("cut for deal");
-  static FLIP_FOR_DEAL = new Action("flip a card");
   static PROCEED_DEAL = new Action("gather the deck");
 
   // Round
