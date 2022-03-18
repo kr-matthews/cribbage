@@ -18,6 +18,9 @@ import Suit from "./../playing-cards/Suit.js";
 // I tried artificially updating a dummy state after each action, which made most
 // tests pass, but that's very hacky and some tests were still failing
 
+//////// NOTE ///////
+// useRound has been refactored a few times, tests are no longer setup correctly anyway
+
 //// Setup
 
 const playerCount = 3;

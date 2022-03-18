@@ -8,7 +8,7 @@ function reduceCuts(cuts, action) {
   let newCuts = [...cuts];
   switch (action.type) {
     case "reset":
-      newCuts = [null, null, null].slice(0, action.playerCount);
+      newCuts = Array(action.playerCount).fill(null);
       break;
 
     case "add":
@@ -57,4 +57,4 @@ export default function useCutForDeal(deck, playerCount) {
 
   return { cuts, firstDealer, cut, reset };
 }
-// TODO: NEXT: NEXT: NEXT: move cut for deal logic here, then commit to finish fixing the initial logic
+// TODO: NEXT: NEXT: NEXT: move cut for deal logic here, then commit, then finish fixing the initial logic

@@ -1,4 +1,4 @@
-import { useState, useReducer, useEffect } from "react";
+import { useState, useReducer } from "react";
 
 import { useLocalStorage } from "./hooks/useLocalStorage.js";
 import { useDeck } from "./hooks/useDeck.js";
@@ -27,6 +27,17 @@ import "./playing-cards/playingCards.css";
 const HIDE_EMPTY_COLUMNS = true;
 // hand of size up to 6, plus starter card on the end
 const HAND_ALL_UNSELECTED = Array(7).fill(false);
+
+//// Helpers ////
+
+function initialNextPlay(playerCount) {
+  let arr = Array(playerCount).fill(false);
+  arr[0] = true;
+  return {
+    nextPlayers: arr,
+    nextAction: Action.LOCK_IN_PLAYERS,
+  };
+}
 
 //// Reducers ////
 
@@ -65,6 +76,43 @@ function selectedReducer(selected, action) {
       console.error("selectedReducer couldn't recognize action", action);
   }
   return newSelected;
+}
+
+function reduceNextPlay(nextPlay, { type, player, action, playerCount }) {
+  // if new game with new players, need to adjust player count
+  if (type === "reset") return initialNextPlay(playerCount);
+
+  // otherwise just use the same player count
+  playerCount ||= nextPlay.nextPlayers.length;
+  let newNextPlay = {
+    // copy current players
+    nextPlayers: [...nextPlay.nextPlayers],
+    // use provided next action, or default to current next action
+    nextAction: action || nextPlay.nextAction,
+  };
+  switch (type) {
+    case "remove":
+      newNextPlay.nextPlayers[player % playerCount] = false;
+      break;
+
+    case "all":
+      newNextPlay.nextPlayers = Array(playerCount).fill(true);
+      break;
+
+    case "next":
+      let oldPlayer = newNextPlay.nextPlayers.indexOf(true);
+      let newPlayer = (oldPlayer + 1) % playerCount;
+      newNextPlay.nextPlayers[oldPlayer] = false;
+      newNextPlay.nextPlayers[newPlayer] = true;
+      break;
+
+    default:
+      // player and action given directly, independent of prior state
+      newNextPlay.nextPlayers = Array(playerCount).fill(false);
+      newNextPlay.nextPlayers[player % playerCount] = true;
+      break;
+  }
+  return newNextPlay;
 }
 
 //// Helpers ////
@@ -143,6 +191,17 @@ export default function App() {
 
   //// Cards and Play ////
 
+  // the next action to be taken, and by who
+  // (only 1 player to play next, unless discarding to crib)
+  const [{ nextPlayers, nextAction }, dispatchNextPlay] = useReducer(
+    reduceNextPlay,
+    playerCount,
+    initialNextPlay
+  );
+
+  // if there's a unique next player, get them from here
+  const nextPlayer = nextPlayers.indexOf(true);
+
   // the deck (used pre-game, to cut for deal); pass in card stack on reset
   const deck = useDeck();
 
@@ -150,13 +209,20 @@ export default function App() {
   const cutForDeal = useCutForDeal(deck, playerCount);
 
   // a single iteration of the game, which can be restarted
-  const game = useGame(deck, playerCount, position === 0);
+  const game = useGame(
+    deck,
+    playerCount,
+    nextPlayer,
+    nextAction,
+    dispatchNextPlay,
+    position === 0
+  );
 
   // track game points across multiple games
   const gamePoints = useGamePoints();
 
   // whether the game has started (ie whether new players can join)
-  const isGameStarted = game.nextAction !== Action.LOCK_IN_PLAYERS;
+  const isGameStarted = nextAction !== Action.LOCK_IN_PLAYERS;
 
   // which cards from user's hand (plus deck top card) are selected
   const [selected, dispatchSelected] = useReducer(
@@ -190,11 +256,11 @@ export default function App() {
       if (!isGameStarted) addComputerPlayer();
     },
     () => {
-      if (game.nextAction === Action.LOCK_IN_PLAYERS) game.start();
+      if (nextAction === Action.LOCK_IN_PLAYERS) game.start();
     },
     () => {
-      if (game.nextAction === Action.CUT_FOR_DEAL) {
-        let player = game.nextPlayers.indexOf(true);
+      if (nextAction === Action.CUT_FOR_DEAL) {
+        let player = nextPlayer;
         cutForDeal.cut(player);
         if (player === playerCount - 1) {
           // TODO: NEXT: increment next action
@@ -203,16 +269,16 @@ export default function App() {
       }
     },
     () => {
-      if (game.nextAction === Action.DEAL) game.deal();
+      if (nextAction === Action.DEAL) game.deal();
     },
     () => {
       if (
-        game.nextAction === Action.DISCARD &&
+        nextAction === Action.DISCARD &&
         selectedCount === 4 - playerCount &&
         !selected[6]
       ) {
         game.sendToCrib(
-          game.nextPlayers.indexOf(true),
+          nextPlayer,
           selected
             .map((bool, index) => (bool ? index : null))
             .filter((index) => index !== null)
@@ -221,15 +287,15 @@ export default function App() {
       dispatchSelected({ type: "reset" });
     },
     () => {
-      if (game.nextAction === Action.CUT_FOR_STARTER) game.cut();
+      if (nextAction === Action.CUT_FOR_STARTER) game.cut();
     },
     () => {
-      if (game.nextAction === Action.FLIP_STARTER) game.flip();
+      if (nextAction === Action.FLIP_STARTER) game.flip();
     },
     () => {
       let index = selected.findIndex((bool) => bool);
       if (
-        game.nextAction === Action.PLAY &&
+        nextAction === Action.PLAY &&
         selectedCount === 1 &&
         index !== 6 &&
         game.isValidPlay(index)
@@ -241,7 +307,7 @@ export default function App() {
       dispatchSelected({ type: "reset" });
     },
     () => {
-      if (game.nextAction === Action.PLAY && game.isValidGo()) {
+      if (nextAction === Action.PLAY && game.isValidGo()) {
         game.go();
       } else {
         alert("invalid go");
@@ -254,18 +320,18 @@ export default function App() {
           Action.PROCEED_PLAY,
           Action.PROCEED_SCORING,
           Action.PROCEED_DEAL,
-        ].includes(game.nextAction)
+        ].includes(nextAction)
       )
         game.proceed();
     },
     () => {
-      if (game.nextAction === Action.SCORE_HAND) game.scoreHand();
+      if (nextAction === Action.SCORE_HAND) game.scoreHand();
     },
     () => {
-      if (game.nextAction === Action.SCORE_CRIB) game.scoreCrib();
+      if (nextAction === Action.SCORE_CRIB) game.scoreCrib();
     },
     () => {
-      if (game.nextAction === Action.RESET_ROUND) game.restartRound();
+      if (nextAction === Action.NEW_ROUND) game.restartRound();
     },
   ];
 
@@ -302,7 +368,7 @@ export default function App() {
         hideEmptyColumns={HIDE_EMPTY_COLUMNS}
         crib={game.crib}
         hands={game.hands}
-        activePosition={game.nextPlayers.indexOf(true)} // TEMP
+        activePosition={nextPlayer} // TEMP
         selectedCards={selected}
         clickCardHandler={(index) => dispatchSelected({ type: "click", index })} // TODO: only when clickable
         maxSize={8 - playerCount}
@@ -321,16 +387,13 @@ export default function App() {
         cutCounts={deck.cutCounts}
       />
       <Actions
-        waiting={!game.nextPlayers[position]}
+        waiting={!nextPlayers[position]}
         nextToAct={
-          game.nextPlayers.reduce(
-            (count, curr) => count + (curr ? 1 : 0),
-            0
-          ) === 1
-            ? players[game.nextPlayers.indexOf(true)].name
+          nextPlayers.reduce((count, curr) => count + (curr ? 1 : 0), 0) === 1
+            ? players[nextPlayer].name
             : "everyone else"
         }
-        nextAction={game.nextAction.externalMessage}
+        nextAction={nextAction.externalMessage}
         labels={sampleLabels} // TEMP: these 3 samples
         actions={sampleActions}
         enabled={sampleEnabled}
@@ -378,3 +441,6 @@ const sampleMessages = [
 ];
 
 const sampleEnabled = Array(20).fill(true);
+
+// for tests
+export { reduceNextPlay };

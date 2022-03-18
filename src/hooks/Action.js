@@ -15,10 +15,10 @@ export default class Action {
   static PROCEED_SCORING = new Action("return cards to hands");
   static SCORE_HAND = new Action("score your hand", "score their hand");
   static SCORE_CRIB = new Action("score your crib", "score the crib");
-  static RESET_ROUND = new Action("start the next round");
+  static NEW_ROUND = new Action("start the next round");
 
   // Post-Rounds
-  static RESET_GAME = new Action("start a new game");
+  static NEW_GAME = new Action("start a new game");
 
   /**
    * Create an Action to be the nextAction state.

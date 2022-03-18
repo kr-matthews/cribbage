@@ -176,7 +176,7 @@ export function useRound(
     if (nextAction === Action.DEALING) {
       if (dealTo === null) {
         // stop dealing
-        dispatchNextPlay({ type: "all", nextAction: Action.DISCARD });
+        dispatchNextPlay({ type: "all", action: Action.DISCARD });
       } else if (dealTo === -1) {
         // deal to crib
         let card = deck.draw(1)[0];
@@ -194,7 +194,7 @@ export function useRound(
     if (nextAction === Action.DISCARD && crib.length === 4) {
       dispatchNextPlay({
         player: dealer + 1,
-        nextAction: Action.CUT_FOR_STARTER,
+        action: Action.CUT_FOR_STARTER,
       });
     }
   }, [nextAction, crib.length, dispatchNextPlay, dealer]);
@@ -220,7 +220,7 @@ export function useRound(
       dispatchStates({ type: "all-goed" });
       dispatchNextPlay({
         player: nextPlayer,
-        nextAction: Action.PROCEED_PLAY,
+        action: Action.PROCEED_PLAY,
       });
     }
   }, [
@@ -241,7 +241,7 @@ export function useRound(
     ) {
       dispatchNextPlay({
         player: dealer + 1,
-        nextAction: Action.PROCEED_SCORING,
+        action: Action.PROCEED_SCORING,
       });
     }
   }, [nextAction, hands, dispatchNextPlay, dealer]);
@@ -249,7 +249,7 @@ export function useRound(
   //// Functions ////
 
   function deal() {
-    dispatchNextPlay({ player: dealer, nextAction: Action.DEALING });
+    dispatchNextPlay({ player: dealer, action: Action.DEALING });
   }
 
   function sendToCrib(player, indices) {
@@ -264,13 +264,13 @@ export function useRound(
 
   function cut() {
     deck.cut(4);
-    dispatchNextPlay({ player: dealer, nextAction: Action.FLIP_STARTER });
+    dispatchNextPlay({ player: dealer, action: Action.FLIP_STARTER });
   }
 
   function flip() {
     setStarter(deck.draw(1)[0]);
     deck.uncut();
-    dispatchNextPlay({ player: dealer + 1, nextAction: Action.PLAY });
+    dispatchNextPlay({ player: dealer + 1, action: Action.PLAY });
   }
 
   function isValidPlay(index, claim, amount = sharedStack.length + 1) {
@@ -337,14 +337,14 @@ export function useRound(
 
   function scoreHand() {
     if (nextPlayer === dealer) {
-      dispatchNextPlay({ player: dealer, nextAction: Action.SCORE_CRIB });
+      dispatchNextPlay({ player: dealer, action: Action.SCORE_CRIB });
     } else {
       dispatchNextPlay({ type: "next" });
     }
   }
 
   function scoreCrib() {
-    dispatchNextPlay({ player: dealer + 1, nextAction: Action.RESET_ROUND });
+    dispatchNextPlay({ player: dealer + 1, action: Action.NEW_ROUND });
   }
 
   /** mid-game, post round, to start a new round */
@@ -354,7 +354,7 @@ export function useRound(
     dispatchStates({ type: "reset" });
     setStarter(null);
     deck.reset(cards);
-    dispatchNextPlay({ player: newDealer, nextAction: Action.DEAL });
+    dispatchNextPlay({ player: newDealer, action: Action.DEAL });
   }
 
   /** pre-game, when game started */
@@ -372,18 +372,18 @@ export function useRound(
     switch (nextAction) {
       case Action.PROCEED_PLAY:
         // TODO: flip current piles face-down
-        dispatchNextPlay({ player: nextPlayer, nextAction: Action.PLAY });
+        dispatchNextPlay({ player: nextPlayer, action: Action.PLAY });
         break;
 
       case Action.PROCEED_SCORING:
         dispatchStates({ type: "re-hand" });
-        dispatchNextPlay({ player: nextPlayer, nextAction: Action.SCORE_HAND });
+        dispatchNextPlay({ player: nextPlayer, action: Action.SCORE_HAND });
         break;
 
       case Action.PROCEED_DEAL:
         deck.reset(cards);
         dispatchStates({ type: "reset" });
-        dispatchNextPlay({ player: nextPlayer, nextAction: Action.DEAL });
+        dispatchNextPlay({ player: nextPlayer, action: Action.DEAL });
         break;
 
       default:
