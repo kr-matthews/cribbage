@@ -5,9 +5,7 @@ import { useScores } from "./useScores.js";
 
 import Action from "./Action.js";
 
-// TODO: NEXT: NEXT: move next player/action states to app, to share with cut for deal
 // TODO: NEXT: NEXT: put next player/action logic in correct locations (split across files)
-// TODO: NEXT: finish cut-for-deal stage entirely
 
 ////// Hook //////
 
@@ -79,7 +77,7 @@ export function useGame(
     dispatchNextPlay({
       // loser had new-game power, and now gets to deal it
       player: nextPlayer,
-      action: Action.DEAL,
+      action: Action.START_DEALING,
     });
   }
 

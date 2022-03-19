@@ -267,7 +267,7 @@ export default function App() {
       if (nextAction === Action.CUT_FOR_DEAL) cutForDeal.cut();
     },
     () => {
-      if (nextAction === Action.DEAL) game.deal();
+      if (nextAction === Action.START_DEALING) game.deal();
     },
     () => {
       if (
@@ -315,14 +315,14 @@ export default function App() {
     () => {
       if (
         [
-          Action.PROCEED_PLAY,
-          Action.PROCEED_SCORING,
-          Action.PROCEED_DEAL,
+          Action.FLIP_PLAYED_CARDS,
+          Action.RETURN_CARDS_TO_HANDS,
+          Action.START_FIRST_GAME,
         ].includes(nextAction)
       ) {
         game.proceed();
       } else if (nextAction === Action.RETRY_CUT_FOR_DEAL) {
-        // TODO: NEXT: retry cut for deal
+        cutForDeal.retry();
       }
     },
     () => {
@@ -332,7 +332,7 @@ export default function App() {
       if (nextAction === Action.SCORE_CRIB) game.scoreCrib();
     },
     () => {
-      if (nextAction === Action.NEW_ROUND) game.restartRound();
+      if (nextAction === Action.START_NEW_ROUND) game.restartRound();
     },
   ];
 

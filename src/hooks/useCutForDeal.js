@@ -51,7 +51,10 @@ export function useCutForDeal(deck, playerCount, setDealer, dispatchNextPlay) {
     if (firstDealer !== null) {
       // dealer identified
       setDealer(firstDealer);
-      dispatchNextPlay({ player: firstDealer, action: Action.PROCEED_DEAL });
+      dispatchNextPlay({
+        player: firstDealer,
+        action: Action.START_FIRST_GAME,
+      });
     } else if (!cuts.includes(null)) {
       // tie for lowest card
       dispatchNextPlay({ player: 0, action: Action.RETRY_CUT_FOR_DEAL });
@@ -69,12 +72,17 @@ export function useCutForDeal(deck, playerCount, setDealer, dispatchNextPlay) {
     dispatchNextPlay({ type: "next" });
   }
 
+  function retry(cards) {
+    reset(cards);
+    dispatchNextPlay({ player: 0, action: Action.CUT_FOR_DEAL });
+  }
+
   function reset(cards) {
     deck.reset(cards);
-    reduceCuts({ type: "reset" });
+    dispatchCuts({ type: "reset", playerCount });
   }
 
   //// Return ////
 
-  return { cuts, firstDealer, cut, reset };
+  return { cuts, firstDealer, cut, retry, reset };
 }

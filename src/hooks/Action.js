@@ -1,25 +1,29 @@
 export default class Action {
-  // Pre-Games
+  //// Pre-Game
   static LOCK_IN_PLAYERS = new Action("lock in players");
   static CUT_FOR_DEAL = new Action("cut for deal");
-  static RETRY_CUT_FOR_DEAL = new Action("gather the cards and try again");
-  static PROCEED_DEAL = new Action("gather the deck");
+  static RETRY_CUT_FOR_DEAL = new Action(
+    "gather the deck, shuffle it, and try again"
+  );
+  static START_FIRST_GAME = new Action("gather the deck, shuffle it, and deal");
 
+  //// Game
   // Round
-  static DEAL = new Action("deal the round");
-  static DEALING = new Action("finish dealing");
+  static START_DEALING = new Action("deal the round");
+  static DEAL = new Action("finish dealing");
   static DISCARD = new Action("discard to the crib");
   static CUT_FOR_STARTER = new Action("cut the deck");
   static FLIP_STARTER = new Action("flip the starter");
   static PLAY = new Action("play a card, or go");
-  static PROCEED_PLAY = new Action("flip the cards");
-  static PROCEED_SCORING = new Action("return cards to hands");
+  static FLIP_PLAYED_CARDS = new Action("flip the cards");
+  static RETURN_CARDS_TO_HANDS = new Action("return cards to hands");
   static SCORE_HAND = new Action("score your hand", "score their hand");
   static SCORE_CRIB = new Action("score your crib", "score the crib");
-  static NEW_ROUND = new Action("start the next round");
-
+  static START_NEW_ROUND = new Action(
+    "gather the deck, shuffle it, and start the next round"
+  );
   // Post-Rounds
-  static NEW_GAME = new Action("start a new game");
+  static START_NEW_GAME = new Action("start a new game");
 
   /**
    * Create an Action to be the nextAction state.
