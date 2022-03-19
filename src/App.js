@@ -90,6 +90,7 @@ function reduceNextPlay(nextPlay, { type, player, action, playerCount }) {
     // use provided next action, or default to current next action
     nextAction: action || nextPlay.nextAction,
   };
+
   switch (type) {
     case "remove":
       newNextPlay.nextPlayers[player % playerCount] = false;
@@ -118,7 +119,6 @@ function reduceNextPlay(nextPlay, { type, player, action, playerCount }) {
 //// Helpers ////
 
 function getRandomName() {
-  // TODO: avoid duplicate names within game?
   let names = [
     "Skynet",
     "Ava",
@@ -159,10 +159,17 @@ export default function App() {
   function addComputerPlayer() {
     // TODO: NEXT: leave remote play if starting game with only computers (not here)
     if (playerCount < 3) {
+      let existingNames = players.map((player) => player.name);
+      let name;
+
+      do {
+        name = getRandomName();
+      } while (existingNames.includes(name));
+
       dispatchPlayers({
         type: "add",
         isComputer: true,
-        name: getRandomName(),
+        name,
       });
     }
   }
