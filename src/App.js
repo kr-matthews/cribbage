@@ -324,6 +324,7 @@ export default function App() {
       } else if (nextAction === Action.RETRY_CUT_FOR_DEAL) {
         cutForDeal.retry();
       }
+      if (nextAction === Action.START_FIRST_GAME) cutForDeal.reset();
     },
     () => {
       if (nextAction === Action.SCORE_HAND) game.scoreHand();
@@ -374,18 +375,18 @@ export default function App() {
         clickCardHandler={(index) => dispatchSelected({ type: "click", index })} // TODO: only when clickable
         maxSize={8 - playerCount}
       />
-      <PlayArea // TODO: NEXT: show cut cards
+      <PlayArea
         hideEmptyColumns={HIDE_EMPTY_COLUMNS}
-        deckSize={deck.size}
-        deckBottomSize={deck.unCutCount}
-        deckTopSize={deck.cutCounts[0]} // only used when there is a single cut
-        isDeckCut={deck.isCut}
+        deckSize={deck.unCutCount}
+        isDeckCutInPlace={nextAction === Action.FLIP_STARTER}
+        deckBottomSize={nextAction === Action.FLIP_STARTER && deck.unCutCount}
+        deckTopSize={nextAction === Action.FLIP_STARTER && deck.cutCounts[0]}
         starter={game.starter}
         isStarterSelected={selected[6]}
         clickDeckHandler={() => dispatchSelected({ type: "click", index: 6 })} // TODO: only when clickable; allow click to cut or flip
         piles={game.piles}
+        cutSizes={deck.cutCounts}
         cutCards={cutForDeal.cuts}
-        cutCounts={deck.cutCounts}
       />
       <Actions
         waiting={!nextPlayers[position]}

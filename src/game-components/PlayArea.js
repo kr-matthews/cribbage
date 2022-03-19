@@ -5,20 +5,22 @@ import CardStack from "../playing-cards/CardStack.js";
 export default function PlayArea({
   hideEmptyColumns,
   deckSize,
+  isDeckCutInPlace,
   deckBottomSize,
   deckTopSize,
-  isDeckCut,
   starter,
   isStarterSelected,
   clickDeckHandler,
   piles = [],
+  cutSizes,
+  cutCards,
 }) {
   const dummyArray = hideEmptyColumns ? [] : Array(3 - piles.length).fill(0);
 
   return (
     <div className="game-component play-area">
       <div className="col">
-        {isDeckCut ? (
+        {isDeckCutInPlace ? (
           <CutDeck
             bottomSize={deckBottomSize}
             topSize={deckTopSize}
@@ -34,7 +36,11 @@ export default function PlayArea({
         )}
       </div>
       {piles.map((cards, index) => {
-        return (
+        return cutCards[index] ? (
+          <div key={index} className="col">
+            <Deck size={cutSizes[index]} starter={cutCards[index]} />
+          </div>
+        ) : (
           <div key={index} className="col">
             <CardStack cards={cards} maxSize={4} />
           </div>
