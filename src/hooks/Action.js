@@ -2,6 +2,7 @@ export default class Action {
   // Pre-Games
   static LOCK_IN_PLAYERS = new Action("lock in players");
   static CUT_FOR_DEAL = new Action("cut for deal");
+  static RETRY_CUT_FOR_DEAL = new Action("gather the cards and try again");
   static PROCEED_DEAL = new Action("gather the deck");
 
   // Round

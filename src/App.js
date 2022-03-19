@@ -2,7 +2,7 @@ import { useState, useReducer } from "react";
 
 import { useLocalStorage } from "./hooks/useLocalStorage.js";
 import { useDeck } from "./hooks/useDeck.js";
-import useCutForDeal from "./hooks/useCutForDeal.js";
+import { useCutForDeal } from "./hooks/useCutForDeal.js";
 import { useGame } from "./hooks/useGame.js";
 import { useGamePoints } from "./hooks/useGamePoints.js";
 import { useSoundEffects } from "./hooks/useSoundEffects.js";
@@ -205,9 +205,6 @@ export default function App() {
   // the deck (used pre-game, to cut for deal); pass in card stack on reset
   const deck = useDeck();
 
-  // to decide who goes first in the first game
-  const cutForDeal = useCutForDeal(deck, playerCount);
-
   // a single iteration of the game, which can be restarted
   const game = useGame(
     deck,
@@ -216,6 +213,14 @@ export default function App() {
     nextAction,
     dispatchNextPlay,
     position === 0
+  );
+
+  // to decide who goes first in the first game
+  const cutForDeal = useCutForDeal(
+    deck,
+    playerCount,
+    game.setDealer,
+    dispatchNextPlay
   );
 
   // track game points across multiple games
@@ -259,14 +264,7 @@ export default function App() {
       if (nextAction === Action.LOCK_IN_PLAYERS) game.start();
     },
     () => {
-      if (nextAction === Action.CUT_FOR_DEAL) {
-        let player = nextPlayer;
-        cutForDeal.cut(player);
-        if (player === playerCount - 1) {
-          // TODO: NEXT: increment next action
-        }
-        game.tempcut(player, 1); // TEMP: need to move actions to game
-      }
+      if (nextAction === Action.CUT_FOR_DEAL) cutForDeal.cut();
     },
     () => {
       if (nextAction === Action.DEAL) game.deal();
@@ -321,8 +319,11 @@ export default function App() {
           Action.PROCEED_SCORING,
           Action.PROCEED_DEAL,
         ].includes(nextAction)
-      )
+      ) {
         game.proceed();
+      } else if (nextAction === Action.RETRY_CUT_FOR_DEAL) {
+        // TODO: NEXT: retry cut for deal
+      }
     },
     () => {
       if (nextAction === Action.SCORE_HAND) game.scoreHand();

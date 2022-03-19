@@ -83,15 +83,6 @@ export function useGame(
     });
   }
 
-  // TEMP
-  function tempcut(player, dealer) {
-    if (player === playerCount - 1) {
-      dispatchNextPlay({ player: dealer, action: Action.PROCEED_DEAL });
-    } else {
-      dispatchNextPlay({ type: "next" });
-    }
-  }
-
   //// Return ////
 
   return {
@@ -101,10 +92,10 @@ export function useGame(
 
     // game
     dealer,
+    setDealer,
     nextAction,
     start,
     rematch,
-    tempcut,
 
     // round
     deal: round.deal,
