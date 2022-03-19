@@ -1,6 +1,8 @@
 export default class Action {
-  //// Pre-Game
+  //// Start
   static LOCK_IN_PLAYERS = new Action("lock in players");
+
+  //// Cut For Deal
   static CUT_FOR_DEAL = new Action("cut for deal");
   static RETRY_CUT_FOR_DEAL = new Action(
     "gather the deck, shuffle it, and try again"

@@ -150,15 +150,24 @@ export default function App() {
     { name: "You", isComputer: false },
   ]);
 
+  // are players locked in, or can new ones join
+  const [locked, setLocked] = useState(false);
+
+  function lockInPlayers() {
+    // only owner can lock
+    if (isOwner) setLocked(true);
+  }
+
   // what spot the user is 'sitting' in (can't be 'standing')
   const [position, setPosition] = useState(0);
+  const isOwner = position === 0;
 
   // amount of players present (user is always present)
   const playerCount = players.length;
 
   function addComputerPlayer() {
-    // TODO: NEXT: leave remote play if starting game with only computers (not here)
-    if (playerCount < 3) {
+    // only owner can add, only pre-game, only if space left
+    if (!locked && isOwner && playerCount < 3) {
       let existingNames = players.map((player) => player.name);
       let name;
 
@@ -177,7 +186,7 @@ export default function App() {
   // TODO: NEXT: use removePlayer
   function removePlayer(player) {
     // only owner can remove, only pre-game, and can't remove self
-    if (!isGameStarted && position === 0 && player > 0 && players[player]) {
+    if (!locked && isOwner && player > 0 && players[player]) {
       dispatchPlayers({ type: "remove", player });
     }
   }
@@ -219,7 +228,7 @@ export default function App() {
     nextPlayer,
     nextAction,
     dispatchNextPlay,
-    position === 0
+    isOwner
   );
 
   // to decide who goes first in the first game
@@ -233,9 +242,6 @@ export default function App() {
   // track game points across multiple games
   const gamePoints = useGamePoints();
 
-  // whether the game has started (ie whether new players can join)
-  const isGameStarted = nextAction !== Action.LOCK_IN_PLAYERS;
-
   // which cards from user's hand (plus deck top card) are selected
   const [selected, dispatchSelected] = useReducer(
     selectedReducer,
@@ -243,9 +249,22 @@ export default function App() {
   );
   const selectedCount = selected.filter((bool) => bool).length;
 
-  //// Functions ////
+  //// Next Action ////
 
-  //// Temporary sample functionality ////
+  let labels;
+  let actions;
+  let enabled;
+  let isDeckClickable;
+
+  switch (nextAction) {
+    case Action.LOCK_IN_PLAYERS:
+      // TODO: NEXT: NEXT: NEXT
+      break;
+
+    default:
+      console.debug("App couldn't recognize next action", nextAction);
+      break;
+  }
 
   const sampleLabels = [
     "Add Player",
@@ -265,9 +284,10 @@ export default function App() {
 
   const sampleActions = [
     () => {
-      if (!isGameStarted) addComputerPlayer();
+      addComputerPlayer();
     },
     () => {
+      // TODO: NEXT: leave remote play if starting game with only computers
       if (nextAction === Action.LOCK_IN_PLAYERS) game.start();
     },
     () => {
@@ -282,7 +302,7 @@ export default function App() {
         selectedCount === 4 - playerCount &&
         !selected[6]
       ) {
-        game.sendToCrib(
+        game.discardToCrib(
           nextPlayer,
           selected
             .map((bool, index) => (bool ? index : null))

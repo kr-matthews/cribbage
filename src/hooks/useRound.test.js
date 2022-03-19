@@ -129,7 +129,7 @@ it("dummy test", () => {
 // it("to crib", () => {
 //   act(() => roundHook.current.deal());
 
-//   act(() => roundHook.current.sendToCrib(2, [2]));
+//   act(() => roundHook.current.discardToCrib(2, [2]));
 
 //   expect(roundHook.current.starter).toBeNull;
 //   expect(roundHook.current.crib).toStrictEqual([
@@ -153,7 +153,7 @@ it("dummy test", () => {
 //   expect(reducerHook.current[0].nextPlayers).toStrictEqual([true, true, false]);
 //   expect(reducerHook.current[0].nextAction).toBe("discard");
 
-//   act(() => roundHook.current.sendToCrib(0, [3]));
+//   act(() => roundHook.current.discardToCrib(0, [3]));
 
 //   expect(roundHook.current.starter).toBeNull;
 //   expect(roundHook.current.crib).toStrictEqual([
@@ -181,7 +181,7 @@ it("dummy test", () => {
 //   ]);
 //   expect(reducerHook.current[0].nextAction).toBe("discard");
 
-//   act(() => roundHook.current.sendToCrib(1, [4]));
+//   act(() => roundHook.current.discardToCrib(1, [4]));
 
 //   expect(roundHook.current.starter).toBeNull;
 //   expect(roundHook.current.crib).toStrictEqual([
@@ -214,9 +214,9 @@ it("dummy test", () => {
 // it("cut and flip", () => {
 //   act(() => roundHook.current.deal());
 
-//   act(() => roundHook.current.sendToCrib(1, [1]));
-//   act(() => roundHook.current.sendToCrib(2, [0]));
-//   act(() => roundHook.current.sendToCrib(0, [3]));
+//   act(() => roundHook.current.discardToCrib(1, [1]));
+//   act(() => roundHook.current.discardToCrib(2, [0]));
+//   act(() => roundHook.current.discardToCrib(0, [3]));
 
 //   let hands = roundHook.current.hands;
 //   let crib = roundHook.current.crib;
@@ -254,9 +254,9 @@ it("dummy test", () => {
 // it("valid opening play", () => {
 //   act(() => roundHook.current.deal());
 
-//   act(() => roundHook.current.sendToCrib(1, [2]));
-//   act(() => roundHook.current.sendToCrib(2, [4]));
-//   act(() => roundHook.current.sendToCrib(0, [4]));
+//   act(() => roundHook.current.discardToCrib(1, [2]));
+//   act(() => roundHook.current.discardToCrib(2, [4]));
+//   act(() => roundHook.current.discardToCrib(0, [4]));
 //   act(() => roundHook.current.cut());
 //   act(() => roundHook.current.flip());
 
@@ -291,11 +291,11 @@ it("dummy test", () => {
 // it("opening plays", () => {
 //   act(() => roundHook.current.deal());
 
-//   act(() => roundHook.current.sendToCrib(1, [2]));
+//   act(() => roundHook.current.discardToCrib(1, [2]));
 
-//   act(() => roundHook.current.sendToCrib(2, [4]));
+//   act(() => roundHook.current.discardToCrib(2, [4]));
 
-//   act(() => roundHook.current.sendToCrib(0, [4]));
+//   act(() => roundHook.current.discardToCrib(0, [4]));
 
 //   act(() => roundHook.current.cut());
 
@@ -339,11 +339,11 @@ it("dummy test", () => {
 // it("follow-up plays", () => {
 //   act(() => roundHook.current.deal());
 
-//   act(() => roundHook.current.sendToCrib(1, [2]));
+//   act(() => roundHook.current.discardToCrib(1, [2]));
 
-//   act(() => roundHook.current.sendToCrib(2, [4]));
+//   act(() => roundHook.current.discardToCrib(2, [4]));
 
-//   act(() => roundHook.current.sendToCrib(0, [4]));
+//   act(() => roundHook.current.discardToCrib(0, [4]));
 
 //   act(() => roundHook.current.cut());
 
@@ -395,11 +395,11 @@ it("dummy test", () => {
 // it("full play nextAction", () => {
 //   act(() => roundHook.current.deal());
 
-//   act(() => roundHook.current.sendToCrib(1, [4]));
+//   act(() => roundHook.current.discardToCrib(1, [4]));
 
-//   act(() => roundHook.current.sendToCrib(0, [3]));
+//   act(() => roundHook.current.discardToCrib(0, [3]));
 
-//   act(() => roundHook.current.sendToCrib(2, [2]));
+//   act(() => roundHook.current.discardToCrib(2, [2]));
 
 //   act(() => roundHook.current.cut());
 
@@ -573,11 +573,11 @@ it("dummy test", () => {
 // it("query scoring", () => {
 //   act(() => roundHook.current.deal());
 
-//   act(() => roundHook.current.sendToCrib(1, [4]));
+//   act(() => roundHook.current.discardToCrib(1, [4]));
 
-//   act(() => roundHook.current.sendToCrib(0, [3]));
+//   act(() => roundHook.current.discardToCrib(0, [3]));
 
-//   act(() => roundHook.current.sendToCrib(2, [2]));
+//   act(() => roundHook.current.discardToCrib(2, [2]));
 
 //   act(() => roundHook.current.cut());
 
@@ -742,9 +742,9 @@ it("dummy test", () => {
 
 // it("score hands and crib, finish round", () => {
 //   act(() => roundHook.current.deal());
-//   act(() => roundHook.current.sendToCrib(1, [4]));
-//   act(() => roundHook.current.sendToCrib(0, [3]));
-//   act(() => roundHook.current.sendToCrib(2, [2]));
+//   act(() => roundHook.current.discardToCrib(1, [4]));
+//   act(() => roundHook.current.discardToCrib(0, [3]));
+//   act(() => roundHook.current.discardToCrib(2, [2]));
 //   act(() => roundHook.current.cut());
 //   act(() => roundHook.current.flip());
 //   // 0 plays K: K -> 10
@@ -833,9 +833,9 @@ it("dummy test", () => {
 
 // it("play round then reset", () => {
 //   act(() => roundHook.current.deal());
-//   act(() => roundHook.current.sendToCrib(1, [4]));
-//   act(() => roundHook.current.sendToCrib(0, [3]));
-//   act(() => roundHook.current.sendToCrib(2, [2]));
+//   act(() => roundHook.current.discardToCrib(1, [4]));
+//   act(() => roundHook.current.discardToCrib(0, [3]));
+//   act(() => roundHook.current.discardToCrib(2, [2]));
 //   act(() => roundHook.current.cut());
 //   act(() => roundHook.current.flip());
 //   // 0 plays K: K -> 10

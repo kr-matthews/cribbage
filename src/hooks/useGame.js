@@ -96,22 +96,26 @@ export function useGame(
     rematch,
 
     // round
-    deal: round.deal,
-    sendToCrib: round.sendToCrib,
-    cut: round.cut,
-    flip: round.flip,
-    isValidPlay: round.isValidPlay,
-    play: round.play,
-    isValidGo: round.isValidGo,
-    go: round.go,
-    proceed: round.proceed,
-    scoreHand: round.scoreHand,
-    scoreCrib: round.scoreCrib,
-    restartRound: round.restart,
-    resetRound: round.reset,
     crib: round.crib,
     hands: round.hands,
     piles: round.piles,
     starter: round.starter,
+
+    isValidGo: round.isValidGo,
+    isValidPlay: round.isValidPlay,
+    // TODO: round.canScorePoints ?
+
+    resetRound: round.reset,
+    deal: round.deal,
+    discardToCrib: round.discardToCrib,
+    cut: round.cut,
+    flip: round.flip,
+    play: round.play,
+    go: round.go,
+    scoreHand: round.scoreHand,
+    scoreCrib: round.scoreCrib,
+    restartRound: round.restart,
+
+    proceed: round.proceed, //...
   };
 }

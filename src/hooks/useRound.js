@@ -243,31 +243,10 @@ export function useRound(
     }
   }, [nextAction, hands, dispatchNextPlay, dealer]);
 
-  //// Functions ////
+  //// Checks ////
 
-  function deal() {
-    dispatchNextPlay({ player: dealer, action: Action.DEAL });
-  }
-
-  function sendToCrib(player, indices) {
-    // move cards in desc order so indices don't get changed as we go
-    const descIndices = indices.sort().reverse();
-    for (let index of descIndices) {
-      dispatchStates({ type: "discard", player, index });
-    }
-
-    dispatchNextPlay({ type: "remove", player });
-  }
-
-  function cut() {
-    deck.cut(4);
-    dispatchNextPlay({ player: dealer, action: Action.FLIP_STARTER });
-  }
-
-  function flip() {
-    setStarter(deck.draw(1)[0]);
-    deck.uncut();
-    dispatchNextPlay({ player: dealer + 1, action: Action.PLAY });
+  function isValidGo() {
+    return hands[nextPlayer].every(({ rank }) => stackTotal + rank.points > 31);
   }
 
   function isValidPlay(index, claim, amount = sharedStack.length + 1) {
@@ -286,20 +265,6 @@ export function useRound(
 
     // now check claim
     return checkClaim(cards, claim);
-  }
-
-  function play(index) {
-    dispatchStates({ type: "play", player: nextPlayer, index });
-    dispatchNextPlay({ type: "next" });
-  }
-
-  function isValidGo() {
-    return hands[nextPlayer].every(({ rank }) => stackTotal + rank.points > 31);
-  }
-
-  function go() {
-    dispatchGoed({ type: "add", player: nextPlayer });
-    dispatchNextPlay({ type: "next" });
   }
 
   // may check opponent's hand, so need player param (-1 for crib)
@@ -330,6 +295,43 @@ export function useRound(
     // NOTE: TODO: avoid double-counting sub-kinds and sub-runs and sub-flushes
 
     return checkClaim(cards, claim);
+  }
+
+  //// Actions ////
+
+  function deal() {
+    dispatchNextPlay({ player: dealer, action: Action.DEAL });
+  }
+
+  function discardToCrib(player, indices) {
+    // move cards in desc order so indices don't get changed as we go
+    const descIndices = indices.sort().reverse();
+    for (let index of descIndices) {
+      dispatchStates({ type: "discard", player, index });
+    }
+
+    dispatchNextPlay({ type: "remove", player });
+  }
+
+  function cut() {
+    deck.cut(4);
+    dispatchNextPlay({ player: dealer, action: Action.FLIP_STARTER });
+  }
+
+  function flip() {
+    setStarter(deck.draw(1)[0]);
+    deck.uncut();
+    dispatchNextPlay({ player: dealer + 1, action: Action.PLAY });
+  }
+
+  function play(index) {
+    dispatchStates({ type: "play", player: nextPlayer, index });
+    dispatchNextPlay({ type: "next" });
+  }
+
+  function go() {
+    dispatchGoed({ type: "add", player: nextPlayer });
+    dispatchNextPlay({ type: "next" });
   }
 
   function scoreHand() {
@@ -365,6 +367,7 @@ export function useRound(
    * Manually continue past an intermediary stage which only
    * exists so players can review the state before moving on.
    */
+  // TODO: NEXT: NEXT: NEXT: break up into separate functions, possibly combine with existing (reset()?)
   function proceed(cards) {
     switch (nextAction) {
       case Action.FLIP_PLAYED_CARDS:
@@ -396,19 +399,22 @@ export function useRound(
     crib,
     hands,
     piles,
+
+    isValidGo,
+    isValidPlay,
+    canScorePoints,
+
     reset,
     deal,
-    sendToCrib,
+    discardToCrib,
     cut,
     flip,
-    isValidPlay,
     play,
-    isValidGo,
     go,
-    canScorePoints,
     scoreHand,
     scoreCrib,
-    proceed,
     restart,
+
+    proceed, // ...
   };
 }
