@@ -1,31 +1,39 @@
 export default class Action {
   //// Start
-  static LOCK_IN_PLAYERS = new Action("lock in players");
+  static LOCK_IN_PLAYERS = new Action("Begin", "confirm players and shuffle");
 
   //// Cut For Deal
-  static CUT_FOR_DEAL = new Action("cut for deal");
+  static CUT_FOR_DEAL = new Action("Cut", "cut for deal");
   static RETRY_CUT_FOR_DEAL = new Action(
+    "Try Again",
     "gather the deck, shuffle it, and try again"
   );
-  static START_FIRST_GAME = new Action("gather the deck, shuffle it, and deal");
+  static START_FIRST_GAME = new Action(
+    "First Round",
+    "gather the deck, shuffle it, and deal"
+  );
 
   //// Game
   // Round
-  static START_DEALING = new Action("deal the round");
-  static DEAL = new Action("finish dealing");
-  static DISCARD = new Action("discard to the crib");
-  static CUT_FOR_STARTER = new Action("cut the deck");
-  static FLIP_STARTER = new Action("flip the starter");
-  static PLAY = new Action("play a card, or go");
-  static FLIP_PLAYED_CARDS = new Action("flip the cards");
-  static RETURN_CARDS_TO_HANDS = new Action("return cards to hands");
-  static SCORE_HAND = new Action("score your hand", "score their hand");
-  static SCORE_CRIB = new Action("score your crib", "score the crib");
+  static START_DEALING = new Action("Deal", "deal the round");
+  static DEAL = new Action(null, "finish dealing");
+  static DISCARD = new Action("Discard", "discard to the crib");
+  static CUT_FOR_STARTER = new Action("Cut", "cut the deck");
+  static FLIP_STARTER = new Action("Flip", "flip the starter");
+  static PLAY = new Action(null, "play a card, or go");
+  static FLIP_PLAYED_CARDS = new Action("Next", "flip the cards");
+  static RETURN_CARDS_TO_HANDS = new Action(
+    "Return Cards",
+    "return cards to hands"
+  );
+  static SCORE_HAND = new Action(null, "score your hand", "score their hand");
+  static SCORE_CRIB = new Action(null, "score your crib", "score the crib");
   static START_NEW_ROUND = new Action(
+    "Next Round",
     "gather the deck, shuffle it, and start the next round"
   );
   // Post-Rounds
-  static START_NEW_GAME = new Action("start a new game");
+  static START_NEW_GAME = new Action("New Game", "start a new game");
 
   /**
    * Create an Action to be the nextAction state.
@@ -33,7 +41,8 @@ export default class Action {
    * @param {String} internalMessage To display as "Your turn to [message]."
    * @param {String} externalMessage To display as "Waiting for [player] to [message]." Defaults to internalMessage.
    */
-  constructor(internalMessage, externalMessage) {
+  constructor(label, internalMessage, externalMessage) {
+    this.label = label;
     this.internalMessage = internalMessage;
     this.externalMessage = externalMessage || internalMessage;
   }

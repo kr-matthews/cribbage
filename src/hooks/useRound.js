@@ -380,12 +380,6 @@ export function useRound(
         dispatchNextPlay({ player: nextPlayer, action: Action.SCORE_HAND });
         break;
 
-      case Action.START_FIRST_GAME:
-        deck.reset(cards);
-        dispatchStates({ type: "reset" });
-        dispatchNextPlay({ player: nextPlayer, action: Action.START_DEALING });
-        break;
-
       default:
         console.warn("proceed didn't match any nextAction", nextAction);
         break;

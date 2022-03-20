@@ -61,13 +61,8 @@ export function useGame(
 
   /** locking in players for a fresh game */
   function start(cards) {
-    // TODO: NEXT: move validation checks to App
-    if (2 <= playerCount && playerCount <= 3) {
-      round.reset(cards);
-      dispatchNextPlay({ player: 0, action: Action.CUT_FOR_DEAL });
-    } else {
-      alert("The game can only be played with 2 or 3 players.");
-    }
+    round.reset(cards);
+    dispatchNextPlay({ player: dealer, action: Action.START_DEALING });
   }
 
   /** for starting rematch with same players (loser goes first, gamePoints preserved) */

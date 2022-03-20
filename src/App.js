@@ -153,11 +153,6 @@ export default function App() {
   // are players locked in, or can new ones join
   const [locked, setLocked] = useState(false);
 
-  function lockInPlayers() {
-    // only owner can lock
-    if (isOwner) setLocked(true);
-  }
-
   // what spot the user is 'sitting' in (can't be 'standing')
   const [position, setPosition] = useState(0);
   const isOwner = position === 0;
@@ -242,38 +237,121 @@ export default function App() {
   // track game points across multiple games
   const gamePoints = useGamePoints();
 
+  // lock in players to start (but cut for deal before starting first game)
+  function start(cards) {
+    cutForDeal.reset(cards);
+    setLocked(true);
+    dispatchNextPlay({ player: 0, action: Action.CUT_FOR_DEAL });
+  }
+
   // which cards from user's hand (plus deck top card) are selected
   const [selected, dispatchSelected] = useReducer(
     selectedReducer,
     HAND_ALL_UNSELECTED
   );
   const selectedCount = selected.filter((bool) => bool).length;
+  const selectedIndices = selected
+    .map((bool, index) => (bool ? index : null))
+    .filter((index) => index !== null);
 
   //// Next Action ////
 
-  let labels;
+  // defaults, to override when necessary in the switch statement below
+  let labels = [nextAction.label];
   let actions;
-  let enabled;
-  let isDeckClickable;
+  let enabled = [true];
+  let clickDeckHandler = null; // () => dispatchSelected({ type: "click", index: 6 })
+  let clickCardHandler = null;
 
   switch (nextAction) {
     case Action.LOCK_IN_PLAYERS:
-      // TODO: NEXT: NEXT: NEXT
+      // TODO: NEXT: leave remote play if starting game with only computers
+      labels = ["Add Computer", nextAction.label];
+      actions = [addComputerPlayer, () => start()]; // TEMP: first option
+      enabled = [playerCount < 3, isOwner && [2, 3].includes(playerCount)];
+      break;
+
+    case Action.CUT_FOR_DEAL:
+      actions = [cutForDeal.cut];
+      clickDeckHandler = actions[0];
+      break;
+
+    case Action.RETRY_CUT_FOR_DEAL:
+      actions = [() => cutForDeal.retry()];
+      clickDeckHandler = actions[0];
+      break;
+
+    case Action.START_FIRST_GAME:
+      actions = [
+        () => {
+          cutForDeal.reset();
+          game.start();
+        },
+      ];
+      clickDeckHandler = actions[0];
+      break;
+
+    case Action.START_DEALING:
+      actions = [game.deal];
+      clickDeckHandler = actions[0];
+      break;
+
+    case Action.DEAL:
+      labels = [];
+      actions = [];
+      enabled = [];
+      break;
+
+    case Action.DISCARD:
+      actions = [
+        () => {
+          game.discardToCrib(nextPlayer, selectedIndices);
+          dispatchSelected({ type: "reset" });
+        },
+      ];
+      enabled = [selectedCount === 4 - playerCount];
+      clickCardHandler = (index) => {
+        dispatchSelected({ type: "click", index });
+      };
+      break;
+
+    case Action.CUT_FOR_STARTER:
+      actions = [game.cut];
+      clickDeckHandler = actions[0];
+      break;
+
+    case Action.FLIP_STARTER:
+      actions = [game.flip];
+      clickDeckHandler = actions[0];
+      break;
+
+    case Action.PLAY: // TODO: NEXT: NEXT: NEXT: confirm this one, then continue
+      labels = ["Play", "Go"];
+      actions = [
+        () => {
+          game.play(selectedIndices[0]);
+          dispatchSelected({ type: "reset" });
+        },
+        () => {
+          game.go();
+          dispatchSelected({ type: "reset" });
+        },
+      ];
+      enabled = [
+        selectedCount === 1 && game.isValidPlay(selectedIndices[0]),
+        game.isValidGo(),
+      ];
+      clickCardHandler = (index) => {
+        dispatchSelected({ type: "click", index });
+      };
       break;
 
     default:
-      console.debug("App couldn't recognize next action", nextAction);
+      console.error("App couldn't recognize next action", nextAction);
       break;
   }
 
   const sampleLabels = [
-    "Add Player",
-    "New Game",
-    "Cut for Deal",
-    "Deal",
-    "Discard",
-    "Cut for Starter",
-    "Flip Starter",
     "Play",
     "Go",
     "Gather/ Flip/ Return",
@@ -283,40 +361,6 @@ export default function App() {
   ];
 
   const sampleActions = [
-    () => {
-      addComputerPlayer();
-    },
-    () => {
-      // TODO: NEXT: leave remote play if starting game with only computers
-      if (nextAction === Action.LOCK_IN_PLAYERS) game.start();
-    },
-    () => {
-      if (nextAction === Action.CUT_FOR_DEAL) cutForDeal.cut();
-    },
-    () => {
-      if (nextAction === Action.START_DEALING) game.deal();
-    },
-    () => {
-      if (
-        nextAction === Action.DISCARD &&
-        selectedCount === 4 - playerCount &&
-        !selected[6]
-      ) {
-        game.discardToCrib(
-          nextPlayer,
-          selected
-            .map((bool, index) => (bool ? index : null))
-            .filter((index) => index !== null)
-        );
-      }
-      dispatchSelected({ type: "reset" });
-    },
-    () => {
-      if (nextAction === Action.CUT_FOR_STARTER) game.cut();
-    },
-    () => {
-      if (nextAction === Action.FLIP_STARTER) game.flip();
-    },
     () => {
       let index = selected.findIndex((bool) => bool);
       if (
@@ -399,7 +443,7 @@ export default function App() {
         hands={game.hands}
         activePosition={nextPlayer} // TEMP
         selectedCards={selected}
-        clickCardHandler={(index) => dispatchSelected({ type: "click", index })} // TODO: only when clickable
+        clickCardHandler={clickCardHandler} // TEMP: nextPlayers[position] && clickCardHandler
         maxSize={8 - playerCount}
       />
       <PlayArea
@@ -410,7 +454,7 @@ export default function App() {
         deckTopSize={nextAction === Action.FLIP_STARTER && deck.cutCounts[0]}
         starter={game.starter}
         isStarterSelected={selected[6]}
-        clickDeckHandler={() => dispatchSelected({ type: "click", index: 6 })} // TODO: only when clickable; allow click to cut or flip
+        clickDeckHandler={nextPlayers[position] && clickDeckHandler}
         piles={game.piles}
         cutSizes={deck.cutCounts}
         cutCards={cutForDeal.cuts}
@@ -423,9 +467,9 @@ export default function App() {
             : "everyone else"
         }
         nextAction={nextAction.externalMessage}
-        labels={sampleLabels} // TEMP: these 3 samples
-        actions={sampleActions}
-        enabled={sampleEnabled}
+        labels={labels}
+        actions={actions}
+        enabled={enabled}
       />
       <PlayHistory messages={sampleMessages} />
       <Links
@@ -468,8 +512,6 @@ const sampleMessages = [
     timestamp: Date.now() + 50454,
   },
 ];
-
-const sampleEnabled = Array(20).fill(true);
 
 // for tests
 export { reduceNextPlay };
