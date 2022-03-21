@@ -151,11 +151,12 @@ export function useRound(
   const [goed, dispatchGoed] = useReducer(reduceGoed, new Set());
 
   // player is active in "play" stage if has cards and hasn't goed
-  const inactive =
-    nextAction === Action.PLAY &&
-    Array(playerCount)
-      .fill(null)
-      .map((_, player) => goed.has(player) || hands[player].length === 0);
+  const inactive = Array(playerCount)
+    .fill(null)
+    .map(
+      (_, player) =>
+        goed.has(player) || (hands[player] && hands[player].length === 0)
+    );
 
   //// Helpers ////
 
