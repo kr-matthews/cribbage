@@ -261,7 +261,7 @@ export default function App() {
     case Action.LOCK_IN_PLAYERS:
       // TODO: NEXT: leave remote play if starting game with only computers
       labels = ["Add Computer", nextAction.label];
-      actions = [addComputerPlayer, () => start()]; // TEMP: first option
+      actions = [addComputerPlayer, () => start()]; // TODO: NEXT: move add option to header somewhere
       enabled = [playerCount < 3, isOwner && [2, 3].includes(playerCount)];
       break;
 
@@ -319,7 +319,7 @@ export default function App() {
       clickDeckHandler = actions[0];
       break;
 
-    case Action.PLAY: // TODO: NEXT: NEXT: NEXT: confirm this one, then continue
+    case Action.PLAY:
       labels = ["Play", "Go"]; // TODO: add option for claiming various types of points
       actions = [
         () => {
@@ -340,67 +340,31 @@ export default function App() {
       };
       break;
 
+    case Action.FLIP_PLAYED_CARDS:
+      actions = [game.endPlay];
+      break;
+
+    case Action.RETURN_CARDS_TO_HANDS:
+      actions = [game.returnToHand];
+      break;
+
+    case Action.SCORE_HAND: // TODO: add options to claim points (?)
+      actions = [game.scoreHand];
+      break;
+
+    case Action.SCORE_CRIB:
+      actions = [game.scoreCrib];
+      break;
+
+    case Action.START_NEW_ROUND:
+      actions = [() => game.restartRound()];
+      clickDeckHandler = actions[0];
+      break;
+
     default:
       console.error("App couldn't recognize next action", nextAction);
       break;
   }
-
-  const sampleLabels = [
-    "Play",
-    "Go",
-    "Gather/ Flip/ Return",
-    "Score Hand",
-    "Score Crib",
-    "New Round",
-  ];
-
-  const sampleActions = [
-    () => {
-      let index = selected.findIndex((bool) => bool);
-      if (
-        nextAction === Action.PLAY &&
-        selectedCount === 1 &&
-        index !== 6 &&
-        game.isValidPlay(index)
-      ) {
-        game.play(index);
-      } else {
-        alert("invalid play");
-      }
-      dispatchSelected({ type: "reset" });
-    },
-    () => {
-      if (nextAction === Action.PLAY && game.isValidGo()) {
-        game.go();
-      } else {
-        alert("invalid go");
-      }
-      dispatchSelected({ type: "reset" });
-    },
-    () => {
-      if (
-        [
-          Action.FLIP_PLAYED_CARDS,
-          Action.RETURN_CARDS_TO_HANDS,
-          Action.START_FIRST_GAME,
-        ].includes(nextAction)
-      ) {
-        game.proceed();
-      } else if (nextAction === Action.RETRY_CUT_FOR_DEAL) {
-        cutForDeal.retry();
-      }
-      if (nextAction === Action.START_FIRST_GAME) cutForDeal.reset();
-    },
-    () => {
-      if (nextAction === Action.SCORE_HAND) game.scoreHand();
-    },
-    () => {
-      if (nextAction === Action.SCORE_CRIB) game.scoreCrib();
-    },
-    () => {
-      if (nextAction === Action.START_NEW_ROUND) game.restartRound();
-    },
-  ];
 
   //// Return ////
 
@@ -429,13 +393,13 @@ export default function App() {
         leave={network.leave}
         players={players}
         colours={colours}
-        scores={[46, 67, 80]} // TEMP
+        scores={game.currentScores}
       />
       <Hands
         hideEmptyColumns={HIDE_EMPTY_COLUMNS}
         crib={game.crib}
         hands={game.hands}
-        activePosition={nextPlayer} // TEMP
+        activePosition={nextPlayer} // TEMP: position
         selectedCards={selected}
         clickCardHandler={clickCardHandler} // TEMP: nextPlayers[position] && clickCardHandler
         maxSize={8 - playerCount}
@@ -460,7 +424,11 @@ export default function App() {
             ? players[nextPlayer].name
             : "everyone else"
         }
-        nextAction={nextAction.externalMessage}
+        nextAction={
+          nextPlayers[position]
+            ? nextAction.internalMessage
+            : nextAction.externalMessage
+        }
         labels={labels}
         actions={actions}
         enabled={enabled}

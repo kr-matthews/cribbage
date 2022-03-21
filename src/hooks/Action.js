@@ -20,14 +20,22 @@ export default class Action {
   static DISCARD = new Action("Discard", "discard to the crib");
   static CUT_FOR_STARTER = new Action("Cut", "cut the deck");
   static FLIP_STARTER = new Action("Flip", "flip the starter");
-  static PLAY = new Action(null, "play a card, or go");
+  static PLAY = new Action("Play", "play a card, or go");
   static FLIP_PLAYED_CARDS = new Action("Next", "flip the cards");
   static RETURN_CARDS_TO_HANDS = new Action(
     "Return Cards",
     "return cards to hands"
   );
-  static SCORE_HAND = new Action(null, "score your hand", "score their hand");
-  static SCORE_CRIB = new Action(null, "score your crib", "score the crib");
+  static SCORE_HAND = new Action(
+    "Score Hand",
+    "score your hand",
+    "score their hand"
+  );
+  static SCORE_CRIB = new Action(
+    "Score Crib",
+    "score your crib",
+    "score the crib"
+  );
   static START_NEW_ROUND = new Action(
     "Next Round",
     "gather the deck, shuffle it, and start the next round"
