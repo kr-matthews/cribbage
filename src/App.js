@@ -402,7 +402,7 @@ export default function App() {
         activePosition={nextPlayer} // TEMP: position
         selectedCards={selected}
         clickCardHandler={clickCardHandler} // TEMP: nextPlayers[position] && clickCardHandler
-        maxSize={8 - playerCount}
+        maxSize={game.crib.length === 4 ? 4 : 8 - playerCount}
       />
       <PlayArea
         hideEmptyColumns={HIDE_EMPTY_COLUMNS}

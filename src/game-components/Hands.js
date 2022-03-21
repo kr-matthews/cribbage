@@ -27,7 +27,7 @@ export default function Hands({
             cards={cards}
             isSelected={index === activePosition && selectedCards}
             clickHandler={index === activePosition && clickCardHandler}
-            maxSize={maxSize} // TODO: make it 4 after discarding?
+            maxSize={maxSize}
           />
         </div>
       ))}
