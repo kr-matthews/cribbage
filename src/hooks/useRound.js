@@ -334,6 +334,16 @@ export function useRound(
     dispatchNextPlay({ type: "next" });
   }
 
+  function endPlay() {
+    // TODO: flip current piles face-down
+    dispatchNextPlay({ player: nextPlayer, action: Action.PLAY });
+  }
+
+  function returnToHand() {
+    dispatchStates({ type: "re-hand" });
+    dispatchNextPlay({ player: nextPlayer, action: Action.SCORE_HAND });
+  }
+
   function scoreHand() {
     if (nextPlayer === dealer) {
       dispatchNextPlay({ player: dealer, action: Action.SCORE_CRIB });
@@ -363,29 +373,6 @@ export function useRound(
     deck.reset(cards);
   }
 
-  /**
-   * Manually continue past an intermediary stage which only
-   * exists so players can review the state before moving on.
-   */
-  // TODO: NEXT: NEXT: NEXT: break up into separate functions, possibly combine with existing (reset()?)
-  function proceed(cards) {
-    switch (nextAction) {
-      case Action.FLIP_PLAYED_CARDS:
-        // TODO: flip current piles face-down
-        dispatchNextPlay({ player: nextPlayer, action: Action.PLAY });
-        break;
-
-      case Action.RETURN_CARDS_TO_HANDS:
-        dispatchStates({ type: "re-hand" });
-        dispatchNextPlay({ player: nextPlayer, action: Action.SCORE_HAND });
-        break;
-
-      default:
-        console.warn("proceed didn't match any nextAction", nextAction);
-        break;
-    }
-  }
-
   //// Return ////
 
   return {
@@ -405,10 +392,10 @@ export function useRound(
     flip,
     play,
     go,
+    endPlay,
+    returnToHand,
     scoreHand,
     scoreCrib,
     restart,
-
-    proceed, // ...
   };
 }

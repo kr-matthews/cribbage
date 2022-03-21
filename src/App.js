@@ -222,17 +222,11 @@ export default function App() {
     playerCount,
     nextPlayer,
     nextAction,
-    dispatchNextPlay,
-    isOwner
+    dispatchNextPlay
   );
 
   // to decide who goes first in the first game
-  const cutForDeal = useCutForDeal(
-    deck,
-    playerCount,
-    game.setDealer,
-    dispatchNextPlay
-  );
+  const cutForDeal = useCutForDeal(deck, playerCount, dispatchNextPlay);
 
   // track game points across multiple games
   const gamePoints = useGamePoints();
@@ -285,7 +279,7 @@ export default function App() {
       actions = [
         () => {
           cutForDeal.reset();
-          game.start();
+          game.start(cutForDeal.firstDealer);
         },
       ];
       clickDeckHandler = actions[0];
@@ -326,7 +320,7 @@ export default function App() {
       break;
 
     case Action.PLAY: // TODO: NEXT: NEXT: NEXT: confirm this one, then continue
-      labels = ["Play", "Go"];
+      labels = ["Play", "Go"]; // TODO: add option for claiming various types of points
       actions = [
         () => {
           game.play(selectedIndices[0]);

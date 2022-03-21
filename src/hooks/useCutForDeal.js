@@ -27,7 +27,7 @@ function reduceCuts(cuts, action) {
 
 ////// Hook //////
 
-export function useCutForDeal(deck, playerCount, setDealer, dispatchNextPlay) {
+export function useCutForDeal(deck, playerCount, dispatchNextPlay) {
   //// States ////
 
   const [cuts, dispatchCuts] = useReducer(reduceCuts, [null]);
@@ -35,7 +35,7 @@ export function useCutForDeal(deck, playerCount, setDealer, dispatchNextPlay) {
   // everyone has cut and there's no tie for first (lowest card rank)
   const firstDealer =
     cuts[playerCount - 1] !== null &&
-    _.uniq([...rankIndices].sort().slice(0, 2)).length === 2
+    _.uniq([...rankIndices].sort((a, b) => a - b).slice(0, 2)).length === 2
       ? rankIndices.indexOf(Math.min(...rankIndices))
       : null;
 
@@ -50,7 +50,6 @@ export function useCutForDeal(deck, playerCount, setDealer, dispatchNextPlay) {
   useEffect(() => {
     if (firstDealer !== null) {
       // dealer identified
-      setDealer(firstDealer);
       dispatchNextPlay({
         player: firstDealer,
         action: Action.START_FIRST_GAME,
@@ -59,7 +58,7 @@ export function useCutForDeal(deck, playerCount, setDealer, dispatchNextPlay) {
       // tie for lowest card
       dispatchNextPlay({ player: 0, action: Action.RETRY_CUT_FOR_DEAL });
     }
-  }, [cuts, firstDealer, setDealer, dispatchNextPlay]);
+  }, [cuts, firstDealer, dispatchNextPlay]);
 
   //// Functions ////
 

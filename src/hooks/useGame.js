@@ -5,8 +5,6 @@ import { useScores } from "./useScores.js";
 
 import Action from "./Action.js";
 
-// TODO: NEXT: NEXT: put next player/action logic in correct locations (split across files)
-
 ////// Hook //////
 
 export function useGame(
@@ -14,8 +12,7 @@ export function useGame(
   playerCount,
   nextPlayer,
   nextAction,
-  dispatchNextPlay,
-  isOwner
+  dispatchNextPlay
 ) {
   //// Constants and States ////
 
@@ -60,9 +57,10 @@ export function useGame(
   }
 
   /** locking in players for a fresh game */
-  function start(cards) {
+  function start(firstDealer, cards) {
     round.reset(cards);
-    dispatchNextPlay({ player: dealer, action: Action.START_DEALING });
+    dispatchNextPlay({ player: firstDealer, action: Action.START_DEALING });
+    setDealer(firstDealer);
   }
 
   /** for starting rematch with same players (loser goes first, gamePoints preserved) */
@@ -98,7 +96,7 @@ export function useGame(
 
     isValidGo: round.isValidGo,
     isValidPlay: round.isValidPlay,
-    // TODO: round.canScorePoints ?
+    // round.canScorePoints // TODO?
 
     resetRound: round.reset,
     deal: round.deal,
@@ -107,10 +105,10 @@ export function useGame(
     flip: round.flip,
     play: round.play,
     go: round.go,
+    endPlay: round.endPlay,
+    returnToHand: round.returnToHand,
     scoreHand: round.scoreHand,
     scoreCrib: round.scoreCrib,
     restartRound: round.restart,
-
-    proceed: round.proceed, //...
   };
 }
