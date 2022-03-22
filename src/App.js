@@ -159,6 +159,7 @@ export default function App() {
 
   // amount of players present (user is always present)
   const playerCount = players.length;
+  const computerCount = players.filter((player) => player.isComputer).length;
 
   // TODO: remove validation from add and remove computer?
   function addComputerPlayer() {
@@ -259,9 +260,28 @@ export default function App() {
 
   switch (nextAction) {
     case Action.LOCK_IN_PLAYERS:
-      // TODO: NEXT: leave remote play if starting game with only computers
       labels = ["Add Computer", nextAction.label];
-      actions = [addComputerPlayer, () => start()]; // TODO: NEXT: move add option to header somewhere
+      actions = [
+        addComputerPlayer,
+        () => {
+          if (network.mode === "remote" && computerCount === playerCount - 1) {
+            // have to leave remote play if they want to start
+            if (
+              window.confirm(
+                "You are starting a remote game with only yourself and computer players, and will therefore automatically be switched back to local play now."
+              )
+            ) {
+              // they agree; leave remote play
+              network.leave();
+            } else {
+              // they cancelled the start
+              return;
+            }
+          }
+          // start the game (possibly after leaving remote play)
+          start();
+        },
+      ]; // TODO: NEXT: move add option to header somewhere
       enabled = [playerCount < 3, isOwner && [2, 3].includes(playerCount)];
       break;
 
