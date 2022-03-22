@@ -17,6 +17,8 @@ export default function Header({
   nextPlayers = [false, false, false],
   scores = [null, null, null],
   colours = [null, null, null],
+  removeable,
+  removePlayer,
 }) {
   const dummyArray = hideEmptyColumns ? [] : Array(3 - players.length).fill(0);
 
@@ -41,6 +43,9 @@ export default function Header({
             isUser={index === userPosition}
             isDealer={index === dealerPosition}
             isNextPlayer={nextPlayers[index]}
+            clickable={removeable && removeable[index]}
+            onClick={() => removePlayer(index)}
+            onHover={"Click to remove this player"}
             name={name}
             type={isComputer ? "Computer" : "Human"}
             colour={colours[index]}
@@ -60,6 +65,9 @@ function InfoBox({
   isUser,
   isDealer,
   isNextPlayer,
+  clickable,
+  onClick,
+  onHover,
   name = "name unknown",
   type = "agency unknown",
   colour = "transparent",
@@ -69,9 +77,15 @@ function InfoBox({
     backgroundColor: colour,
     borderColor: isNextPlayer ? "#E41B17" : "transparent",
   };
+  const className = `col headerbox infobox${clickable ? " clickable" : ""}`;
 
   return (
-    <div className="col headerbox infobox" style={style}>
+    <div
+      className={className}
+      onClick={clickable ? onClick : null}
+      title={clickable ? onHover : ""}
+      style={style}
+    >
       {exists && (
         <>
           <div className="headerbox-info">

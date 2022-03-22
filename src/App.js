@@ -160,6 +160,7 @@ export default function App() {
   // amount of players present (user is always present)
   const playerCount = players.length;
 
+  // TODO: remove validation from add and remove computer?
   function addComputerPlayer() {
     // only owner can add, only pre-game, only if space left
     if (!locked && isOwner && playerCount < 3) {
@@ -178,7 +179,6 @@ export default function App() {
     }
   }
 
-  // TODO: NEXT: use removePlayer
   function removePlayer(player) {
     // only owner can remove, only pre-game, and can't remove self
     if (!locked && isOwner && player > 0 && players[player]) {
@@ -393,8 +393,13 @@ export default function App() {
         leave={network.leave}
         players={players}
         nextPlayers={nextPlayers}
-        colours={colours}
         scores={game.currentScores}
+        colours={colours}
+        removeable={
+          isOwner &&
+          nextAction === Action.LOCK_IN_PLAYERS && [false, true, true]
+        }
+        removePlayer={removePlayer}
       />
       <Hands
         hideEmptyColumns={HIDE_EMPTY_COLUMNS}

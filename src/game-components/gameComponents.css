@@ -45,6 +45,20 @@
   color: White;
 }
 
+.clickable:hover {
+  cursor: pointer;
+  opacity: 0.5;
+  background: repeating-linear-gradient(
+    45deg,
+    DarkGrey,
+    DarkGrey 10px,
+    LightGrey 10px,
+    LightGrey 20px
+  );
+  /* border: transparent; */
+  color: Black;
+}
+
 .headerbox-info {
   text-align: center;
   margin: 5px 0;
