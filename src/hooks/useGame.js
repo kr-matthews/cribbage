@@ -84,7 +84,6 @@ export function useGame(
     // game
     dealer,
     setDealer,
-    nextAction,
     start,
     rematch,
 

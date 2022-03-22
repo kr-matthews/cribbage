@@ -14,6 +14,7 @@ export default function Header({
   join,
   leave,
   players = [],
+  nextPlayers = [false, false, false],
   scores = [null, null, null],
   colours = [null, null, null],
 }) {
@@ -39,6 +40,7 @@ export default function Header({
             exists={true}
             isUser={index === userPosition}
             isDealer={index === dealerPosition}
+            isNextPlayer={nextPlayers[index]}
             name={name}
             type={isComputer ? "Computer" : "Human"}
             colour={colours[index]}
@@ -57,6 +59,7 @@ function InfoBox({
   exists,
   isUser,
   isDealer,
+  isNextPlayer,
   name = "name unknown",
   type = "agency unknown",
   colour = "transparent",
@@ -64,7 +67,7 @@ function InfoBox({
 }) {
   const style = {
     backgroundColor: colour,
-    borderColor: isDealer ? "Black" : "transparent",
+    borderColor: isNextPlayer ? "#E41B17" : "transparent",
   };
 
   return (
@@ -72,6 +75,8 @@ function InfoBox({
       {exists && (
         <>
           <div className="headerbox-info">
+            {isDealer && "*"}
+            {/* TODO: NEXT: add icon to represent dealer */}
             {isUser ? <em>{name}</em> : name}
           </div>
           <div className="headerbox-info">{type}</div>

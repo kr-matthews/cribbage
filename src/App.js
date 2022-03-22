@@ -252,7 +252,7 @@ export default function App() {
 
   // defaults, to override when necessary in the switch statement below
   let labels = [nextAction.label];
-  let actions;
+  let actions = [];
   let enabled = [true];
   let clickDeckHandler = null; // () => dispatchSelected({ type: "click", index: 6 })
   let clickCardHandler = null;
@@ -392,6 +392,7 @@ export default function App() {
         join={network.join}
         leave={network.leave}
         players={players}
+        nextPlayers={nextPlayers}
         colours={colours}
         scores={game.currentScores}
       />
