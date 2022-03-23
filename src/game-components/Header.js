@@ -1,7 +1,7 @@
 import Options from "../options/Options.js";
 
 export default function Header({
-  hideEmptyColumns,
+  hideEmptyColumns = true,
   userName,
   updateUserName,
   userPosition,
@@ -13,6 +13,8 @@ export default function Header({
   create,
   join,
   leave,
+  canAddPlayer,
+  addPlayer,
   players = [],
   nextPlayers = [false, false, false],
   scores = [null, null, null],
@@ -20,7 +22,9 @@ export default function Header({
   removeable,
   removePlayer,
 }) {
-  const dummyArray = hideEmptyColumns ? [] : Array(3 - players.length).fill(0);
+  const dummyArray = hideEmptyColumns
+    ? []
+    : Array(3 - players.length - (canAddPlayer ? 1 : 0)).fill(0);
 
   return (
     <div className="game-component">
@@ -43,9 +47,9 @@ export default function Header({
             isUser={index === userPosition}
             isDealer={index === dealerPosition}
             isNextPlayer={nextPlayers[index]}
-            clickable={removeable && removeable[index]}
+            clickableType={removeable && removeable[index] && "removeable"}
             onClick={() => removePlayer(index)}
-            onHover={"Click to remove this player"}
+            tooltip={"Click to remove this player"}
             name={name}
             type={isComputer ? "Computer" : "Human"}
             colour={colours[index]}
@@ -53,6 +57,15 @@ export default function Header({
           />
         );
       })}
+      {canAddPlayer && (
+        <InfoBox
+          exists={true}
+          clickableType={"addable"}
+          onClick={addPlayer}
+          tooltip={"Click to add a computer player"}
+          colour={"DarkGrey"}
+        />
+      )}
       {dummyArray.map((_, index) => {
         return <InfoBox key={players.length + index} exists={false} />;
       })}
@@ -65,39 +78,46 @@ function InfoBox({
   isUser,
   isDealer,
   isNextPlayer,
-  clickable,
+  clickableType,
   onClick,
-  onHover,
-  name = "name unknown",
-  type = "agency unknown",
+  tooltip,
+  name,
+  type,
   colour = "transparent",
   score,
 }) {
-  const style = {
+  const clickable = !!clickableType;
+  const colours = {
     backgroundColor: colour,
     borderColor: isNextPlayer ? "#E41B17" : "transparent",
   };
-  const className = `col headerbox infobox${clickable ? " clickable" : ""}`;
+  const classes = `col headerbox infobox${
+    clickable ? ` ${clickableType}` : ""
+  }`;
 
   return (
     <div
-      className={className}
+      className={classes}
       onClick={clickable ? onClick : null}
-      title={clickable ? onHover : ""}
-      style={style}
+      title={clickable ? tooltip : ""}
+      style={colours}
     >
-      {exists && (
-        <>
-          <div className="headerbox-info">
-            {isDealer && "*"}
-            {/* TODO: NEXT: add icon to represent dealer */}
-            {isUser ? <em>{name}</em> : name}
-          </div>
-          <div className="headerbox-info">{type}</div>
-          <div className="headerbox-info">
-            Score: {score !== null ? score : "--"}
-          </div>
-        </>
+      {clickableType === "addable" ? (
+        <div className="plus">+</div>
+      ) : (
+        exists && (
+          <>
+            <div className="headerbox-info">
+              {isDealer && "*"}
+              {/* TODO: NEXT: add icon to represent dealer */}
+              {isUser ? <em>{name}</em> : name}
+            </div>
+            <div className="headerbox-info">{type}</div>
+            <div className="headerbox-info">
+              Score: {score !== null ? score : "--"}
+            </div>
+          </>
+        )
       )}
     </div>
   );

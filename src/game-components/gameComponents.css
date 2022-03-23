@@ -11,8 +11,6 @@
   display: flex;
   margin: 0 auto;
   padding: var(--padding);
-
-  /* border: dotted 1px Black; */
 }
 
 /* Some game components are divided into 4 columns */
@@ -21,8 +19,6 @@
   margin: 0 auto;
   padding: 0 var(--padding);
   width: 250px;
-
-  /* border: dashed 1px DarkGrey; */
 }
 
 /* Specific game components */
@@ -45,18 +41,26 @@
   color: White;
 }
 
-.clickable:hover {
+.removeable:hover {
   cursor: pointer;
-  opacity: 0.5;
-  background: repeating-linear-gradient(
-    45deg,
-    DarkGrey,
-    DarkGrey 10px,
-    LightGrey 10px,
-    LightGrey 20px
-  );
-  /* border: transparent; */
+  opacity: 0.25;
+  background: DarkGrey;
+}
+
+.addable {
+  opacity: 0.25;
+}
+
+.addable:hover {
+  cursor: pointer;
+  opacity: 1;
   color: Black;
+}
+
+.plus {
+  font-size: 60px;
+
+  text-align: center;
 }
 
 .headerbox-info {

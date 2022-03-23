@@ -255,14 +255,13 @@ export default function App() {
   let labels = [nextAction.label];
   let actions = [];
   let enabled = [true];
-  let clickDeckHandler = null; // () => dispatchSelected({ type: "click", index: 6 })
+  let clickDeckHandler = null;
   let clickCardHandler = null;
 
   switch (nextAction) {
     case Action.LOCK_IN_PLAYERS:
-      labels = ["Add Computer", nextAction.label];
+      labels = [nextAction.label];
       actions = [
-        addComputerPlayer,
         () => {
           if (network.mode === "remote" && computerCount === playerCount - 1) {
             // have to leave remote play if they want to start
@@ -281,8 +280,8 @@ export default function App() {
           // start the game (possibly after leaving remote play)
           start();
         },
-      ]; // TODO: NEXT: move add option to header somewhere
-      enabled = [playerCount < 3, isOwner && [2, 3].includes(playerCount)];
+      ];
+      enabled = [isOwner && [2, 3].includes(playerCount)];
       break;
 
     case Action.CUT_FOR_DEAL:
@@ -411,6 +410,10 @@ export default function App() {
         create={network.create}
         join={network.join}
         leave={network.leave}
+        canAddPlayer={
+          isOwner && nextAction === Action.LOCK_IN_PLAYERS && playerCount < 3
+        }
+        addPlayer={addComputerPlayer}
         players={players}
         nextPlayers={nextPlayers}
         scores={game.currentScores}
