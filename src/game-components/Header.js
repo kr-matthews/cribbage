@@ -1,5 +1,7 @@
 import Options from "../options/Options.js";
 
+import dealerIcon from "./dealer-icon.svg";
+
 export default function Header({
   hideEmptyColumns = true,
   userName,
@@ -107,9 +109,8 @@ function InfoBox({
       ) : (
         exists && (
           <>
+            {isDealer && <img src={dealerIcon} className="dealer-icon" />}
             <div className="headerbox-info">
-              {isDealer && "*"}
-              {/* TODO: NEXT: add icon to represent dealer */}
               {isUser ? <em>{name}</em> : name}
             </div>
             <div className="headerbox-info">{type}</div>

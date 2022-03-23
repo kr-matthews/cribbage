@@ -39,6 +39,14 @@
 
 .infobox {
   color: White;
+  position: relative;
+}
+
+.dealer-icon {
+  width: 2em;
+  position: absolute;
+  top: 1.3em;
+  left: 0.5em;
 }
 
 .removeable:hover {
