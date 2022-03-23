@@ -65,13 +65,18 @@ function playersReducer(players, action) {
 }
 
 function selectedReducer(selected, action) {
-  const newSelected = [...selected];
+  let newSelected = [...selected];
   switch (action.type) {
     case "click":
       newSelected[action.index] = !newSelected[action.index];
       break;
+    case "replace":
+      newSelected = [...HAND_ALL_UNSELECTED];
+      newSelected[action.index] = !selected[action.index];
+      break;
     case "reset":
-      return HAND_ALL_UNSELECTED;
+      newSelected = [...HAND_ALL_UNSELECTED];
+      break;
     default:
       console.error("selectedReducer couldn't recognize action", action);
   }
@@ -355,7 +360,7 @@ export default function App() {
         game.isValidGo(),
       ];
       clickCardHandler = (index) => {
-        dispatchSelected({ type: "click", index });
+        dispatchSelected({ type: "replace", index });
       };
       break;
 
