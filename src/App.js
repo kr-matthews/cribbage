@@ -27,6 +27,8 @@ import "./playing-cards/playingCards.css";
 const HIDE_EMPTY_COLUMNS = true;
 // hand of size up to 6, plus starter card on the end
 const HAND_ALL_UNSELECTED = Array(7).fill(false);
+// longest allowed name
+const MAX_NAME_LENGTH = 12;
 
 //// Helpers ////
 
@@ -144,7 +146,7 @@ export default function App() {
   // user's name (persists)
   const [userName, setUserName] = useLocalStorage("userName", "Undecided");
   function trySetUserName(input) {
-    const newName = input.slice(0, 12).trim();
+    const newName = input.slice(0, MAX_NAME_LENGTH).trim();
     if (newName.length > 0) {
       setUserName(newName);
     }
