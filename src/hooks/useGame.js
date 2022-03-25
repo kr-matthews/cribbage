@@ -22,7 +22,7 @@ export function useGame(
   //// Custom Hooks ////
 
   // current scores
-  const scores = useScores();
+  const scores = useScores(playerCount);
 
   // the game plays rounds until someone wins
   const round = useRound(
