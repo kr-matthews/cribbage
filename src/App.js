@@ -166,10 +166,8 @@ export default function App() {
   const playerCount = players.length;
   const computerCount = players.filter((player) => player.isComputer).length;
 
-  // TODO: remove validation from add and remove computer?
   function addComputerPlayer() {
-    // only owner can add, only pre-game, only if space left
-    if (!locked && isOwner && playerCount < 3) {
+    if (!locked && playerCount < 3) {
       let existingNames = players.map((player) => player.name);
       let name;
 
@@ -186,8 +184,7 @@ export default function App() {
   }
 
   function removePlayer(player) {
-    // only owner can remove, only pre-game, and can't remove self
-    if (!locked && isOwner && player > 0 && players[player]) {
+    if (!locked && player > 0 && players[player]) {
       dispatchPlayers({ type: "remove", player });
     }
   }
