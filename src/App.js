@@ -1,4 +1,4 @@
-import { useState, useReducer } from "react";
+import { useState, useReducer, useEffect } from "react";
 
 import { useLocalStorage } from "./hooks/useLocalStorage.js";
 import { useDeck } from "./hooks/useDeck.js";
@@ -388,6 +388,13 @@ export default function App() {
       console.error("App couldn't recognize next action", nextAction);
       break;
   }
+
+  //// Effects ////
+
+  // reset if player count changes
+  useEffect(() => {
+    dispatchNextPlay({ type: "reset", playerCount });
+  }, [playerCount]);
 
   //// Return ////
 

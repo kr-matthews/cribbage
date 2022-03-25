@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 import { useRound } from "./useRound.js";
 import { useScores } from "./useScores.js";
@@ -37,10 +37,7 @@ export function useGame(
 
   //// Effects ////
 
-  // reset if player count changes
-  useEffect(() => {
-    dispatchNextPlay({ type: "reset", playerCount });
-  }, [playerCount, dispatchNextPlay]);
+  //
 
   //// Helpers ////
 
