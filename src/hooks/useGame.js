@@ -21,9 +21,6 @@ export function useGame(
 
   //// Custom Hooks ////
 
-  // current scores
-  const scores = useScores(playerCount);
-
   // the game plays rounds until someone wins
   const round = useRound(
     deck,
@@ -33,6 +30,16 @@ export function useGame(
     nextPlayer,
     nextAction,
     dispatchNextPlay
+  );
+
+  // current scores
+  const scores = useScores(
+    playerCount,
+    round.previousPlayer,
+    dealer,
+    round.areAllInactive,
+    round.starter,
+    round.stackTotal
   );
 
   //// Effects ////

@@ -158,6 +158,13 @@ export function useRound(
         goed.has(player) || (hands[player] && hands[player].length === 0)
     );
 
+  // are all players inactive in current play
+  const areAllInactive =
+    piles.some((pile) => pile.length > 1) && !inactive.includes(false);
+
+  // who played last in the play stage (needed in scoring hook)
+  const [previousPlayer, setPreviousPlayer] = useState(null);
+
   //// Helpers ////
 
   //
@@ -326,6 +333,7 @@ export function useRound(
   }
 
   function play(index) {
+    setPreviousPlayer(nextPlayer);
     dispatchStates({ type: "play", player: nextPlayer, index });
     dispatchNextPlay({ type: "next" });
   }
@@ -341,6 +349,7 @@ export function useRound(
   }
 
   function returnToHand() {
+    setPreviousPlayer(null);
     dispatchStates({ type: "re-hand" });
     dispatchNextPlay({ player: nextPlayer, action: Action.SCORE_HAND });
   }
@@ -378,9 +387,14 @@ export function useRound(
 
   return {
     starter,
+    stackTotal,
     crib,
     hands,
     piles,
+
+    areAllInactive,
+    previousPlayer,
+    setPreviousPlayer,
 
     isValidGo,
     isValidPlay,

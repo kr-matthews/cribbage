@@ -1,3 +1,3 @@
 export function useGamePoints() {
-  return {}; // TODO: GAMEPOINTS
+  return {}; // TODO: NEXT: GAMEPOINTS
 }

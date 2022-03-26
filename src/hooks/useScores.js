@@ -1,4 +1,5 @@
 import { useReducer, useEffect } from "react";
+import Rank from "../playing-cards/Rank";
 
 //// Helpers ////
 
@@ -33,7 +34,14 @@ function scoresReducer(
 
 //// Hook ////
 
-export function useScores(playerCount) {
+export function useScores(
+  playerCount,
+  previousPlayer,
+  dealer,
+  areAllInactive,
+  starter,
+  stackTotal
+) {
   //// Constants and States
 
   // the most recent two scores for each player (correspond to peg positions)
@@ -58,6 +66,28 @@ export function useScores(playerCount) {
     dispatchScores({ type: "reset", playerCount });
   }, [playerCount]);
 
+  // score cutting a jack
+  useEffect(() => {
+    if (starter && starter.rank === Rank.JACK) {
+      peg(dealer, 2);
+    }
+  }, [dealer, starter]);
+
+  // score play to 31
+  useEffect(() => {
+    if (stackTotal === 31) {
+      peg(previousPlayer, 2);
+    }
+  }, [previousPlayer, stackTotal]);
+
+  // score last to play (not 31)
+  useEffect(() => {
+    if (areAllInactive && 0 < stackTotal && stackTotal < 31) {
+      console.debug(previousPlayer, "ended"); // TEMP
+      peg(previousPlayer, 1);
+    }
+  }, [areAllInactive, previousPlayer, stackTotal]);
+
   //// Return Functions ////
 
   function peg(player, points) {
@@ -70,6 +100,7 @@ export function useScores(playerCount) {
 
   //// Return ////
 
+  // TODO: NEXT: NEXT: build out scores hook
   return {
     current,
     previous,
