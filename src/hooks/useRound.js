@@ -164,8 +164,10 @@ export function useRound(
   const areAllInactive =
     piles.some((pile) => pile.length > 1) && !inactive.includes(false);
 
-  // who played last in the play stage (needed in scoring hook)
+  // who **played** last in the play stage (needed in scoring hook)
   const [previousPlayer, setPreviousPlayer] = useState(null);
+  // was the previous action in the play stage a 'play' (vs a 'go')
+  const [justPlayed, setJustPlayed] = useState(false);
 
   //// Helpers ////
 
@@ -259,22 +261,24 @@ export function useRound(
     return hands[nextPlayer].every(({ rank }) => stackTotal + rank.points > 31);
   }
 
+  // TODO: NEXT: clean up scoring, move to score hook (and canScorePoints below)
   function isValidPlay(index, claim, amount = sharedStack.length + 1) {
     const card = hands[nextPlayer][index];
 
     // can't play if it goes over 31
-    if (stackTotal + card.rank.points > 31) return false;
+    // if (stackTotal + card.rank.points > 31) return false;
+    return stackTotal + card.rank.points <= 31;
 
-    // if no claim (for points) then it's good
-    if (!claim) return true;
+    // // if no claim (for points) then it's good
+    // if (!claim) return true;
 
-    // can't claim if stack doesn't have enough cards
-    if (sharedStack.length + 1 < amount) return false;
+    // // can't claim if stack doesn't have enough cards
+    // if (sharedStack.length + 1 < amount) return false;
 
-    const cards = [...sharedStack.slice(sharedStack.length - amount - 1), card];
+    // const cards = [...sharedStack.slice(sharedStack.length - amount - 1), card];
 
-    // now check claim
-    return checkClaim(cards, claim);
+    // // now check claim
+    // return checkClaim(cards, claim);
   }
 
   // may check opponent's hand, so need player param (-1 for crib)
@@ -336,22 +340,26 @@ export function useRound(
 
   function play(index) {
     setPreviousPlayer(nextPlayer);
+    setJustPlayed(true);
     dispatchStates({ type: "play", player: nextPlayer, index });
     dispatchNextPlay({ type: "next" });
   }
 
   function go() {
+    setJustPlayed(false);
     dispatchGoed({ type: "add", player: nextPlayer });
     dispatchNextPlay({ type: "next" });
   }
 
   function endPlay() {
+    setJustPlayed(false);
     // TODO: flip current piles face-down
     dispatchNextPlay({ player: nextPlayer, action: Action.PLAY });
   }
 
   function returnToHand() {
     setPreviousPlayer(null);
+    setJustPlayed(false);
     dispatchStates({ type: "re-hand" });
     dispatchNextPlay({ player: nextPlayer, action: Action.SCORE_HAND });
   }
@@ -396,7 +404,7 @@ export function useRound(
 
     areAllInactive,
     previousPlayer,
-    setPreviousPlayer,
+    justPlayed,
 
     isValidGo,
     isValidPlay,

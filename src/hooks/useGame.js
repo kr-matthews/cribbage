@@ -37,6 +37,7 @@ export function useGame(
     playerCount,
     dealer,
     round.previousPlayer,
+    round.justPlayed,
     round.areAllInactive,
     round.starter,
     round.sharedStack,

@@ -71,67 +71,93 @@ function totalPoints(cards) {
  * Checks whether all the cards together form the claim.
  * Doesn't account for the context of where the cards came from, so it won't
  * decline 4 cards from the crib from being a flush, or 3 cards from being a
- * run when the longest run in the original hand has length four, for example.
+ * run when the longest run in the original hand has length 4, for example.
  *
- * @param {Array<Object>} cards The cards being used in the claim.
- * @param {String} claim The claim being made about the cards.
- * @param {Boolean} anyEndSegment Whether to check any end segment of cards - for automatic scoring.
- * @returns {Int} The points this claim gets.
+ * @param {Array<Object>} unorderedCards The cards being used in the claim.
+ * @param {String} claim The claim being made about the cards: "15", "run", "kind", or "flush".
+ * @returns {Boolean} Whether the claim is valid.
  */
-function checkClaim(cards, claim, anyEndSegment = false) {
-  let points = 0;
+function checkClaim(unorderedCards, claim, anyEndSegment = false) {
+  if (unorderedCards.length < 2) return false;
 
-  // for automatic scoring, check any end segment of the cards, take the first that works
-  if (anyEndSegment) {
-    for (let i = 0; i < cards.length - 1; i++) {
-      points = checkClaim(cards.slice(i), claim, false);
-      if (points > 0) return points;
-    }
-    return 0;
-  }
-
-  // for manual claims, the cards to use have already been specified
-  if (cards.length < 2) return false;
   switch (claim) {
     case "15":
-      if (totalPoints(cards) === 15) points = 2;
-      break;
+      return totalPoints(unorderedCards) === 15;
 
     case "kind":
-      let rankIndex = cards[0].rank.index;
-      if (
-        cards.length >= 2 &&
-        cards.every((card) => card.rank.index === rankIndex)
-      )
-        points = cards.length;
-      break;
+      let rankIndex = unorderedCards[0].rank.index;
+      return (
+        unorderedCards.length >= 2 &&
+        unorderedCards.every((card) => card.rank.index === rankIndex)
+      );
 
     case "run":
-      if (
-        cards.length >= 3 &&
-        cards
+      return (
+        unorderedCards.length >= 3 &&
+        unorderedCards
           .map((card) => card.rank.index)
           .sort((a, b) => a - b)
           .every(
             (num, index, nums) => index === 0 || num === nums[index - 1] + 1
           )
-      )
-        points = cards.length;
-      break;
+      );
 
     case "flush":
-      let suitIndex = cards[0].suit.index;
-      if (
-        cards.length >= 4 &&
-        cards.every((card) => card.suit.index === suitIndex)
-      )
-        points = cards.length;
-      break;
+      let suitIndex = unorderedCards[0].suit.index;
+      return (
+        unorderedCards.length >= 4 &&
+        unorderedCards.every((card) => card.suit.index === suitIndex)
+      );
 
     default:
       console.error("checkClaim couldn't match claim:", claim);
   }
-  return points;
+  return false;
 }
 
-export { allCards, shuffle, cardSorter, totalPoints, checkClaim };
+/** Find the longest such claim, for automatic scoring during play phase.
+ *
+ * @param {Array<Any>} orderedCards The sorted cards being used in the claim; will examine end-segments.
+ * @param {String} claim The claim being made about the cards: "15", "run", "kind", or "flush".
+ * @returns {Int} Maximum number of points that can be claimed
+ */
+function longestSuchClaim(orderedCards, claim) {
+  // start with the longest end-segment; first found will be best
+  for (let i = 0; i < orderedCards.length - 1; i++) {
+    if (checkClaim(orderedCards.slice(i), claim, false)) {
+      switch (claim) {
+        case "15":
+          return 2;
+
+        case "kind":
+          switch (orderedCards.length - i) {
+            case 2:
+              return 2;
+            case 3:
+              return 6;
+            case 4:
+              return 12;
+            default:
+              return 0;
+          }
+
+        case "run":
+          return orderedCards.length - i;
+
+        // not applicable to flushes
+        default:
+          return 0;
+      }
+    }
+  }
+  return 0;
+}
+
+export {
+  allCards,
+  shuffle,
+  cardSorter,
+  totalPoints,
+  checkClaim,
+  longestSuchClaim,
+};

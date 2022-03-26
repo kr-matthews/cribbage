@@ -1,5 +1,9 @@
 import { useReducer, useEffect } from "react";
-import { checkClaim, totalPoints } from "../playing-cards/cardHelpers";
+import {
+  checkClaim,
+  longestSuchClaim,
+  totalPoints,
+} from "../playing-cards/cardHelpers";
 import Rank from "../playing-cards/Rank";
 
 //// Helpers ////
@@ -42,6 +46,7 @@ export function useScores(
   playerCount,
   dealer,
   previousPlayer,
+  justPlayed,
   areAllInactive,
   starter,
   sharedStack,
@@ -80,11 +85,10 @@ export function useScores(
     }
   }, [dealer, starter]);
 
-  // peg after last play
+  // peg after **playing a card**
   //  combine into one big effect so that all points are in a single pegging
   useEffect(() => {
-    if (stackTotal > 0) {
-      let cardAmount;
+    if (justPlayed && stackTotal > 0) {
       let points = 0;
 
       // got 15?
@@ -93,27 +97,50 @@ export function useScores(
       }
 
       // got _-of-a-kind?
-      if (claims["kind"]) {
-        cardAmount =
-          claims["kind"] === "any" ? sharedStack.length : claims["kind"];
-        points +=
-          checkClaim(
-            sharedStack.slice(sharedStack.length - cardAmount),
-            "kind",
-            claims["kind"] === "any"
-          ) || 0;
+      switch (claims["kind"]) {
+        case "any":
+          points += longestSuchClaim(sharedStack, "kind");
+          break;
+
+        case 2:
+          if (
+            sharedStack.length >= 2 &&
+            checkClaim(sharedStack.slice(sharedStack.length - 2), "kind")
+          ) {
+            points += 2;
+          }
+          break;
+
+        case 3:
+          if (
+            sharedStack.length >= 3 &&
+            checkClaim(sharedStack.slice(sharedStack.length - 3), "kind")
+          ) {
+            points += 6;
+          }
+          break;
+
+        case 4:
+          if (
+            sharedStack.length >= 4 &&
+            checkClaim(sharedStack.slice(sharedStack.length - 4), "kind")
+          ) {
+            points += 12;
+          }
+          break;
+
+        default:
+          break;
       }
 
       // got a run?
-      if (claims["run"]) {
-        cardAmount =
-          claims["run"] === "any" ? sharedStack.length : claims["run"];
-        points +=
-          checkClaim(
-            sharedStack.slice(sharedStack.length - cardAmount),
-            "run",
-            claims["run"] === "any"
-          ) || 0;
+      if (claims["run"] === "any") {
+        points += longestSuchClaim(sharedStack, "run");
+      } else if (
+        claims["run"] &&
+        checkClaim(sharedStack.slice(sharedStack.length - claims["run"]), "run")
+      ) {
+        points += claims["run"];
       }
 
       // end of play?
@@ -133,7 +160,14 @@ export function useScores(
       // peg all points at once
       peg(previousPlayer, points);
     }
-  }, [areAllInactive, previousPlayer, sharedStack, stackTotal]);
+  }, [areAllInactive, previousPlayer, justPlayed, sharedStack, stackTotal]);
+
+  // peg after ending play via **explicit go**
+  useEffect(() => {
+    if (areAllInactive && !justPlayed) {
+      peg(previousPlayer, 1);
+    }
+  }, [areAllInactive, justPlayed]);
 
   //// Return Functions ////
 

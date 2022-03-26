@@ -5,7 +5,9 @@ import { useScores } from "./useScores.js";
 
 const playerCount = 3;
 
-//// Tests
+//// Tests ////
+
+// TODO: NEXT: NEXT: NEXT: update tests
 
 it("initial state", () => {
   const scores = renderHook(() => useScores(playerCount)).result.current;
