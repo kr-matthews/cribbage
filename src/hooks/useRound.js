@@ -150,12 +150,14 @@ export function useRound(
   // players who have goed since sharedStack last reset
   const [goed, dispatchGoed] = useReducer(reduceGoed, new Set());
 
-  // player is active in "play" stage if has cards and hasn't goed
+  // player is active in "play" stage if has cards and hasn't goed and stack < 31
   const inactive = Array(playerCount)
     .fill(null)
     .map(
       (_, player) =>
-        goed.has(player) || (hands[player] && hands[player].length === 0)
+        stackTotal === 31 ||
+        goed.has(player) ||
+        (hands[player] && hands[player].length === 0)
     );
 
   // are all players inactive in current play
@@ -387,7 +389,7 @@ export function useRound(
 
   return {
     starter,
-    stackTotal,
+    sharedStack,
     crib,
     hands,
     piles,

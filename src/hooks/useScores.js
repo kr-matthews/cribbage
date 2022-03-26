@@ -1,4 +1,5 @@
 import { useReducer, useEffect } from "react";
+import { checkClaim, totalPoints } from "../playing-cards/cardHelpers";
 import Rank from "../playing-cards/Rank";
 
 //// Helpers ////
@@ -22,6 +23,7 @@ function scoresReducer(
   let newCurrent = [...current];
   switch (type) {
     case "increment":
+      if (points <= 0) break; // don't move the 2nd peg if "pegging" 0
       newPrevious[player] = current[player];
       newCurrent[player] += points;
       break;
@@ -34,15 +36,20 @@ function scoresReducer(
 
 //// Hook ////
 
+// TODO: NEXT: NEXT: build out scores hook
+
 export function useScores(
   playerCount,
-  previousPlayer,
   dealer,
+  previousPlayer,
   areAllInactive,
   starter,
-  stackTotal
+  sharedStack,
+  claims
 ) {
-  //// Constants and States
+  //// Constants and States ////
+
+  const stackTotal = totalPoints(sharedStack);
 
   // the most recent two scores for each player (correspond to peg positions)
   const [{ current, previous }, dispatchScores] = useReducer(
@@ -66,27 +73,67 @@ export function useScores(
     dispatchScores({ type: "reset", playerCount });
   }, [playerCount]);
 
-  // score cutting a jack
+  // peg 2 for cutting a jack
   useEffect(() => {
     if (starter && starter.rank === Rank.JACK) {
       peg(dealer, 2);
     }
   }, [dealer, starter]);
 
-  // score play to 31
+  // peg after last play
+  //  combine into one big effect so that all points are in a single pegging
   useEffect(() => {
-    if (stackTotal === 31) {
-      peg(previousPlayer, 2);
-    }
-  }, [previousPlayer, stackTotal]);
+    if (stackTotal > 0) {
+      let cardAmount;
+      let points = 0;
 
-  // score last to play (not 31)
-  useEffect(() => {
-    if (areAllInactive && 0 < stackTotal && stackTotal < 31) {
-      console.debug(previousPlayer, "ended"); // TEMP
-      peg(previousPlayer, 1);
+      // got 15?
+      if (claims[15] && checkClaim(sharedStack, "15")) {
+        points += 2;
+      }
+
+      // got _-of-a-kind?
+      if (claims["kind"]) {
+        cardAmount =
+          claims["kind"] === "any" ? sharedStack.length : claims["kind"];
+        points +=
+          checkClaim(
+            sharedStack.slice(sharedStack.length - cardAmount),
+            "kind",
+            claims["kind"] === "any"
+          ) || 0;
+      }
+
+      // got a run?
+      if (claims["run"]) {
+        cardAmount =
+          claims["run"] === "any" ? sharedStack.length : claims["run"];
+        points +=
+          checkClaim(
+            sharedStack.slice(sharedStack.length - cardAmount),
+            "run",
+            claims["run"] === "any"
+          ) || 0;
+      }
+
+      // end of play?
+      if (areAllInactive) {
+        points += stackTotal === 31 ? 2 : 1;
+      }
+
+      console.debug(
+        "Scoring",
+        points,
+        "for",
+        previousPlayer,
+        "(",
+        stackTotal,
+        ")"
+      ); // TEMP
+      // peg all points at once
+      peg(previousPlayer, points);
     }
-  }, [areAllInactive, previousPlayer, stackTotal]);
+  }, [areAllInactive, previousPlayer, sharedStack, stackTotal]);
 
   //// Return Functions ////
 
@@ -100,7 +147,6 @@ export function useScores(
 
   //// Return ////
 
-  // TODO: NEXT: NEXT: build out scores hook
   return {
     current,
     previous,

@@ -75,23 +75,39 @@ function totalPoints(cards) {
  *
  * @param {Array<Object>} cards The cards being used in the claim.
  * @param {String} claim The claim being made about the cards.
- * @returns {Boolean} Whether the claim is true of the cards.
+ * @param {Boolean} anyEndSegment Whether to check any end segment of cards - for automatic scoring.
+ * @returns {Int} The points this claim gets.
  */
-function checkClaim(cards, claim) {
+function checkClaim(cards, claim, anyEndSegment = false) {
+  let points = 0;
+
+  // for automatic scoring, check any end segment of the cards, take the first that works
+  if (anyEndSegment) {
+    for (let i = 0; i < cards.length - 1; i++) {
+      points = checkClaim(cards.slice(i), claim, false);
+      if (points > 0) return points;
+    }
+    return 0;
+  }
+
+  // for manual claims, the cards to use have already been specified
   if (cards.length < 2) return false;
   switch (claim) {
     case "15":
-      return totalPoints(cards) === 15;
+      if (totalPoints(cards) === 15) points = 2;
+      break;
 
     case "kind":
       let rankIndex = cards[0].rank.index;
-      return (
+      if (
         cards.length >= 2 &&
         cards.every((card) => card.rank.index === rankIndex)
-      );
+      )
+        points = cards.length;
+      break;
 
     case "run":
-      return (
+      if (
         cards.length >= 3 &&
         cards
           .map((card) => card.rank.index)
@@ -99,19 +115,23 @@ function checkClaim(cards, claim) {
           .every(
             (num, index, nums) => index === 0 || num === nums[index - 1] + 1
           )
-      );
+      )
+        points = cards.length;
+      break;
 
     case "flush":
       let suitIndex = cards[0].suit.index;
-      return (
+      if (
         cards.length >= 4 &&
         cards.every((card) => card.suit.index === suitIndex)
-      );
+      )
+        points = cards.length;
+      break;
 
     default:
       console.error("checkClaim couldn't match claim:", claim);
   }
-  return false;
+  return points;
 }
 
 export { allCards, shuffle, cardSorter, totalPoints, checkClaim };

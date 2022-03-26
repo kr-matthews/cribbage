@@ -35,11 +35,12 @@ export function useGame(
   // current scores
   const scores = useScores(
     playerCount,
-    round.previousPlayer,
     dealer,
+    round.previousPlayer,
     round.areAllInactive,
     round.starter,
-    round.stackTotal
+    round.sharedStack,
+    { 15: true, kind: "any", run: "any" } // TODO: NEXT: fix claims methodology
   );
 
   //// Effects ////
