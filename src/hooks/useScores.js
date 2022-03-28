@@ -10,8 +10,8 @@ import Rank from "../playing-cards/Rank";
 
 function initialScores(playerCount) {
   return {
-    current: [0, 0, 0].slice(0, playerCount), // current (1st peg)
-    previous: [-1, -1, -1].slice(0, playerCount), // previous (2nd peg)
+    current: Array(playerCount).fill(0), // current (1st peg)
+    previous: Array(playerCount).fill(-1), // previous (2nd peg)
   };
 }
 
@@ -148,15 +148,19 @@ export function useScores(
         points += stackTotal === 31 ? 2 : 1;
       }
 
-      console.debug(
-        "Scoring",
-        points,
-        "for",
-        previousPlayer,
-        "(",
-        stackTotal,
-        ")"
-      ); // TEMP
+      // TEMP: console the score
+      if (points > 0) {
+        console.debug(
+          "Scoring",
+          points,
+          "for",
+          previousPlayer,
+          "(",
+          stackTotal,
+          ")"
+        );
+      }
+
       // peg all points at once
       peg(previousPlayer, points);
     }
