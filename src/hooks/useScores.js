@@ -1,8 +1,11 @@
 import { useReducer, useEffect } from "react";
 import {
-  checkClaim,
-  longestSuchClaim,
   totalPoints,
+  claimTypes,
+  checkClaim,
+  pointsForClaim,
+  autoScoreHandForClaimType,
+  autoScoreStackForClaimType,
 } from "../playing-cards/cardHelpers";
 import Rank from "../playing-cards/Rank";
 
@@ -40,14 +43,15 @@ function scoresReducer(
 
 //// Hook ////
 
-// TODO: NEXT: NEXT: build out scores hook
-
 export function useScores(
   playerCount,
   dealer,
-  previousPlayer,
   justPlayed,
+  previousPlayer,
+  previousScorer,
   areAllInactive,
+  hands,
+  crib,
   starter,
   sharedStack,
   claims
@@ -91,74 +95,24 @@ export function useScores(
     if (justPlayed && stackTotal > 0) {
       let points = 0;
 
-      // got 15?
-      if (claims[15] && checkClaim(sharedStack, "15")) {
-        points += 2;
-      }
+      // 15s, kinds, runs
+      for (let claimType of claimTypes) {
+        let claim = claims[claimType];
 
-      // got _-of-a-kind?
-      switch (claims["kind"]) {
-        case "any":
-          points += longestSuchClaim(sharedStack, "kind");
-          break;
-
-        case 2:
-          if (
-            sharedStack.length >= 2 &&
-            checkClaim(sharedStack.slice(sharedStack.length - 2), "kind")
-          ) {
-            points += 2;
+        if (claim === "auto") {
+          points += autoScoreStackForClaimType(sharedStack, claimType);
+        } else if (Number.isInteger(claim) || claim === "all") {
+          claim = claim === "all" ? sharedStack.length : claim;
+          let sliceAmount = sharedStack.length - claim;
+          if (checkClaim(sharedStack.slice(sliceAmount), claimType)) {
+            points += pointsForClaim(claimType, claim);
           }
-          break;
-
-        case 3:
-          if (
-            sharedStack.length >= 3 &&
-            checkClaim(sharedStack.slice(sharedStack.length - 3), "kind")
-          ) {
-            points += 6;
-          }
-          break;
-
-        case 4:
-          if (
-            sharedStack.length >= 4 &&
-            checkClaim(sharedStack.slice(sharedStack.length - 4), "kind")
-          ) {
-            points += 12;
-          }
-          break;
-
-        default:
-          break;
-      }
-
-      // got a run?
-      if (claims["run"] === "any") {
-        points += longestSuchClaim(sharedStack, "run");
-      } else if (
-        claims["run"] &&
-        checkClaim(sharedStack.slice(sharedStack.length - claims["run"]), "run")
-      ) {
-        points += claims["run"];
+        }
       }
 
       // end of play?
       if (areAllInactive) {
         points += stackTotal === 31 ? 2 : 1;
-      }
-
-      // TEMP: console the score
-      if (points > 0) {
-        console.debug(
-          "Scoring",
-          points,
-          "for",
-          previousPlayer,
-          "(",
-          stackTotal,
-          ")"
-        );
       }
 
       // peg all points at once
@@ -171,7 +125,34 @@ export function useScores(
     if (areAllInactive && !justPlayed) {
       peg(previousPlayer, 1);
     }
-  }, [areAllInactive, justPlayed]);
+  }, [areAllInactive, justPlayed, previousPlayer]);
+
+  // score a hand (or the crib)
+  useEffect(() => {
+    if (previousScorer !== null) {
+      let isCrib = ![0, 1, 2].slice(0, playerCount).includes(previousScorer);
+      let player = isCrib ? dealer : previousScorer;
+      let points = 0;
+      let hand = isCrib ? [...crib] : [...hands[previousScorer]];
+
+      // TODO: refactor to allow manual scoring
+
+      for (let claimType of claimTypes) {
+        points += autoScoreHandForClaimType(hand, starter, claimType, isCrib);
+      }
+
+      // his nobs: score jack with same colour as starter
+      if (
+        hand.some(
+          (card) => card.rank === Rank.JACK && card.suit === starter.suit
+        )
+      ) {
+        points += 1;
+      }
+
+      peg(player, points);
+    }
+  }, [previousScorer, starter, crib, hands, dealer, playerCount]);
 
   //// Return Functions ////
 

@@ -343,7 +343,7 @@ export default function App() {
       break;
 
     case Action.PLAY:
-      labels = ["Play", "Go"]; // TODO: add option for claiming various types of points
+      labels = ["Play", "Go"]; // TODO: add option for claiming various types of points (?)
       actions = [
         () => {
           game.play(selectedIndices[0]);

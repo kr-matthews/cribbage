@@ -2,11 +2,7 @@ import { useEffect, useReducer, useState } from "react";
 
 import Action from "./Action";
 
-import {
-  cardSorter,
-  totalPoints,
-  checkClaim,
-} from "../playing-cards/cardHelpers.js";
+import { cardSorter, totalPoints } from "../playing-cards/cardHelpers.js";
 
 //// Helpers ////
 
@@ -169,6 +165,17 @@ export function useRound(
   // was the previous action in the play stage a 'play' (vs a 'go')
   const [justPlayed, setJustPlayed] = useState(false);
 
+  // which player (or crib) just scored
+  const previousScorer =
+    nextAction === Action.START_NEW_ROUND
+      ? -1 // crib
+      : nextAction === Action.SCORE_CRIB
+      ? dealer // final hand before crib
+      : nextAction === Action.SCORE_HAND &&
+        nextPlayer !== (dealer + 1) % playerCount
+      ? (nextPlayer - 1 + playerCount) % playerCount // prior hands
+      : null; // no hand or crib was just scored
+
   //// Helpers ////
 
   //
@@ -261,8 +268,8 @@ export function useRound(
     return hands[nextPlayer].every(({ rank }) => stackTotal + rank.points > 31);
   }
 
-  // TODO: NEXT: clean up scoring, move to score hook (and canScorePoints below)
-  function isValidPlay(index, claim, amount = sharedStack.length + 1) {
+  function isValidPlay(index) {
+    //, claim, amount = sharedStack.length + 1) {
     const card = hands[nextPlayer][index];
 
     // can't play if it goes over 31
@@ -280,37 +287,6 @@ export function useRound(
     // // now check claim
     // return checkClaim(cards, claim);
   }
-
-  // may check opponent's hand, so need player param (-1 for crib)
-  /**
-   * Checks if specified cards in specified hand/crib add up to 15,
-   * form a run, are _-of-a-kind, or form a (valid) flush.
-   *
-   * @param {int} player Index of player, or -1 for crib.
-   * @param {Array<int>} indices Indices of cards in hand/crib plus starter.
-   * @param {string} claim "15", "run", "kind", or "flush"
-   */
-  function canScorePoints(player, indices, isUsingStarter, claim) {
-    let isCrib = !hands[player];
-    let amount = indices.length;
-
-    let hand = hands[player] || crib;
-    let cards = hand.filter((_, index) => indices.includes(index));
-    if (isUsingStarter) cards.push(starter);
-
-    // flush considerations
-
-    // crib can only score a flush with all 5 cards
-    if (isCrib && claim === "flush" && amount !== 5) return false;
-
-    // 4-card flush cannot use starter
-    if (claim === "flush" && amount === 4 && isUsingStarter) return false;
-
-    // NOTE: TODO: avoid double-counting sub-kinds and sub-runs and sub-flushes
-
-    return checkClaim(cards, claim);
-  }
-
   //// Actions ////
 
   function deal() {
@@ -403,12 +379,12 @@ export function useRound(
     piles,
 
     areAllInactive,
-    previousPlayer,
     justPlayed,
+    previousPlayer,
+    previousScorer,
 
     isValidGo,
     isValidPlay,
-    canScorePoints,
 
     reset,
     deal,

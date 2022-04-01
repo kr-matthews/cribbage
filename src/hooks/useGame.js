@@ -36,12 +36,15 @@ export function useGame(
   const scores = useScores(
     playerCount,
     dealer,
-    round.previousPlayer,
     round.justPlayed,
+    round.previousPlayer,
+    round.previousScorer,
     round.areAllInactive,
+    round.hands,
+    round.crib,
     round.starter,
     round.sharedStack,
-    { 15: true, kind: "any", run: "any" } // TODO: NEXT: fix claims methodology
+    { 15: "auto", kind: "auto", run: "auto" } // TODO: NEXT: fix claims methodology
   );
 
   //// Effects ////

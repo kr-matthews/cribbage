@@ -7,9 +7,12 @@ let result;
 
 const playerCount = 3;
 const dealer = 1;
-let previousPlayer = null;
 let justPlayed = false;
+let previousPlayer = null;
+let previousScorer = null;
 let areAllInactive = true;
+let hands = [[], [], []];
+let crib = [];
 let starter = null;
 let sharedStack = [];
 let claims = {};
@@ -21,9 +24,12 @@ beforeEach(() => {
     useScores(
       playerCount,
       dealer,
-      previousPlayer,
       justPlayed,
+      previousPlayer,
+      previousScorer,
       areAllInactive,
+      hands,
+      crib,
       starter,
       sharedStack,
       claims
