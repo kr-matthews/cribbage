@@ -399,15 +399,15 @@ export default function App() {
   //// Return ////
 
   return (
-    // TEMP: WIP note
+    // TEMP: WIP warning just below
     <div className="app">
-      This Cribbage project is a work-in-progress. Proper functionality is not
-      guaranteed.
       <ScoreBoard
         gamePoints={gamePoints}
         currentScores={game.currentScores}
         priorScores={game.previousScores}
       />
+      Warning: This Cribbage project is a work-in-progress. Proper functionality
+      is not guaranteed.
       <Header
         hideEmptyColumns={HIDE_EMPTY_COLUMNS}
         userName={userName}

@@ -13,6 +13,10 @@
   padding: var(--padding);
 }
 
+.board {
+  max-width: 100%;
+}
+
 /* Some game components are divided into 4 columns */
 
 .col {
