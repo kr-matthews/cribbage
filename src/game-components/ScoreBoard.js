@@ -2,9 +2,12 @@ import boardImage from "./real-board.jpg";
 
 export default function ScoreBoard({ gamePoints, currentScores, priorScores }) {
   return (
-    <div className="game-component">
-      <img className="board" src={boardImage} alt="Score board" />
-    </div>
+    <>
+      <div className="game-component">
+        <img className="board" src={boardImage} alt="Score board" />
+      </div>
+      <div>game points: {gamePoints.join(", ")}</div>
+    </>
   );
 }
 

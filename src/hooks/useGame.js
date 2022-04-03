@@ -43,8 +43,7 @@ export function useGame(
     round.hands,
     round.crib,
     round.starter,
-    round.sharedStack,
-    { 15: "auto", kind: "auto", run: "auto" } // TODO: NEXT: fix claims methodology
+    round.sharedStack
   );
 
   //// Effects ////
@@ -86,9 +85,14 @@ export function useGame(
   //// Return ////
 
   return {
-    // score
+    // scores
     currentScores: scores.current,
     previousScores: scores.previous,
+    winner: scores.winner,
+    nonSkunkCount: scores.nonSkunkCount,
+    skunkCount: scores.skunkCount,
+    doubleSkunkCount: scores.doubleSkunkCount,
+    tripleSkunkCount: scores.tripleSkunkCount,
 
     // game
     dealer,
@@ -104,7 +108,6 @@ export function useGame(
 
     isValidGo: round.isValidGo,
     isValidPlay: round.isValidPlay,
-    // round.canScorePoints // TODO?
 
     resetRound: round.reset,
     deal: round.deal,

@@ -109,7 +109,9 @@ function InfoBox({
       ) : (
         exists && (
           <>
-            {isDealer && <img src={dealerIcon} className="dealer-icon" />}
+            {isDealer && (
+              <img src={dealerIcon} alt="Dealer" className="dealer-icon" />
+            )}
             <div className="headerbox-info">
               {isUser ? <em>{name}</em> : name}
             </div>

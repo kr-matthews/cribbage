@@ -234,7 +234,14 @@ export default function App() {
   const cutForDeal = useCutForDeal(deck, playerCount, dispatchNextPlay);
 
   // track game points across multiple games
-  const gamePoints = useGamePoints();
+  const gamePoints = useGamePoints(
+    playerCount,
+    game.winner,
+    game.nonSkunkCount,
+    game.skunkCount,
+    game.doubleSkunkCount,
+    game.tripleSkunkCount
+  );
 
   // lock in players to start (but cut for deal before starting first game)
   function start(cards) {
@@ -402,7 +409,7 @@ export default function App() {
     // TEMP: WIP warning just below
     <div className="app">
       <ScoreBoard
-        gamePoints={gamePoints}
+        gamePoints={gamePoints.points}
         currentScores={game.currentScores}
         priorScores={game.previousScores}
       />

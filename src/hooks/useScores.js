@@ -9,6 +9,14 @@ import {
 } from "../playing-cards/cardHelpers";
 import Rank from "../playing-cards/Rank";
 
+//// Constants ////
+
+// TEMP: scoring lines
+const WIN_LINE = 20; //121;
+const SKUNK_LINE = 15; //90;
+const DOUBLE_SKUNK_LINE = 10; //60;
+const TRIPLE_SKUNK_LINE = 5; //30;
+
 //// Helpers ////
 
 function initialScores(playerCount) {
@@ -53,8 +61,7 @@ export function useScores(
   hands,
   crib,
   starter,
-  sharedStack,
-  claims
+  sharedStack
 ) {
   //// Constants and States ////
 
@@ -67,9 +74,26 @@ export function useScores(
     initialScores
   );
 
-  const hasWinner = current.some((score) => score > 120);
-  const winner =
-    current[0] > 120 ? 0 : current[1] > 120 ? 1 : current[2] > 120 ? 2 : null;
+  // TODO: NEXT: NEXT: NEXT: need to stop play when winner exists (in useGame)
+
+  const winner = current.findIndex((score) => score > WIN_LINE);
+  const hasWinner = winner !== -1;
+  const nonSkunkCount = hasWinner
+    ? current.filter((score) => SKUNK_LINE < score && score < WIN_LINE).length
+    : 0;
+  const skunkCount = hasWinner
+    ? current.filter(
+        (score) => DOUBLE_SKUNK_LINE < score && score <= SKUNK_LINE
+      ).length
+    : 0;
+  const doubleSkunkCount = hasWinner
+    ? current.filter(
+        (score) => TRIPLE_SKUNK_LINE < score && score <= DOUBLE_SKUNK_LINE
+      ).length
+    : 0;
+  const tripleSkunkCount = hasWinner
+    ? current.filter((score) => score <= TRIPLE_SKUNK_LINE).length
+    : 0;
 
   //// Helpers ////
 
@@ -97,7 +121,8 @@ export function useScores(
 
       // 15s, kinds, runs
       for (let claimType of claimTypes) {
-        let claim = claims[claimType];
+        if (claimType === "flush") continue;
+        let claim = "auto"; // TODO: SCORING: allow manual scoring
 
         if (claim === "auto") {
           points += autoScoreStackForClaimType(sharedStack, claimType);
@@ -127,6 +152,8 @@ export function useScores(
     }
   }, [areAllInactive, justPlayed, previousPlayer]);
 
+  // TODO: NEXT: NEXT: NEXT: find flaw - try 5D 5H 6C 7S plus 4S
+
   // score a hand (or the crib)
   useEffect(() => {
     if (previousScorer !== null) {
@@ -135,7 +162,7 @@ export function useScores(
       let points = 0;
       let hand = isCrib ? [...crib] : [...hands[previousScorer]];
 
-      // TODO: refactor to allow manual scoring
+      // TODO: SCORING: refactor to allow manual scoring
 
       for (let claimType of claimTypes) {
         points += autoScoreHandForClaimType(hand, starter, claimType, isCrib);
@@ -169,9 +196,16 @@ export function useScores(
   return {
     current,
     previous,
-    peg,
-    hasWinner,
+
     winner,
+    nonSkunkCount,
+    skunkCount,
+    doubleSkunkCount,
+    tripleSkunkCount,
+
     reset,
+
+    // for testing
+    pegTest: peg,
   };
 }
