@@ -33,14 +33,16 @@ function gamePointsReducer(
   let newGamePoints = [...gamePoints];
   switch (type) {
     case "win":
-      // don't go past winning amount TODO: NEXT: NEXT: NEXT: may not be working
-      newGamePoints[player] += Math.min(
+      // don't go past winning amount
+      newGamePoints[player] = Math.min(
         pointsToWin,
-        NORMAL_WIN_POINTS * nonSkunkCount +
+        newGamePoints[player] +
+          NORMAL_WIN_POINTS * nonSkunkCount +
           SKUNK_POINTS * skunkCount +
           DOUBLE_SKUNK_POINTS * doubleSkunkCount +
           TRIPLE_SKUNK_POINTS * tripleSkunkCount
       );
+      console.debug(newGamePoints[player], pointsToWin); // TEMP
       break;
 
     default:
@@ -61,6 +63,7 @@ export function useGamePoints(
 ) {
   //// Constants & State ////
 
+  // if not specified, use these defaults
   pointsToWin ||= playerCount === 2 ? 5 : 7;
 
   const [gamePoints, dispatchGamePoints] = useReducer(
