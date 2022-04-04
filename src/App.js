@@ -209,6 +209,7 @@ export default function App() {
 
   // the next action to be taken, and by who
   // (only 1 player to play next, unless discarding to crib)
+  // TODO: NEXT: replace with previous action, and deduce nextAction
   const [{ nextPlayers, nextAction }, dispatchNextPlay] = useReducer(
     reduceNextPlay,
     playerCount,
@@ -391,6 +392,11 @@ export default function App() {
       clickDeckHandler = actions[0];
       break;
 
+    case Action.START_NEW_GAME:
+      actions = [() => game.rematch()];
+      clickDeckHandler = actions[0];
+      break;
+
     default:
       console.error("App couldn't recognize next action", nextAction);
       break;
@@ -434,7 +440,11 @@ export default function App() {
         addPlayer={addComputerPlayer}
         players={players}
         nextPlayers={nextPlayers}
-        scores={game.currentScores}
+        scores={
+          nextAction === Action.LOCK_IN_PLAYERS
+            ? [null, null, null]
+            : game.currentScores
+        }
         colours={colours}
         removeable={
           isOwner &&

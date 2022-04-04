@@ -74,8 +74,6 @@ export function useScores(
     initialScores
   );
 
-  // TODO: NEXT: NEXT: NEXT: need to stop play when winner exists (in useGame)
-
   const winner = current.findIndex((score) => score > WIN_LINE);
   const hasWinner = winner !== -1;
   const nonSkunkCount = hasWinner

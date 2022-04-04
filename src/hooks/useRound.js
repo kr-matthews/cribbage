@@ -367,6 +367,7 @@ export function useRound(
     dispatchStates({ type: "reset" });
     // if owner started game remotely, then they sent the deck configuration
     deck.reset(cards);
+    setStarter(null);
   }
 
   //// Return ////

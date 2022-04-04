@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { useRound } from "./useRound.js";
 import { useScores } from "./useScores.js";
@@ -48,7 +48,16 @@ export function useGame(
 
   //// Effects ////
 
-  //
+  // stop game once someone wins
+  useEffect(() => {
+    if (scores.winner !== -1) {
+      // loser gets to deal next game, so they get power to start next game
+      dispatchNextPlay({
+        action: Action.START_NEW_GAME,
+        player: scores.winner + 1,
+      });
+    }
+  }, [scores.winner]);
 
   //// Helpers ////
 
@@ -75,8 +84,9 @@ export function useGame(
   function rematch(cards) {
     round.reset(cards);
     scores.reset();
+    // loser already is the next player, now formally assign them as dealer
+    setDealer(nextPlayer);
     dispatchNextPlay({
-      // loser had new-game power, and now gets to deal it
       player: nextPlayer,
       action: Action.START_DEALING,
     });

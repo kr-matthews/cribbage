@@ -19,8 +19,9 @@ function gamePointsReducer(
   gamePoints,
   {
     type,
-    player,
     playerCount,
+    pointsToWin,
+    player,
     nonSkunkCount,
     skunkCount,
     doubleSkunkCount,
@@ -32,11 +33,14 @@ function gamePointsReducer(
   let newGamePoints = [...gamePoints];
   switch (type) {
     case "win":
-      newGamePoints[player] +=
+      // don't go past winning amount TODO: NEXT: NEXT: NEXT: may not be working
+      newGamePoints[player] += Math.min(
+        pointsToWin,
         NORMAL_WIN_POINTS * nonSkunkCount +
-        SKUNK_POINTS * skunkCount +
-        DOUBLE_SKUNK_POINTS * doubleSkunkCount +
-        TRIPLE_SKUNK_POINTS * tripleSkunkCount;
+          SKUNK_POINTS * skunkCount +
+          DOUBLE_SKUNK_POINTS * doubleSkunkCount +
+          TRIPLE_SKUNK_POINTS * tripleSkunkCount
+      );
       break;
 
     default:
@@ -52,9 +56,12 @@ export function useGamePoints(
   nonSkunkCount,
   skunkCount,
   doubleSkunkCount,
-  tripleSkunkCount
+  tripleSkunkCount,
+  pointsToWin
 ) {
   //// Constants & State ////
+
+  pointsToWin ||= playerCount === 2 ? 5 : 7;
 
   const [gamePoints, dispatchGamePoints] = useReducer(
     gamePointsReducer,
@@ -75,16 +82,9 @@ export function useGamePoints(
   // - another 2 points for each double-skunk
   useEffect(() => {
     if (winner !== -1) {
-      console.debug(
-        winner,
-        nonSkunkCount,
-        skunkCount,
-        doubleSkunkCount,
-        tripleSkunkCount,
-        playerCount
-      ); // TEMP
       dispatchGamePoints({
         type: "win",
+        pointsToWin,
         player: winner,
         nonSkunkCount,
         skunkCount,
@@ -93,13 +93,17 @@ export function useGamePoints(
       });
     }
   }, [
+    playerCount,
+    pointsToWin,
     winner,
     nonSkunkCount,
     skunkCount,
     doubleSkunkCount,
     tripleSkunkCount,
-    playerCount,
   ]);
+
+  // stop everything once pointsToWin are achieved
+  // TODO: NEXT: NEXT:
 
   //// Functions ////
 
