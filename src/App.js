@@ -159,6 +159,7 @@ export default function App() {
 
   // are players locked in, or can new ones join
   const [locked, setLocked] = useState(false);
+  // TODO: NEXT: get rid of locked and replace with nextAction === ...?
 
   // what spot the user is 'sitting' in (can't be 'standing')
   const [position, setPosition] = useState(0);
@@ -244,6 +245,16 @@ export default function App() {
     game.tripleSkunkCount
   );
 
+  // stop everything once match is one
+  useEffect(() => {
+    if (gamePoints.matchWinner !== -1) {
+      dispatchNextPlay({
+        action: Action.RESET_ALL,
+        player: 0,
+      });
+    }
+  }, [gamePoints.matchWinner]);
+
   // lock in players to start (but cut for deal before starting first game)
   function start(cards) {
     cutForDeal.reset(cards);
@@ -260,6 +271,13 @@ export default function App() {
   const selectedIndices = selected
     .map((bool, index) => (bool ? index : null))
     .filter((index) => index !== null);
+
+  // reset everything
+  function reset() {
+    game.reset();
+    gamePoints.reset();
+    setLocked(false);
+  }
 
   //// Next Action ////
 
@@ -394,6 +412,11 @@ export default function App() {
 
     case Action.START_NEW_GAME:
       actions = [() => game.rematch()];
+      clickDeckHandler = actions[0];
+      break;
+
+    case Action.RESET_ALL:
+      actions = [reset];
       clickDeckHandler = actions[0];
       break;
 

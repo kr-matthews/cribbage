@@ -43,6 +43,8 @@ export default class Action {
   // Post-Rounds
   static START_NEW_GAME = new Action("New Game", "start a new game");
 
+  static RESET_ALL = new Action("Reset", "reset");
+
   /**
    * Create an Action to be the nextAction state.
    *

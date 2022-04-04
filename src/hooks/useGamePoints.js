@@ -1,5 +1,7 @@
 import { useEffect, useReducer } from "react";
 
+import Action from "./Action";
+
 //// Constants ////
 
 const NORMAL_WIN_POINTS = 1;
@@ -42,7 +44,6 @@ function gamePointsReducer(
           DOUBLE_SKUNK_POINTS * doubleSkunkCount +
           TRIPLE_SKUNK_POINTS * tripleSkunkCount
       );
-      console.debug(newGamePoints[player], pointsToWin); // TEMP
       break;
 
     default:
@@ -54,7 +55,7 @@ function gamePointsReducer(
 
 export function useGamePoints(
   playerCount,
-  winner,
+  gameWinner,
   nonSkunkCount,
   skunkCount,
   doubleSkunkCount,
@@ -72,6 +73,8 @@ export function useGamePoints(
     initialGamePoints
   );
 
+  const matchWinner = gamePoints.findIndex((points) => points >= pointsToWin);
+
   //// Effects ////
 
   // reset on playerCount change
@@ -84,11 +87,11 @@ export function useGamePoints(
   // - another point for each skunk
   // - another 2 points for each double-skunk
   useEffect(() => {
-    if (winner !== -1) {
+    if (gameWinner !== -1) {
       dispatchGamePoints({
         type: "win",
         pointsToWin,
-        player: winner,
+        player: gameWinner,
         nonSkunkCount,
         skunkCount,
         doubleSkunkCount,
@@ -98,15 +101,12 @@ export function useGamePoints(
   }, [
     playerCount,
     pointsToWin,
-    winner,
+    gameWinner,
     nonSkunkCount,
     skunkCount,
     doubleSkunkCount,
     tripleSkunkCount,
   ]);
-
-  // stop everything once pointsToWin are achieved
-  // TODO: NEXT: NEXT:
 
   //// Functions ////
 
@@ -116,5 +116,5 @@ export function useGamePoints(
 
   //// Return ////
 
-  return { points: gamePoints, reset };
+  return { points: gamePoints, matchWinner, reset };
 }

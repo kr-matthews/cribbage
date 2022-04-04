@@ -77,7 +77,7 @@ export function useScores(
   const winner = current.findIndex((score) => score > WIN_LINE);
   const hasWinner = winner !== -1;
   const nonSkunkCount = hasWinner
-    ? current.filter((score) => SKUNK_LINE < score && score < WIN_LINE).length
+    ? current.filter((score) => SKUNK_LINE < score && score <= WIN_LINE).length
     : 0;
   const skunkCount = hasWinner
     ? current.filter(

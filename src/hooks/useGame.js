@@ -65,12 +65,12 @@ export function useGame(
 
   //// Functions to return ////
 
-  // QUESTION: is this needed?
-  /** for starting with a new set of players; all history erased */
+  /** for starting fresh; all history erased */
   function reset() {
     scores.reset();
-    dispatchNextPlay({ type: "reset", playerCount });
+    round.reset();
     setDealer(null);
+    dispatchNextPlay({ player: 0, action: Action.LOCK_IN_PLAYERS });
   }
 
   /** locking in players for a fresh game */
@@ -109,6 +109,7 @@ export function useGame(
     setDealer,
     start,
     rematch,
+    reset,
 
     // round
     crib: round.crib,
