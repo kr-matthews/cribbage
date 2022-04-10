@@ -15,11 +15,12 @@ import Hands from "./game-components/Hands.js";
 import PlayArea from "./game-components/PlayArea.js";
 import Actions from "./game-components/Actions.js";
 import ScoreBoard from "./game-components/ScoreBoard.js";
-import PlayHistory from "./game-components/PlayHistory.js";
+import GameHistory from "./game-components/GameHistory.js";
 import Links from "./links/Links.js";
 
 import "./game-components/gameComponents.css";
 import "./playing-cards/playingCards.css";
+import { useGameHistory } from "./hooks/useGameHistory.js";
 
 //// Constants ////
 
@@ -193,6 +194,9 @@ export default function App() {
   // colours on the board; don't use middle track when 2 players
   var colours = ["DarkRed", "DarkGreen", "DarkBlue"];
   playerCount === 2 && colours.splice(1, 1);
+
+  // show game history
+  const gameHistory = useGameHistory();
 
   // sound effects (can be muted)
   const soundEffects = useSoundEffects();
@@ -510,7 +514,7 @@ export default function App() {
         actions={actions}
         enabled={enabled}
       />
-      <PlayHistory messages={sampleMessages} />
+      <GameHistory messages={gameHistory.messages} />
       <Links
         gitHubLink="https://github.com/kr-matthews/cribbage"
         themeType="light"
@@ -518,39 +522,6 @@ export default function App() {
     </div>
   );
 }
-
-const sampleMessages = [
-  {
-    type: "auto",
-    colour: "blue",
-    text: "You score 8 points from your hand",
-    timestamp: Date.now(),
-  },
-  {
-    type: "auto",
-    colour: "red",
-    text: "Joe scores 19 points from their hand",
-    timestamp: Date.now() + 6000,
-  },
-  {
-    type: "auto",
-    colour: "blue",
-    text: "You claim 3 missed points from Joe's hand",
-    timestamp: Date.now() + 8080,
-  },
-  {
-    type: "manual",
-    colour: "red",
-    text: "Joe: Nice play!",
-    timestamp: Date.now() + 10541,
-  },
-  {
-    type: "auto",
-    colour: "red",
-    text: "Joe scores 1 point from their crib",
-    timestamp: Date.now() + 50454,
-  },
-];
 
 // for tests
 export { reduceNextPlay };

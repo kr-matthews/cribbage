@@ -1,4 +1,4 @@
-export default function PlayHistory({ messages = [] }) {
+export default function GameHistory({ messages = [] }) {
   let messageDisplays = [];
   messages.forEach(({ type, colour, text, timestamp }, i) => {
     messageDisplays.unshift(
