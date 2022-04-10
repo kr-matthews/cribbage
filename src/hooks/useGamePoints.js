@@ -1,7 +1,5 @@
 import { useEffect, useReducer } from "react";
 
-import Action from "./Action";
-
 //// Constants ////
 
 const NORMAL_WIN_POINTS = 1;

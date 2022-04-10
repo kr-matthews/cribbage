@@ -157,10 +157,6 @@ export default function App() {
     { name: "You", isComputer: false },
   ]);
 
-  // are players locked in, or can new ones join
-  const [locked, setLocked] = useState(false);
-  // TODO: NEXT: get rid of locked and replace with nextAction === ...?
-
   // what spot the user is 'sitting' in (can't be 'standing')
   const [position, setPosition] = useState(0);
   const isOwner = position === 0;
@@ -220,6 +216,9 @@ export default function App() {
   // if there's a unique next player, get them from here
   const nextPlayer = nextPlayers.indexOf(true);
 
+  // are players locked in, or can new ones join
+  const locked = nextAction !== Action.LOCK_IN_PLAYERS;
+
   // the deck (used pre-game, to cut for deal); pass in card stack on reset
   const deck = useDeck();
 
@@ -258,7 +257,6 @@ export default function App() {
   // lock in players to start (but cut for deal before starting first game)
   function start(cards) {
     cutForDeal.reset(cards);
-    setLocked(true);
     dispatchNextPlay({ player: 0, action: Action.CUT_FOR_DEAL });
   }
 
@@ -276,7 +274,6 @@ export default function App() {
   function reset() {
     game.reset();
     gamePoints.reset();
-    setLocked(false);
   }
 
   //// Next Action ////
