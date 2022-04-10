@@ -1,5 +1,11 @@
 // import { render } from "@testing-library/react";
 import { renderHook, act } from "@testing-library/react-hooks";
+import {
+  autoScoreHandForClaimType,
+  claimTypes,
+} from "../playing-cards/cardHelpers.js";
+import Rank from "../playing-cards/Rank.js";
+import Suit from "../playing-cards/Suit.js";
 
 import { useScores } from "./useScores.js";
 
@@ -161,6 +167,25 @@ it("win and reset", () => {
   expect(result.current.current).toStrictEqual([0, 0, 0]);
   expect(result.current.previous).toStrictEqual([-1, -1, -1]);
   expect(result.current.winner).toBeNull;
+});
+
+// TODO: current essentially a copy-paste of effect, make more robust
+it("scoring a sample hand", () => {
+  starter = { rank: Rank.FOUR, suit: Suit.SPADE };
+  let hand = [
+    { rank: Rank.FIVE, suit: Suit.DIAMOND },
+    { rank: Rank.FIVE, suit: Suit.HEART },
+    { rank: Rank.SIX, suit: Suit.CLUB },
+    { rank: Rank.SEVEN, suit: Suit.SPADE },
+  ];
+  let isCrib = false;
+
+  let expects = { 15: 4, kind: 2, run: 8, flush: 0 };
+  for (let claimType of claimTypes) {
+    expect(autoScoreHandForClaimType(hand, starter, claimType, isCrib)).toBe(
+      expects[claimType]
+    );
+  }
 });
 
 // TODO: add tests for effects

@@ -266,7 +266,7 @@ function scoreHandForRuns(hand, starter) {
     // iterate over all subsets of size len, via binary codes (could be more efficient)
     for (let code = 0; code < 2 ** 5; code++) {
       // skip wrong sizes
-      if (!bitCount(code, 5) === len) continue;
+      if (bitCount(code, 5) !== len) continue;
 
       let cards = [];
       // create the subset corresponding to the code
@@ -274,8 +274,9 @@ function scoreHandForRuns(hand, starter) {
         if (getBit(code, ind)) cards.push(unorderedCards[ind]);
       }
       // check the subset
-      if (checkClaim(cards, "run"))
+      if (checkClaim(cards, "run")) {
         points += pointsForClaim("run", cards.length);
+      }
     }
 
     if (points > 0) return points;

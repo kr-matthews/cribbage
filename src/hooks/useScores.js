@@ -11,11 +11,10 @@ import Rank from "../playing-cards/Rank";
 
 //// Constants ////
 
-// TEMP: scoring lines
-const WIN_LINE = 20; //121;
-const SKUNK_LINE = 15; //90;
-const DOUBLE_SKUNK_LINE = 10; //60;
-const TRIPLE_SKUNK_LINE = 5; //30;
+const WIN_LINE = 120; // 20; //120;
+const SKUNK_LINE = 90; // 15; //90;
+const DOUBLE_SKUNK_LINE = 60; // 10; //60;
+const TRIPLE_SKUNK_LINE = 30; // 5; //30;
 
 //// Helpers ////
 
@@ -149,8 +148,6 @@ export function useScores(
       peg(previousPlayer, 1);
     }
   }, [areAllInactive, justPlayed, previousPlayer]);
-
-  // TODO: NEXT: NEXT: NEXT: find flaw - try 5D 5H 6C 7S plus 4S
 
   // score a hand (or the crib)
   useEffect(() => {
