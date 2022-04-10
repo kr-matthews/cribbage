@@ -20,6 +20,7 @@ export default function Header({
   players = [],
   nextPlayers = [false, false, false],
   scores = [null, null, null],
+  gamePoints = [null, null, null],
   colours = [null, null, null],
   removeable,
   removePlayer,
@@ -56,6 +57,7 @@ export default function Header({
             type={isComputer ? "Computer" : "Human"}
             colour={colours[index]}
             score={scores[index]}
+            gamePoints={gamePoints[index]}
           />
         );
       })}
@@ -87,6 +89,7 @@ function InfoBox({
   type,
   colour = "transparent",
   score,
+  gamePoints,
 }) {
   const clickable = !!clickableType;
   const colours = {
@@ -116,6 +119,9 @@ function InfoBox({
               {isUser ? <em>{name}</em> : name}
             </div>
             <div className="headerbox-info">{type}</div>
+            <div className="headerbox-info">
+              Game Points: {gamePoints !== null ? gamePoints : "--"}
+            </div>
             <div className="headerbox-info">
               Score: {score !== null ? score : "--"}
             </div>

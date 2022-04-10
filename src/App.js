@@ -14,7 +14,7 @@ import Header from "./game-components/Header.js";
 import Hands from "./game-components/Hands.js";
 import PlayArea from "./game-components/PlayArea.js";
 import Actions from "./game-components/Actions.js";
-import ScoreBoard from "./game-components/ScoreBoard.js";
+// import ScoreBoard from "./game-components/ScoreBoard.js";
 import GameHistory from "./game-components/GameHistory.js";
 import Links from "./links/Links.js";
 
@@ -436,13 +436,13 @@ export default function App() {
   //// Return ////
 
   return (
-    // TEMP: WIP warning just below
+    // TEMP: WIP warning just below, and missing scoreboard
     <div className="app">
-      <ScoreBoard
+      {/* <ScoreBoard
         gamePoints={gamePoints.points}
         currentScores={game.currentScores}
         priorScores={game.previousScores}
-      />
+      /> */}
       Warning: This Cribbage project is a work-in-progress. Proper functionality
       is not guaranteed.
       <Header
@@ -468,6 +468,11 @@ export default function App() {
           nextAction === Action.LOCK_IN_PLAYERS
             ? [null, null, null]
             : game.currentScores
+        }
+        gamePoints={
+          nextAction === Action.LOCK_IN_PLAYERS
+            ? [null, null, null]
+            : gamePoints.points
         }
         colours={colours}
         removeable={
