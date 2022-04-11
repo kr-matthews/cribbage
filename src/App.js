@@ -1,4 +1,4 @@
-import { useState, useReducer, useEffect } from "react";
+import { useState, useReducer } from "react";
 
 import { useLocalStorage } from "./hooks/useLocalStorage.js";
 import { useDeck } from "./hooks/useDeck.js";
@@ -32,15 +32,6 @@ const HAND_ALL_UNSELECTED = Array(7).fill(false);
 const MAX_NAME_LENGTH = 12;
 
 //// Helpers ////
-
-function initialNextPlay(playerCount) {
-  let arr = Array(playerCount).fill(false);
-  arr[0] = true;
-  return {
-    nextPlayers: arr,
-    nextAction: Action.LOCK_IN_PLAYERS,
-  };
-}
 
 //// Reducers ////
 
@@ -86,43 +77,44 @@ function selectedReducer(selected, action) {
   return newSelected;
 }
 
-function reduceNextPlay(nextPlay, { type, player, action, playerCount }) {
-  // if new game with new players, need to adjust player count
-  if (type === "reset") return initialNextPlay(playerCount);
+// TODO: NEXT: move logic elsewhere, if needed
+// function reduceNextPlay(nextPlay, { type, player, action, playerCount }) {
+//   // if new game with new players, need to adjust player count
+//   if (type === "reset") return null; //initialNextPlay(playerCount);
 
-  // otherwise just use the same player count
-  playerCount ||= nextPlay.nextPlayers.length;
-  let newNextPlay = {
-    // copy current players
-    nextPlayers: [...nextPlay.nextPlayers],
-    // use provided next action, or default to current next action
-    nextAction: action || nextPlay.nextAction,
-  };
+//   // otherwise just use the same player count
+//   playerCount ||= nextPlay.nextPlayers.length;
+//   let newNextPlay = {
+//     // copy current players
+//     nextPlayers: [...nextPlay.nextPlayers],
+//     // use provided next action, or default to current next action
+//     nextAction: action || nextPlay.nextAction,
+//   };
 
-  switch (type) {
-    case "remove":
-      newNextPlay.nextPlayers[player % playerCount] = false;
-      break;
+//   switch (type) {
+//     case "remove":
+//       newNextPlay.nextPlayers[player % playerCount] = false;
+//       break;
 
-    case "all":
-      newNextPlay.nextPlayers = Array(playerCount).fill(true);
-      break;
+//     case "all":
+//       newNextPlay.nextPlayers = Array(playerCount).fill(true);
+//       break;
 
-    case "next":
-      let oldPlayer = newNextPlay.nextPlayers.indexOf(true);
-      let newPlayer = (oldPlayer + 1) % playerCount;
-      newNextPlay.nextPlayers[oldPlayer] = false;
-      newNextPlay.nextPlayers[newPlayer] = true;
-      break;
+//     case "next":
+//       let oldPlayer = newNextPlay.nextPlayers.indexOf(true);
+//       let newPlayer = (oldPlayer + 1) % playerCount;
+//       newNextPlay.nextPlayers[oldPlayer] = false;
+//       newNextPlay.nextPlayers[newPlayer] = true;
+//       break;
 
-    default:
-      // player and action given directly, independent of prior state
-      newNextPlay.nextPlayers = Array(playerCount).fill(false);
-      newNextPlay.nextPlayers[player % playerCount] = true;
-      break;
-  }
-  return newNextPlay;
-}
+//     default:
+//       // player and action given directly, independent of prior state
+//       newNextPlay.nextPlayers = Array(playerCount).fill(false);
+//       newNextPlay.nextPlayers[player % playerCount] = true;
+//       break;
+//   }
+//   return newNextPlay;
+// }
 
 //// Helpers ////
 
@@ -162,7 +154,7 @@ export default function App() {
   const [position, setPosition] = useState(0);
   const isOwner = position === 0;
 
-  // amount of players present (user is always present)
+  // amount of players present (note: user is always present)
   const playerCount = players.length;
   const computerCount = players.filter((player) => player.isComputer).length;
 
@@ -195,9 +187,6 @@ export default function App() {
   var colours = ["DarkRed", "DarkGreen", "DarkBlue"];
   playerCount === 2 && colours.splice(1, 1);
 
-  // show game history
-  const gameHistory = useGameHistory();
-
   // sound effects (can be muted)
   const soundEffects = useSoundEffects();
 
@@ -208,20 +197,22 @@ export default function App() {
 
   //// Cards and Play ////
 
-  // the next action to be taken, and by who
-  // (only 1 player to play next, unless discarding to crib)
-  // TODO: NEXT: replace with previous action, and deduce nextAction
-  const [{ nextPlayers, nextAction }, dispatchNextPlay] = useReducer(
-    reduceNextPlay,
-    playerCount,
-    initialNextPlay
-  );
+  // TODO: NEXT: NEXT: NEXT: continue replacing nextAction with Previous action etc
+  // the previous game action which was taken, and by who
+  const [previousPlayerAction, setPreviousPlayerAction] = useState({
+    player: null,
+    action: null,
+  });
+  const previousPlayer = previousPlayerAction.player;
+  const previousAction = previousPlayerAction.action;
 
+  const nextAction = Action.LOCK_IN_PLAYERS; // TEMP - will be calculated here later
+  const nextPlayers = [false, false, false]; // TEMP - will be calculated here later
   // if there's a unique next player, get them from here
   const nextPlayer = nextPlayers.indexOf(true);
 
-  // are players locked in, or can new ones join
-  const locked = nextAction !== Action.LOCK_IN_PLAYERS;
+  // is the game locked in, or can new players join
+  const locked = ![null, Action.RESET_ALL].includes(nextAction);
 
   // the deck (used pre-game, to cut for deal); pass in card stack on reset
   const deck = useDeck();
@@ -232,11 +223,11 @@ export default function App() {
     playerCount,
     nextPlayer,
     nextAction,
-    dispatchNextPlay
+    setPreviousPlayerAction
   );
 
   // to decide who goes first in the first game
-  const cutForDeal = useCutForDeal(deck, playerCount, dispatchNextPlay);
+  const cutForDeal = useCutForDeal(deck, playerCount);
 
   // track game points across multiple games
   const gamePoints = useGamePoints(
@@ -248,20 +239,20 @@ export default function App() {
     game.tripleSkunkCount
   );
 
-  // stop everything once match is one
-  useEffect(() => {
-    if (gamePoints.matchWinner !== -1) {
-      dispatchNextPlay({
-        action: Action.RESET_ALL,
-        player: 0,
-      });
-    }
-  }, [gamePoints.matchWinner]);
+  // stop everything once match is won // TODO: refactor into next action calculation
+  // useEffect(() => {
+  //   if (gamePoints.matchWinner !== -1) {
+  //     dispatchNextPlay({
+  //       action: Action.RESET_ALL,
+  //       player: 0,
+  //     });
+  //   }
+  // }, [gamePoints.matchWinner]);
 
-  // lock in players to start (but cut for deal before starting first game)
+  // lock in players to start (note: make sure to cut for deal before starting first game)
   function start(cards) {
     cutForDeal.reset(cards);
-    dispatchNextPlay({ player: 0, action: Action.CUT_FOR_DEAL });
+    setPreviousPlayerAction({ player: 0, action: Action.LOCK_IN_PLAYERS });
   }
 
   // which cards from user's hand (plus deck top card) are selected
@@ -274,13 +265,14 @@ export default function App() {
     .map((bool, index) => (bool ? index : null))
     .filter((index) => index !== null);
 
-  // reset everything
+  // reset everything -- except game history, which will persist(?)
   function reset() {
     game.reset();
     gamePoints.reset();
+    setPreviousPlayerAction({ player: nextPlayer, action: Action.RESET_ALL });
   }
 
-  //// Next Action ////
+  //// Next Action UI parameters ////
 
   // defaults, to override when necessary in the switch statement below
   let labels = [nextAction.label];
@@ -316,12 +308,28 @@ export default function App() {
       break;
 
     case Action.CUT_FOR_DEAL:
-      actions = [cutForDeal.cut];
+      actions = [
+        () => {
+          cutForDeal.cut();
+          setPreviousPlayerAction({
+            player: nextPlayer,
+            action: Action.CUT_FOR_DEAL,
+          });
+        },
+      ];
       clickDeckHandler = actions[0];
       break;
 
     case Action.RETRY_CUT_FOR_DEAL:
-      actions = [() => cutForDeal.retry()];
+      actions = [
+        () => {
+          cutForDeal.reset();
+          setPreviousPlayerAction({
+            player: nextPlayer,
+            action: Action.RETRY_CUT_FOR_DEAL,
+          });
+        },
+      ];
       clickDeckHandler = actions[0];
       break;
 
@@ -426,12 +434,9 @@ export default function App() {
       break;
   }
 
-  //// Effects ////
+  //// Game History ////
 
-  // reset if player count changes
-  useEffect(() => {
-    dispatchNextPlay({ type: "reset", playerCount });
-  }, [playerCount]);
+  const gameHistory = useGameHistory();
 
   //// Return ////
 
@@ -527,6 +532,3 @@ export default function App() {
     </div>
   );
 }
-
-// for tests
-export { reduceNextPlay };

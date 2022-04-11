@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { useRound } from "./useRound.js";
 import { useScores } from "./useScores.js";
@@ -7,13 +7,7 @@ import Action from "./Action.js";
 
 ////// Hook //////
 
-export function useGame(
-  deck,
-  playerCount,
-  nextPlayer,
-  nextAction,
-  dispatchNextPlay
-) {
+export function useGame(deck, playerCount, nextPlayer, nextAction) {
   //// Constants and States ////
 
   // current dealer, via player index
@@ -29,7 +23,7 @@ export function useGame(
     setDealer,
     nextPlayer,
     nextAction,
-    dispatchNextPlay
+    setPreviousPlayerAction
   );
 
   // current scores
@@ -48,16 +42,16 @@ export function useGame(
 
   //// Effects ////
 
-  // stop game once someone wins
-  useEffect(() => {
-    if (scores.winner !== -1) {
-      // loser gets to deal next game, so they get power to start next game
-      dispatchNextPlay({
-        action: Action.START_NEW_GAME,
-        player: scores.winner + 1,
-      });
-    }
-  }, [scores.winner]);
+  // stop game once someone wins // TODO: refactor into next action calculation
+  // useEffect(() => {
+  //   if (scores.winner !== -1) {
+  //     // loser gets to deal next game, so they get power to start next game
+  //     dispatchNextPlay({
+  //       action: Action.START_NEW_GAME,
+  //       player: scores.winner + 1,
+  //     });
+  //   }
+  // }, [scores.winner]);
 
   //// Helpers ////
 
@@ -70,13 +64,16 @@ export function useGame(
     scores.reset();
     round.reset();
     setDealer(null);
-    dispatchNextPlay({ player: 0, action: Action.LOCK_IN_PLAYERS });
+    setPreviousPlayerAction({ player: nextPlayer, action: Action.RESET_ALL });
   }
 
   /** locking in players for a fresh game */
   function start(firstDealer, cards) {
     round.reset(cards);
-    dispatchNextPlay({ player: firstDealer, action: Action.START_DEALING });
+    setPreviousPlayerAction({
+      player: nextPlayer,
+      action: Action.START_FIRST_GAME,
+    });
     setDealer(firstDealer);
   }
 
@@ -86,9 +83,9 @@ export function useGame(
     scores.reset();
     // loser already is the next player, now formally assign them as dealer
     setDealer(nextPlayer);
-    dispatchNextPlay({
+    setPreviousPlayerAction({
       player: nextPlayer,
-      action: Action.START_DEALING,
+      action: Action.START_NEW_GAME,
     });
   }
 

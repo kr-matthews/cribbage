@@ -5,7 +5,7 @@ import { useReducer } from "react";
 
 import { useRound } from "./useRound.js";
 import { useDeck } from "./useDeck.js";
-import { reduceNextPlay } from "./useGame.js";
+// import { reduceNextPlay } from "./useGame.js";
 
 import Rank from "./../playing-cards/Rank.js";
 import Suit from "./../playing-cards/Suit.js";
@@ -49,16 +49,16 @@ const cards = [
 let roundHook;
 let reducerHook;
 beforeEach(() => {
-  reducerHook = renderHook(() =>
-    useReducer(reduceNextPlay, playerCount, (playerCount) => {
-      let arr = Array(playerCount).fill(false);
-      arr[dealer] = true;
-      return {
-        nextPlayers: arr,
-        nextAction: "deal",
-      };
-    })
-  ).result;
+  // reducerHook = renderHook(() =>
+  //   useReducer(reduceNextPlay, playerCount, (playerCount) => { // NOTE: broken
+  //     let arr = Array(playerCount).fill(false);
+  //     arr[dealer] = true;
+  //     return {
+  //       nextPlayers: arr,
+  //       nextAction: "deal",
+  //     };
+  //   })
+  // ).result;
 
   const deckHook = renderHook(() => useDeck([...cards])).result;
   const testDeck = {

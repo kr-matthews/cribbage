@@ -2,8 +2,6 @@ import { useEffect, useReducer } from "react";
 
 import _ from "lodash";
 
-import Action from "./Action";
-
 //// Reducers ////
 
 function reduceCuts(cuts, action) {
@@ -27,16 +25,18 @@ function reduceCuts(cuts, action) {
 
 ////// Hook //////
 
-export function useCutForDeal(deck, playerCount, dispatchNextPlay) {
+export function useCutForDeal(deck, playerCount) {
   //// States ////
 
   const [cuts, dispatchCuts] = useReducer(reduceCuts, [null]);
   const rankIndices = cuts.map((card) => card && card.rank.index);
-  // everyone has cut and there's no tie for first (lowest card rank)
+
+  /** Index if there's a winner, -1 if there's a draw, null if incomplete */
   const firstDealer =
-    cuts[playerCount - 1] !== null &&
-    _.uniq([...rankIndices].sort((a, b) => a - b).slice(0, 2)).length === 2
-      ? rankIndices.indexOf(Math.min(...rankIndices))
+    cuts[playerCount - 1] !== null
+      ? _.uniq([...rankIndices].sort((a, b) => a - b).slice(0, 2)).length === 2
+        ? rankIndices.indexOf(Math.min(...rankIndices))
+        : -1
       : null;
 
   //// Effects ////
@@ -46,20 +46,6 @@ export function useCutForDeal(deck, playerCount, dispatchNextPlay) {
     dispatchCuts({ type: "reset", playerCount });
   }, [playerCount]);
 
-  // after a cut, assign the dealer if possible
-  useEffect(() => {
-    if (firstDealer !== null) {
-      // dealer identified
-      dispatchNextPlay({
-        player: firstDealer,
-        action: Action.START_FIRST_GAME,
-      });
-    } else if (!cuts.includes(null)) {
-      // tie for lowest card
-      dispatchNextPlay({ player: 0, action: Action.RETRY_CUT_FOR_DEAL });
-    }
-  }, [cuts, firstDealer, dispatchNextPlay]);
-
   //// Functions ////
 
   function cut() {
@@ -68,12 +54,6 @@ export function useCutForDeal(deck, playerCount, dispatchNextPlay) {
     deck.cut(Math.floor(deck.unCutCount / 2), 4);
     let card = deck.draw(1)[0];
     dispatchCuts({ type: "add", player: cuts.indexOf(null), card });
-    dispatchNextPlay({ type: "next" });
-  }
-
-  function retry(cards) {
-    reset(cards);
-    dispatchNextPlay({ player: 0, action: Action.CUT_FOR_DEAL });
   }
 
   function reset(cards) {
@@ -83,5 +63,5 @@ export function useCutForDeal(deck, playerCount, dispatchNextPlay) {
 
   //// Return ////
 
-  return { cuts, firstDealer, cut, retry, reset };
+  return { cuts, firstDealer, cut, reset };
 }

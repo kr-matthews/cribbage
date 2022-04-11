@@ -107,7 +107,7 @@ export function useRound(
   setDealer,
   nextPlayer,
   nextAction,
-  dispatchNextPlay
+  setPreviousPlayerAction // TODO: refactor
 ) {
   //// States and Constants ////
 
