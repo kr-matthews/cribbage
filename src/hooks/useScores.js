@@ -50,6 +50,8 @@ function scoresReducer(
 
 //// Hook ////
 
+// TODO: NEXT: NEXT: update based on new useRound returns
+
 export function useScores(
   playerCount,
   dealer,
@@ -204,3 +206,23 @@ export function useScores(
     pegTest: peg,
   };
 }
+
+// TODO: old code for validation from useRound
+
+// function isValidPlay(index, claim, amount = sharedStack.length + 1) {
+//   const card = hands[nextPlayer][index];
+
+//   // can't play if it goes over 31
+//   if (stackTotal + card.rank.points > 31) return false;
+
+//   // if no claim (for points) then it's good
+//   if (!claim) return true;
+
+//   // can't claim if stack doesn't have enough cards
+//   if (sharedStack.length + 1 < amount) return false;
+
+//   const cards = [...sharedStack.slice(sharedStack.length - amount - 1), card];
+
+//   // now check claim
+//   return checkClaim(cards, claim);
+// }

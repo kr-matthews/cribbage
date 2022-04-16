@@ -1,10 +1,13 @@
 export default class Action {
-  //// Start
-  static LOCK_IN_PLAYERS = new Action("Begin", "confirm players and shuffle");
+  //// Start - TBD
+  static SET_UP_CUT_FOR_DEAL = new Action(
+    "Begin",
+    "confirm players and shuffle"
+  );
 
-  //// Cut For Deal
+  //// Cut For Deal - TBD
   static CUT_FOR_DEAL = new Action("Cut", "cut for deal");
-  static RETRY_CUT_FOR_DEAL = new Action(
+  static SET_UP_CUT_FOR_DEAL_RETRY = new Action(
     "Try Again",
     "gather the deck, shuffle it, and try again"
   );
@@ -13,14 +16,15 @@ export default class Action {
     "gather the deck, shuffle it, and deal"
   );
 
-  //// Game
-  // Round
-  static START_DEALING = new Action("Deal", "deal the round");
-  static DEAL = new Action(null, "finish dealing");
+  //// Round
+  static DEAL = new Action("Deal", "deal the round");
+  // static CONTINUE_DEALING = new Action(null, "finish dealing");
   static DISCARD = new Action("Discard", "discard to the crib");
   static CUT_FOR_STARTER = new Action("Cut", "cut the deck");
   static FLIP_STARTER = new Action("Flip", "flip the starter");
-  static PLAY = new Action("Play", "play a card, or go");
+  static PLAY = new Action("Play", "");
+  static GO = new Action("Go", "");
+  static PLAY_OR_GO = new Action(null, "play a card, or go");
   static FLIP_PLAYED_CARDS = new Action("Next", "flip the cards");
   static RETURN_CARDS_TO_HANDS = new Action(
     "Return Cards",
@@ -36,13 +40,13 @@ export default class Action {
     "score your crib",
     "score the crib"
   );
+
+  //// TBD
   static START_NEW_ROUND = new Action(
     "Next Round",
     "gather the deck, shuffle it, and start the next round"
   );
-  // Post-Rounds
   static START_NEW_GAME = new Action("New Game", "start a new game");
-
   static RESET_ALL = new Action("Reset", "reset");
 
   /**
