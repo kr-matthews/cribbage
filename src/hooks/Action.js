@@ -17,8 +17,8 @@ export default class Action {
   );
 
   //// Round
-  static DEAL = new Action("Deal", "deal the round");
-  // static CONTINUE_DEALING = new Action(null, "finish dealing");
+  static START_DEALING = new Action("Deal", "deal the round");
+  static CONTINUE_DEALING = new Action(null, "finish dealing");
   static DISCARD = new Action("Discard", "discard to the crib");
   static CUT_FOR_STARTER = new Action("Cut", "cut the deck");
   static FLIP_STARTER = new Action("Flip", "flip the starter");
