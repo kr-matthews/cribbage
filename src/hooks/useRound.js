@@ -1,4 +1,4 @@
-import { useEffect, useReducer, useState } from "react";
+import { useCallback, useEffect, useReducer, useState } from "react";
 
 import Action from "./Action";
 
@@ -137,10 +137,6 @@ export function useRound(deck, playerCount, dealer) {
     return arr;
   }
 
-  function setPreviousAction(previousAction) {
-    setPreviousPlayerAction({ previousPlayer: nextPlayer, previousAction });
-  }
-
   const needsToDiscard = Array(playerCount)
     .fill(null)
     .map((_, player) => hands[player] && hands[player].length > 4);
@@ -152,8 +148,7 @@ export function useRound(deck, playerCount, dealer) {
     .fill(null)
     .map(
       (_, player) =>
-        nextAction === Action.PLAY_OR_GO &&
-        (stackTotal === 31 || goed[player] || hands[player].length === 0)
+        stackTotal === 31 || goed[player] || piles[player].length === 4
     );
 
   const areAllOut = !isOut.includes(false);
@@ -198,7 +193,7 @@ export function useRound(deck, playerCount, dealer) {
   const [nextPlayers, nextAction] = (() => {
     switch (previousAction) {
       case null:
-        return [dealer, Action.START_DEALING];
+        return [makePlayerArray(dealer), Action.START_DEALING];
 
       case Action.START_DEALING:
       case Action.CONTINUE_DEALING:
@@ -248,7 +243,13 @@ export function useRound(deck, playerCount, dealer) {
     }
   })();
 
-  const nextPlayer = nextPlayers.indexOf(true);
+  const nextPlayer = nextPlayers ? nextPlayers.indexOf(true) : null;
+
+  const setPreviousAction = useCallback(
+    (previousAction) =>
+      setPreviousPlayerAction({ previousPlayer: nextPlayer, previousAction }),
+    [setPreviousPlayerAction, nextPlayer]
+  );
 
   //// Effects ////
 
@@ -264,12 +265,14 @@ export function useRound(deck, playerCount, dealer) {
       // deal to crib
       let card = deck.draw(1)[0];
       dispatchStates({ type: "deal-crib", card });
+      setPreviousAction(Action.CONTINUE_DEALING);
     } else if (nextToDealCardTo !== null) {
       // deal to next player
       let card = deck.draw(1)[0];
       dispatchStates({ type: "deal-player", player: nextToDealCardTo, card });
+      setPreviousAction(Action.CONTINUE_DEALING);
     }
-  }, [nextToDealCardTo, deck]);
+  }, [nextToDealCardTo, setPreviousAction, deck]);
 
   //// Checks ////
 
