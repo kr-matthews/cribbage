@@ -151,18 +151,25 @@ export function useRound(deck, playerCount, dealer) {
         stackTotal === 31 || goed[player] || piles[player].length === 4
     );
 
-  const areAllOut = !isOut.includes(false);
+  const isCurrentPlayOver = !isOut.includes(false);
 
   const areAllHandsEmpty = hands.every((hand) => hand && hand.length === 0);
 
   // in the "play" phase
-  const nextToPlayCard = areAllOut
-    ? next(previousCardPlayedBy)
-    : !isOut[next(previousCardPlayedBy)]
-    ? next(previousCardPlayedBy)
-    : !isOut[next(next(previousCardPlayedBy))]
-    ? next(next(previousCardPlayedBy))
-    : previousCardPlayedBy;
+  const nextToPlayCard =
+    previousAction === Action.FLIP_STARTER
+      ? next(dealer)
+      : previousAction === Action.FLIP_PLAYED_CARDS
+      ? previousPlayer
+      : ![Action.PLAY, Action.GO].includes(previousAction)
+      ? null
+      : isCurrentPlayOver
+      ? next(previousCardPlayedBy) // TODO: NEXT: NEXT: NEXT: wrong, may be out of cards
+      : !isOut[next(previousCardPlayedBy)]
+      ? next(previousCardPlayedBy)
+      : !isOut[next(next(previousCardPlayedBy))]
+      ? next(next(previousCardPlayedBy))
+      : previousCardPlayedBy;
 
   // who to deal to next
   const nextToDealCardTo = [
@@ -210,13 +217,13 @@ export function useRound(deck, playerCount, dealer) {
         return [makePlayerArray(dealer), Action.FLIP_STARTER];
 
       case Action.FLIP_STARTER:
-        return [makePlayerArray(dealer + 1), Action.PLAY_OR_GO];
+        return [makePlayerArray(nextToPlayCard), Action.PLAY_OR_GO];
 
       case Action.PLAY:
       case Action.GO:
         return [
           makePlayerArray(nextToPlayCard),
-          areAllOut
+          isCurrentPlayOver
             ? areAllHandsEmpty
               ? Action.RETURN_CARDS_TO_HANDS
               : Action.FLIP_PLAYED_CARDS
@@ -224,7 +231,7 @@ export function useRound(deck, playerCount, dealer) {
         ];
 
       case Action.FLIP_PLAYED_CARDS:
-        return [makePlayerArray(previousCardPlayedBy + 1), Action.PLAY_OR_GO];
+        return [makePlayerArray(nextToPlayCard), Action.PLAY_OR_GO];
 
       case Action.RETURN_CARDS_TO_HANDS:
         return [makePlayerArray(dealer + 1), Action.SCORE_HAND];
@@ -338,12 +345,14 @@ export function useRound(deck, playerCount, dealer) {
   function endPlay() {
     setPreviousCardPlayedBy(null);
     dispatchStates({ type: "reset-shared-stack" });
+    dispatchGoed({ type: "reset" });
     setPreviousAction(Action.FLIP_PLAYED_CARDS);
   }
 
   function returnToHand() {
     setPreviousCardPlayedBy(null);
     dispatchStates({ type: "re-hand" });
+    dispatchGoed({ type: "reset" });
     setPreviousAction(Action.RETURN_CARDS_TO_HANDS);
   }
 
@@ -371,7 +380,7 @@ export function useRound(deck, playerCount, dealer) {
     nextPlayers,
     nextAction,
     previousCardPlayedBy,
-    areAllOut,
+    isCurrentPlayOver,
 
     // checks
     isValidGo,
