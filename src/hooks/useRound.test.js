@@ -30,7 +30,7 @@ const deckHook = {
   uncut: () => null,
 };
 const playerCount = 3;
-const dealer = 2;
+let dealer = 2;
 
 beforeEach(() => {
   mockCards = [
@@ -58,8 +58,6 @@ beforeEach(() => {
 
 //// Tests ////
 
-// TODO: NEXT: NEXT: retry maintaining state between tests
-
 describe("run through a round", () => {
   describe("start", () => {
     test("initial state", () => {
@@ -74,7 +72,7 @@ describe("run through a round", () => {
       expect(roundHook.current.nextPlayers).toStrictEqual([false, false, true]);
       expect(roundHook.current.nextAction).toBe(Action.START_DEALING);
       expect(roundHook.current.previousCardPlayedBy).toBeNull;
-      expect(roundHook.current.isCurrentPlayOver).toBe(false);
+      expect(roundHook.current.isCurrentPlayOver).toBeNull;
     });
   });
 
@@ -119,7 +117,7 @@ describe("run through a round", () => {
       expect(roundHook.current.nextPlayers).toStrictEqual([true, true, true]);
       expect(roundHook.current.nextAction).toBe(Action.DISCARD);
       expect(roundHook.current.previousCardPlayedBy).toBeNull;
-      expect(roundHook.current.isCurrentPlayOver).toBe(false);
+      expect(roundHook.current.isCurrentPlayOver).toBeNull;
     });
   });
 
@@ -165,7 +163,7 @@ describe("run through a round", () => {
       expect(roundHook.current.nextPlayers).toStrictEqual([true, true, false]);
       expect(roundHook.current.nextAction).toBe(Action.DISCARD);
       expect(roundHook.current.previousCardPlayedBy).toBeNull;
-      expect(roundHook.current.isCurrentPlayOver).toBe(false);
+      expect(roundHook.current.isCurrentPlayOver).toBeNull;
     });
 
     test("then player 0", () => {
@@ -210,7 +208,7 @@ describe("run through a round", () => {
       expect(roundHook.current.nextPlayers).toStrictEqual([false, true, false]);
       expect(roundHook.current.nextAction).toBe(Action.DISCARD);
       expect(roundHook.current.previousCardPlayedBy).toBeNull;
-      expect(roundHook.current.isCurrentPlayOver).toBe(false);
+      expect(roundHook.current.isCurrentPlayOver).toBeNull;
     });
 
     test("finally player 1", () => {
@@ -256,7 +254,7 @@ describe("run through a round", () => {
       expect(roundHook.current.nextPlayers).toStrictEqual([false, true, false]);
       expect(roundHook.current.nextAction).toBe(Action.CUT_FOR_STARTER);
       expect(roundHook.current.previousCardPlayedBy).toBeNull;
-      expect(roundHook.current.isCurrentPlayOver).toBe(false);
+      expect(roundHook.current.isCurrentPlayOver).toBeNull;
     });
   });
 
@@ -305,7 +303,7 @@ describe("run through a round", () => {
       expect(roundHook.current.nextPlayers).toStrictEqual([false, false, true]);
       expect(roundHook.current.nextAction).toBe(Action.FLIP_STARTER);
       expect(roundHook.current.previousCardPlayedBy).toBeNull;
-      expect(roundHook.current.isCurrentPlayOver).toBe(false);
+      expect(roundHook.current.isCurrentPlayOver).toBeNull;
     });
 
     test("then flip", () => {
@@ -765,339 +763,260 @@ describe("run through a round", () => {
       expect(roundHook.current.isValidPlay(0)).toBe(true);
       act(() => roundHook.current.play(0));
       expect(roundHook.current.previousAction).toBe(Action.PLAY);
-      expect(roundHook.current.nextPlayers).toStrictEqual([false, true, false]);
+      expect(roundHook.current.nextPlayers).toStrictEqual([false, false, true]);
       expect(roundHook.current.nextAction).toBe(Action.RETURN_CARDS_TO_HANDS);
       expect(roundHook.current.previousCardPlayedBy).toBe(0);
       expect(roundHook.current.isCurrentPlayOver).toBe(true);
     });
   });
 
-  // TODO: NEXT: continue from here
+  describe("return cards to hand and score them", () => {
+    test("first return cards", () => {
+      act(() => roundHook.current.deal());
+      act(() => roundHook.current.discardToCrib(1, [4]));
+      act(() => roundHook.current.discardToCrib(0, [3]));
+      act(() => roundHook.current.discardToCrib(2, [2]));
+      act(() => roundHook.current.cut());
+      act(() => roundHook.current.flip());
+      // 0 plays K: K -> 10
+      act(() => roundHook.current.play(3));
+      // 1 plays J: K, J -> 20
+      act(() => roundHook.current.play(3));
+      // 2 plays Q: K, J, Q -> 30
+      act(() => roundHook.current.play(3));
+      // 0 can't play
+      act(() => roundHook.current.go());
+      // 1 must play A -> 31
+      act(() => roundHook.current.play(0));
+      // start fresh play with 2
+      act(() => roundHook.current.endPlay());
+      // 2 plays J: J -> 10
+      act(() => roundHook.current.play(2));
+      // 0 plays 5 for 15: J, 5 -> 15
+      act(() => roundHook.current.play(1));
+      // 1 plays 10: J, 5, 10 -> 25
+      act(() => roundHook.current.play(1));
+      // 2 must play 5: J, 5, 10, 5 -> 30
+      act(() => roundHook.current.play(0));
+      // 0, 1, 2 must go
+      act(() => roundHook.current.go());
+      act(() => roundHook.current.go());
+      act(() => roundHook.current.go());
+      // etc
+      act(() => roundHook.current.endPlay());
+      act(() => roundHook.current.play(0));
+      act(() => roundHook.current.play(0));
+      act(() => roundHook.current.play(0));
+      act(() => roundHook.current.play(0));
 
-  // test("query scoring", () => {
-  //   act(() => roundHook.current.deal());
+      act(() => roundHook.current.returnToHand());
 
-  //   act(() => roundHook.current.discardToCrib(1, [4]));
+      expect(roundHook.current.starter).toStrictEqual(starter);
+      expect(roundHook.current.crib).toStrictEqual([
+        { rank: Rank.FIVE, suit: Suit.DIAMOND },
+        { rank: Rank.SIX, suit: Suit.SPADE },
+        { rank: Rank.JACK, suit: Suit.DIAMOND },
+        { rank: Rank.QUEEN, suit: Suit.HEART },
+      ]);
+      expect(
+        roundHook.current.hands.map((hand) => hand.sort(cardSorter))
+      ).toStrictEqual([
+        [
+          { rank: Rank.THREE, suit: Suit.HEART },
+          { rank: Rank.FIVE, suit: Suit.CLUB },
+          { rank: Rank.FIVE, suit: Suit.HEART },
+          { rank: Rank.KING, suit: Suit.CLUB },
+        ],
+        [
+          { rank: Rank.ACE, suit: Suit.DIAMOND },
+          { rank: Rank.TWO, suit: Suit.HEART },
+          { rank: Rank.TEN, suit: Suit.SPADE },
+          { rank: Rank.JACK, suit: Suit.CLUB },
+        ],
+        [
+          { rank: Rank.FIVE, suit: Suit.SPADE },
+          { rank: Rank.NINE, suit: Suit.HEART },
+          { rank: Rank.JACK, suit: Suit.HEART },
+          { rank: Rank.QUEEN, suit: Suit.DIAMOND },
+        ],
+      ]);
+      expect(roundHook.current.piles).toStrictEqual([[], [], []]);
+      expect(roundHook.current.sharedStack).toStrictEqual([]);
 
-  //   act(() => roundHook.current.discardToCrib(0, [3]));
+      expect(roundHook.current.previousPlayer).toBe(dealer);
+      expect(roundHook.current.previousAction).toBe(
+        Action.RETURN_CARDS_TO_HANDS
+      );
+      expect(roundHook.current.nextPlayers).toStrictEqual([true, false, false]);
+      expect(roundHook.current.nextAction).toBe(Action.SCORE_HAND);
+      expect(roundHook.current.previousCardPlayedBy).toBeNull;
+      expect(roundHook.current.isCurrentPlayOver).toBeNull;
+    });
 
-  //   act(() => roundHook.current.discardToCrib(2, [2]));
+    test("then score all hands", () => {
+      act(() => roundHook.current.deal());
+      act(() => roundHook.current.discardToCrib(1, [4]));
+      act(() => roundHook.current.discardToCrib(0, [3]));
+      act(() => roundHook.current.discardToCrib(2, [2]));
+      act(() => roundHook.current.cut());
+      act(() => roundHook.current.flip());
+      // 0 plays K: K -> 10
+      act(() => roundHook.current.play(3));
+      // 1 plays J: K, J -> 20
+      act(() => roundHook.current.play(3));
+      // 2 plays Q: K, J, Q -> 30
+      act(() => roundHook.current.play(3));
+      // 0 can't play
+      act(() => roundHook.current.go());
+      // 1 must play A -> 31
+      act(() => roundHook.current.play(0));
+      // start fresh play with 2
+      act(() => roundHook.current.endPlay());
+      // 2 plays J: J -> 10
+      act(() => roundHook.current.play(2));
+      // 0 plays 5 for 15: J, 5 -> 15
+      act(() => roundHook.current.play(1));
+      // 1 plays 10: J, 5, 10 -> 25
+      act(() => roundHook.current.play(1));
+      // 2 must play 5: J, 5, 10, 5 -> 30
+      act(() => roundHook.current.play(0));
+      // 0, 1, 2 must go
+      act(() => roundHook.current.go());
+      act(() => roundHook.current.go());
+      act(() => roundHook.current.go());
+      // etc
+      act(() => roundHook.current.endPlay());
+      act(() => roundHook.current.play(0));
+      act(() => roundHook.current.play(0));
+      act(() => roundHook.current.play(0));
+      act(() => roundHook.current.play(0));
+      act(() => roundHook.current.returnToHand());
 
-  //   act(() => roundHook.current.cut());
+      act(() => roundHook.current.scoreHand());
 
-  //   act(() => roundHook.current.flip());
+      expect(roundHook.current.starter).toStrictEqual(starter);
+      expect(roundHook.current.crib).toStrictEqual([
+        { rank: Rank.FIVE, suit: Suit.DIAMOND },
+        { rank: Rank.SIX, suit: Suit.SPADE },
+        { rank: Rank.JACK, suit: Suit.DIAMOND },
+        { rank: Rank.QUEEN, suit: Suit.HEART },
+      ]);
+      expect(
+        roundHook.current.hands.map((hand) => hand.sort(cardSorter))
+      ).toStrictEqual([
+        [
+          { rank: Rank.THREE, suit: Suit.HEART },
+          { rank: Rank.FIVE, suit: Suit.CLUB },
+          { rank: Rank.FIVE, suit: Suit.HEART },
+          { rank: Rank.KING, suit: Suit.CLUB },
+        ],
+        [
+          { rank: Rank.ACE, suit: Suit.DIAMOND },
+          { rank: Rank.TWO, suit: Suit.HEART },
+          { rank: Rank.TEN, suit: Suit.SPADE },
+          { rank: Rank.JACK, suit: Suit.CLUB },
+        ],
+        [
+          { rank: Rank.FIVE, suit: Suit.SPADE },
+          { rank: Rank.NINE, suit: Suit.HEART },
+          { rank: Rank.JACK, suit: Suit.HEART },
+          { rank: Rank.QUEEN, suit: Suit.DIAMOND },
+        ],
+      ]);
+      expect(roundHook.current.piles).toStrictEqual([[], [], []]);
+      expect(roundHook.current.sharedStack).toStrictEqual([]);
 
-  //   // 0 plays K: K -> 10
-  //   act(() => roundHook.current.play(3));
+      expect(roundHook.current.previousPlayer).toBe(0);
+      expect(roundHook.current.previousAction).toBe(Action.SCORE_HAND);
+      expect(roundHook.current.nextPlayers).toStrictEqual([false, true, false]);
+      expect(roundHook.current.nextAction).toBe(Action.SCORE_HAND);
+      expect(roundHook.current.previousCardPlayedBy).toBeNull;
+      expect(roundHook.current.isCurrentPlayOver).toBeNull;
 
-  //   // 1 plays J: K, J -> 20
-  //   act(() => roundHook.current.play(3));
+      act(() => roundHook.current.scoreHand());
+      act(() => roundHook.current.scoreHand());
 
-  //   // 2 plays Q: K, J, Q -> 30
-  //   act(() => roundHook.current.play(3));
+      expect(roundHook.current.previousPlayer).toBe(2);
+      expect(roundHook.current.previousAction).toBe(Action.SCORE_HAND);
+      expect(roundHook.current.nextPlayers).toStrictEqual([false, false, true]);
+      expect(roundHook.current.nextAction).toBe(Action.SCORE_CRIB);
+      expect(roundHook.current.previousCardPlayedBy).toBeNull;
+      expect(roundHook.current.isCurrentPlayOver).toBeNull;
 
-  //   // 0 can't play
-  //   act(() => roundHook.current.go());
+      act(() => roundHook.current.scoreCrib());
 
-  //   // 1 must play A -> 31
-  //   act(() => roundHook.current.play(0));
+      expect(roundHook.current.previousPlayer).toBe(2);
+      expect(roundHook.current.previousAction).toBe(Action.SCORE_CRIB);
+      expect(roundHook.current.nextPlayers).toBeNull;
+      expect(roundHook.current.nextAction).toBeNull;
+      expect(roundHook.current.previousCardPlayedBy).toBeNull;
+      expect(roundHook.current.isCurrentPlayOver).toBeNull;
+    });
+  });
 
-  //   // start new 'sub-play' with 2
-  //   act(() => roundHook.current.endPlay());
+  describe("resetting the round", () => {
+    test("reset", () => {
+      act(() => roundHook.current.deal());
+      act(() => roundHook.current.discardToCrib(1, [4]));
+      act(() => roundHook.current.discardToCrib(0, [3]));
+      act(() => roundHook.current.discardToCrib(2, [2]));
+      act(() => roundHook.current.cut());
+      act(() => roundHook.current.flip());
+      // 0 plays K: K -> 10
+      act(() => roundHook.current.play(3));
+      // 1 plays J: K, J -> 20
+      act(() => roundHook.current.play(3));
+      // 2 plays Q: K, J, Q -> 30
+      act(() => roundHook.current.play(3));
+      // 0 can't play
+      act(() => roundHook.current.go());
+      // 1 must play A -> 31
+      act(() => roundHook.current.play(0));
+      // start fresh play with 2
+      act(() => roundHook.current.endPlay());
+      // 2 plays J: J -> 10
+      act(() => roundHook.current.play(2));
+      // 0 plays 5 for 15: J, 5 -> 15
+      act(() => roundHook.current.play(1));
+      // 1 plays 10: J, 5, 10 -> 25
+      act(() => roundHook.current.play(1));
+      // 2 must play 5: J, 5, 10, 5 -> 30
+      act(() => roundHook.current.play(0));
+      // 0, 1, 2 must go
+      act(() => roundHook.current.go());
+      act(() => roundHook.current.go());
+      act(() => roundHook.current.go());
+      // etc
+      act(() => roundHook.current.endPlay());
+      act(() => roundHook.current.play(0));
+      act(() => roundHook.current.play(0));
+      act(() => roundHook.current.play(0));
+      act(() => roundHook.current.play(0));
+      act(() => roundHook.current.returnToHand());
+      act(() => roundHook.current.scoreHand());
+      act(() => roundHook.current.scoreHand());
+      act(() => roundHook.current.scoreHand());
+      act(() => roundHook.current.scoreCrib());
 
-  //   // 2 plays J: J -> 10
-  //   act(() => roundHook.current.play(2));
+      dealer = 0;
 
-  //   // 0 plays 5 for 15: J, 5 -> 15
-  //   act(() => roundHook.current.play(1));
+      act(() => roundHook.current.reset());
 
-  //   // 1 plays 10: J, 5, 10 -> 25
-  //   act(() => roundHook.current.play(1));
+      // copied from first test
+      expect(roundHook.current.starter).toBeNull;
+      expect(roundHook.current.crib).toStrictEqual([]);
+      expect(roundHook.current.hands).toStrictEqual([[], [], []]);
+      expect(roundHook.current.piles).toStrictEqual([[], [], []]);
+      expect(roundHook.current.sharedStack).toStrictEqual([]);
 
-  //   // 2 must play 5: J, 5, 10, 5 -> 30
-  //   act(() => roundHook.current.play(0));
-
-  //   // 0, 1, 2 must go
-  //   act(() => roundHook.current.go());
-
-  //   act(() => roundHook.current.go());
-
-  //   act(() => roundHook.current.go());
-
-  //   // play remaning cards
-  //   act(() => roundHook.current.endPlay());
-
-  //   act(() => roundHook.current.play(0));
-
-  //   act(() => roundHook.current.play(0));
-
-  //   act(() => roundHook.current.play(0));
-
-  //   act(() => roundHook.current.play(0));
-
-  //   expect(reducerHook.current[0].nextAction).toBe("endPlay-to-scoring");
-  //   expect(reducerHook.current[0].nextPlayers).toStrictEqual([
-  //     true,
-  //     false,
-  //     false,
-  //   ]);
-
-  //   act(() => roundHook.current.endPlay());
-
-  //   expect(reducerHook.current[0].nextAction).toBe("score-hand");
-  //   expect(reducerHook.current[0].nextPlayers).toStrictEqual([
-  //     true,
-  //     false,
-  //     false,
-  //   ]);
-
-  //   // current hands/crib
-  //   expect(roundHook.current.hands[0]).toStrictEqual([
-  //     { rank: Rank.THREE, suit: Suit.HEART },
-  //     { rank: Rank.FIVE, suit: Suit.CLUB },
-  //     { rank: Rank.FIVE, suit: Suit.HEART },
-  //     { rank: Rank.KING, suit: Suit.CLUB },
-  //   ]);
-  //   expect(roundHook.current.hands[1]).toStrictEqual([
-  //     { rank: Rank.ACE, suit: Suit.DIAMOND },
-  //     { rank: Rank.TWO, suit: Suit.HEART },
-  //     { rank: Rank.TEN, suit: Suit.SPADE },
-  //     { rank: Rank.JACK, suit: Suit.CLUB },
-  //   ]);
-  //   expect(roundHook.current.hands[2]).toStrictEqual([
-  //     { rank: Rank.FIVE, suit: Suit.SPADE },
-  //     { rank: Rank.NINE, suit: Suit.HEART },
-  //     { rank: Rank.JACK, suit: Suit.HEART },
-  //     { rank: Rank.QUEEN, suit: Suit.DIAMOND },
-  //   ]);
-  //   expect(roundHook.current.crib).toStrictEqual([
-  //     { rank: Rank.FIVE, suit: Suit.DIAMOND },
-  //     { rank: Rank.SIX, suit: Suit.SPADE },
-  //     { rank: Rank.JACK, suit: Suit.DIAMOND },
-  //     { rank: Rank.QUEEN, suit: Suit.HEART },
-  //   ]);
-  //   expect(roundHook.current.starter).toStrictEqual({
-  //     rank: Rank.TEN,
-  //     suit: Suit.DIAMOND,
-  //   });
-
-  //   // try scoring hand 2
-  //   expect(roundHook.current.canScorePoints(2, [], "15")).toBe(false);
-  //   expect(roundHook.current.canScorePoints(2, [3], "15")).toBe(false);
-  //   expect(roundHook.current.canScorePoints(2, [6], "15")).toBe(false);
-  //   expect(roundHook.current.canScorePoints(2, [0, 1], "15")).toBe(false);
-  //   expect(roundHook.current.canScorePoints(2, [0, 2], "15")).toBe(true);
-  //   expect(roundHook.current.canScorePoints(2, [0, 3], "15")).toBe(true);
-  //   expect(roundHook.current.canScorePoints(2, [0, 6], "15")).toBe(true);
-  //   expect(roundHook.current.canScorePoints(2, [1, 3], "15")).toBe(false);
-  //   expect(roundHook.current.canScorePoints(2, [0, 2, 3], "15")).toBe(false);
-  //   expect(roundHook.current.canScorePoints(2, [3, 4], "15")).toBe(false);
-  //   expect(roundHook.current.canScorePoints(2, [], "run")).toBe(false);
-  //   expect(roundHook.current.canScorePoints(2, [0, 1, 2, 3], "run")).toBe(false);
-  //   expect(roundHook.current.canScorePoints(2, [0, 1, 2, 3, 6], "run")).toBe(
-  //     false
-  //   );
-  //   expect(roundHook.current.canScorePoints(2, [2, 3], "run")).toBe(false);
-  //   expect(roundHook.current.canScorePoints(2, [6, 1], "run")).toBe(false);
-  //   expect(roundHook.current.canScorePoints(2, [6, 2, 3], "run")).toBe(true);
-  //   expect(roundHook.current.canScorePoints(2, [1, 6, 2], "run")).toBe(true);
-  //   expect(roundHook.current.canScorePoints(2, [2, 3, 6, 1], "run")).toBe(true);
-  //   expect(roundHook.current.canScorePoints(2, [2, 3], "run")).toBe(false);
-  //   expect(roundHook.current.canScorePoints(2, [], "kind")).toBe(false);
-  //   expect(roundHook.current.canScorePoints(2, [0], "kind")).toBe(false);
-  //   expect(roundHook.current.canScorePoints(2, [1, 2], "kind")).toBe(false);
-  //   expect(roundHook.current.canScorePoints(2, [0, 6, 3], "kind")).toBe(false);
-  //   expect(roundHook.current.canScorePoints(2, [2, 3], "kind")).toBe(false);
-  //   expect(roundHook.current.canScorePoints(2, [], "flush")).toBe(false);
-  //   expect(roundHook.current.canScorePoints(2, [0], "flush")).toBe(false);
-  //   expect(roundHook.current.canScorePoints(2, [1, 2], "flush")).toBe(false);
-  //   expect(roundHook.current.canScorePoints(2, [6, 3], "flush")).toBe(false);
-  //   expect(roundHook.current.canScorePoints(2, [0, 3, 2, 1], "flush")).toBe(
-  //     false
-  //   );
-
-  //   // try scoring crib
-  //   expect(roundHook.current.canScorePoints(-1, [], "15")).toBe(false);
-  //   expect(roundHook.current.canScorePoints(-1, [0, 1], "15")).toBe(false);
-  //   expect(roundHook.current.canScorePoints(-1, [1, 2], "15")).toBe(false);
-  //   expect(roundHook.current.canScorePoints(-1, [0, 2], "15")).toBe(true);
-  //   expect(roundHook.current.canScorePoints(-1, [0, 3], "15")).toBe(true);
-  //   expect(roundHook.current.canScorePoints(-1, [0, 6], "15")).toBe(true);
-  //   expect(roundHook.current.canScorePoints(-1, [0, 1], "run")).toBe(false);
-  //   expect(roundHook.current.canScorePoints(-1, [0, 1, 6], "run")).toBe(false);
-  //   expect(roundHook.current.canScorePoints(-1, [6, 2, 3], "run")).toBe(true);
-  //   expect(roundHook.current.canScorePoints(-1, [6, 3], "run")).toBe(false);
-  //   expect(roundHook.current.canScorePoints(-1, [], "kind")).toBe(false);
-  //   expect(roundHook.current.canScorePoints(-1, [0], "kind")).toBe(false);
-  //   expect(roundHook.current.canScorePoints(-1, [6], "kind")).toBe(false);
-  //   expect(roundHook.current.canScorePoints(-1, [2, 3], "kind")).toBe(false);
-  //   expect(roundHook.current.canScorePoints(-1, [], "flush")).toBe(false);
-  //   expect(roundHook.current.canScorePoints(-1, [0, 1, 2, 3], "flush")).toBe(
-  //     false
-  //   );
-  //   expect(roundHook.current.canScorePoints(-1, [6, 0, 1, 2], "flush")).toBe(
-  //     false
-  //   );
-  //   expect(roundHook.current.canScorePoints(-1, [0, 2, 6], "flush")).toBe(false);
-
-  //   // a pair
-  //   expect(roundHook.current.canScorePoints(0, [2, 1], "kind")).toBe(true);
-  // });
-
-  // test("score hands and crib, finish round", () => {
-  //   act(() => roundHook.current.deal());
-  //   act(() => roundHook.current.discardToCrib(1, [4]));
-  //   act(() => roundHook.current.discardToCrib(0, [3]));
-  //   act(() => roundHook.current.discardToCrib(2, [2]));
-  //   act(() => roundHook.current.cut());
-  //   act(() => roundHook.current.flip());
-  //   // 0 plays K: K -> 10
-  //   act(() => roundHook.current.play(3));
-  //   // 1 plays J: K, J -> 20
-  //   act(() => roundHook.current.play(3));
-  //   // 2 plays Q: K, J, Q -> 30
-  //   act(() => roundHook.current.play(3));
-  //   // 0 can't play
-  //   act(() => roundHook.current.go());
-  //   // 1 must play A -> 31
-  //   act(() => roundHook.current.play(0));
-  //   // start new 'sub-play' with 2
-  //   act(() => roundHook.current.endPlay());
-  //   // 2 plays J: J -> 10
-  //   act(() => roundHook.current.play(2));
-  //   // 0 plays 5 for 15: J, 5 -> 15
-  //   act(() => roundHook.current.play(1));
-  //   // 1 plays 10: J, 5, 10 -> 25
-  //   act(() => roundHook.current.play(1));
-  //   // 2 must play 5: J, 5, 10, 5 -> 30
-  //   act(() => roundHook.current.play(0));
-  //   // 0, 1, 2 must go
-  //   act(() => roundHook.current.go());
-  //   act(() => roundHook.current.go());
-  //   act(() => roundHook.current.go());
-  //   // play remaning cards
-  //   act(() => roundHook.current.endPlay());
-  //   act(() => roundHook.current.play(0));
-  //   act(() => roundHook.current.play(0));
-  //   act(() => roundHook.current.play(0));
-  //   act(() => roundHook.current.play(0));
-
-  //   expect(reducerHook.current[0].nextAction).toBe("endPlay-to-scoring");
-  //   expect(reducerHook.current[0].nextPlayers).toStrictEqual([
-  //     true,
-  //     false,
-  //     false,
-  //   ]);
-
-  //   act(() => roundHook.current.endPlay());
-
-  //   expect(reducerHook.current[0].nextAction).toBe("score-hand");
-  //   expect(reducerHook.current[0].nextPlayers).toStrictEqual([
-  //     true,
-  //     false,
-  //     false,
-  //   ]);
-
-  //   act(() => roundHook.current.scoreHand());
-
-  //   expect(reducerHook.current[0].nextAction).toBe("score-hand");
-  //   expect(reducerHook.current[0].nextPlayers).toStrictEqual([
-  //     false,
-  //     true,
-  //     false,
-  //   ]);
-
-  //   act(() => roundHook.current.scoreHand());
-
-  //   expect(reducerHook.current[0].nextAction).toBe("score-hand");
-  //   expect(reducerHook.current[0].nextPlayers).toStrictEqual([
-  //     false,
-  //     false,
-  //     true,
-  //   ]);
-
-  //   act(() => roundHook.current.scoreHand());
-
-  //   expect(reducerHook.current[0].nextAction).toBe("score-crib");
-  //   expect(reducerHook.current[0].nextPlayers).toStrictEqual([
-  //     false,
-  //     false,
-  //     true,
-  //   ]);
-
-  //   act(() => roundHook.current.scoreCrib());
-
-  //   expect(reducerHook.current[0].nextAction).toBe("reset");
-  //   expect(reducerHook.current[0].nextPlayers).toStrictEqual([
-  //     true,
-  //     false,
-  //     false,
-  //   ]);
-  // });
-
-  // test("play round then reset", () => {
-  //   act(() => roundHook.current.deal());
-  //   act(() => roundHook.current.discardToCrib(1, [4]));
-  //   act(() => roundHook.current.discardToCrib(0, [3]));
-  //   act(() => roundHook.current.discardToCrib(2, [2]));
-  //   act(() => roundHook.current.cut());
-  //   act(() => roundHook.current.flip());
-  //   // 0 plays K: K -> 10
-  //   act(() => roundHook.current.play(3));
-  //   // 1 plays J: K, J -> 20
-  //   act(() => roundHook.current.play(3));
-  //   // 2 plays Q: K, J, Q -> 30
-  //   act(() => roundHook.current.play(3));
-  //   // 0 can't play
-  //   act(() => roundHook.current.go());
-  //   // 1 must play A -> 31
-  //   act(() => roundHook.current.play(0));
-  //   // start new 'sub-play' with 2
-  //   act(() => roundHook.current.endPlay());
-  //   // 2 plays J: J -> 10
-  //   act(() => roundHook.current.play(2));
-  //   // 0 plays 5 for 15: J, 5 -> 15
-  //   act(() => roundHook.current.play(1));
-  //   // 1 plays 10: J, 5, 10 -> 25
-  //   act(() => roundHook.current.play(1));
-  //   // 2 must play 5: J, 5, 10, 5 -> 30
-  //   act(() => roundHook.current.play(0));
-  //   // 0, 1, 2 must go
-  //   act(() => roundHook.current.go());
-  //   act(() => roundHook.current.go());
-  //   act(() => roundHook.current.go());
-  //   // play remaning cards
-  //   act(() => roundHook.current.endPlay());
-  //   act(() => roundHook.current.play(0));
-  //   act(() => roundHook.current.play(0));
-  //   act(() => roundHook.current.play(0));
-  //   act(() => roundHook.current.play(0));
-
-  //   act(() => roundHook.current.endPlay());
-  //   act(() => roundHook.current.scoreHand());
-  //   act(() => roundHook.current.scoreHand());
-  //   act(() => roundHook.current.scoreHand());
-  //   act(() => roundHook.current.scoreCrib());
-
-  //   expect(reducerHook.current[0].nextAction).toBe("reset");
-  //   expect(reducerHook.current[0].nextPlayers).toStrictEqual([
-  //     true,
-  //     false,
-  //     false,
-  //   ]);
-
-  //   // in practice, dealer param would have incremented, but not sure how to mock
-  //   act(() => roundHook.current.reset());
-
-  //   expect(roundHook.current.starter).toBeNull;
-  //   expect(roundHook.current.crib).toStrictEqual([]);
-  //   expect(roundHook.current.hands).toStrictEqual([[], [], []]);
-  //   expect(roundHook.current.piles).toStrictEqual([[], [], []]);
-  //   expect(reducerHook.current[0].nextPlayers).toStrictEqual([
-  //     false,
-  //     false,
-  //     true,
-  //   ]);
-  //   expect(reducerHook.current[0].nextAction).toBe("deal");
-  // });
+      expect(roundHook.current.previousPlayer).toBeNull;
+      expect(roundHook.current.previousAction).toBeNull;
+      expect(roundHook.current.nextPlayers).toStrictEqual([true, false, false]);
+      expect(roundHook.current.nextAction).toBe(Action.START_DEALING);
+      expect(roundHook.current.previousCardPlayedBy).toBeNull;
+      expect(roundHook.current.isCurrentPlayOver).toBeNull;
+    });
+  });
 });
+
+// NOTE: could test everything automatically resets on playerCount change

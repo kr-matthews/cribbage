@@ -151,7 +151,23 @@ export function useRound(deck, playerCount, dealer) {
         stackTotal === 31 || goed[player] || piles[player].length === 4
     );
 
-  const isCurrentPlayOver = !isOut.includes(false);
+  function nextNotOut(player) {
+    return !isOut[next(player)]
+      ? next(player)
+      : !isOut[next(next(player))]
+      ? next(next(player))
+      : // only possible in 3-player game; will cycle back on 3 nexts
+        player;
+  }
+
+  const isCurrentPlayOver = [
+    Action.FLIP_STARTER,
+    Action.PLAY,
+    Action.GO,
+    Action.FLIP_PLAYED_CARDS,
+  ].includes(previousAction)
+    ? !isOut.includes(false)
+    : null;
 
   const areAllHandsEmpty = hands.every((hand) => hand && hand.length === 0);
 
@@ -161,15 +177,11 @@ export function useRound(deck, playerCount, dealer) {
       ? next(dealer)
       : previousAction === Action.FLIP_PLAYED_CARDS
       ? previousPlayer
-      : ![Action.PLAY, Action.GO].includes(previousAction)
-      ? null
-      : isCurrentPlayOver
-      ? next(previousCardPlayedBy) // TODO: NEXT: NEXT: NEXT: wrong, may be out of cards
-      : !isOut[next(previousCardPlayedBy)]
-      ? next(previousCardPlayedBy)
-      : !isOut[next(next(previousCardPlayedBy))]
-      ? next(next(previousCardPlayedBy))
-      : previousCardPlayedBy;
+      : [Action.PLAY, Action.GO].includes(previousAction)
+      ? isCurrentPlayOver
+        ? next(previousCardPlayedBy)
+        : nextNotOut(previousPlayer)
+      : null;
 
   // who to deal to next
   const nextToDealCardTo = [
@@ -222,7 +234,7 @@ export function useRound(deck, playerCount, dealer) {
       case Action.PLAY:
       case Action.GO:
         return [
-          makePlayerArray(nextToPlayCard),
+          makePlayerArray(areAllHandsEmpty ? dealer : nextToPlayCard),
           isCurrentPlayOver
             ? areAllHandsEmpty
               ? Action.RETURN_CARDS_TO_HANDS
@@ -241,7 +253,7 @@ export function useRound(deck, playerCount, dealer) {
           ? [makePlayerArray(dealer), Action.SCORE_CRIB]
           : [makePlayerArray(previousPlayer + 1), Action.SCORE_HAND];
 
-      case Action.START_NEW_ROUND:
+      case Action.SCORE_CRIB:
         return [null, null];
 
       default:
