@@ -22,14 +22,14 @@ export function useGame(deck, playerCount, nextPlayer, nextAction) {
   const scores = useScores(
     playerCount,
     dealer,
-    round.justPlayed,
-    round.previousPlayer,
-    round.previousScorer,
-    round.areAllInactive,
-    round.hands,
-    round.crib,
     round.starter,
-    round.sharedStack
+    round.crib,
+    round.hands,
+    round.sharedStack,
+    round.previousPlayer,
+    round.previousAction,
+    round.previousCardPlayedBy,
+    round.isCurrentPlayOver
   );
 
   //// Effects ////

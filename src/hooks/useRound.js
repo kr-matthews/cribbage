@@ -137,6 +137,8 @@ export function useRound(deck, playerCount, dealer) {
     return arr;
   }
 
+  //// Constants ////
+
   const needsToDiscard = Array(playerCount)
     .fill(null)
     .map((_, player) => hands[player] && hands[player].length > 4);
