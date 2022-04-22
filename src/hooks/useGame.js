@@ -28,7 +28,6 @@ export function useGame(deck, playerCount, nextPlayer, nextAction) {
     round.sharedStack,
     round.previousPlayer,
     round.previousAction,
-    round.previousCardPlayedBy,
     round.isCurrentPlayOver
   );
 

@@ -393,7 +393,6 @@ export function useRound(deck, playerCount, dealer) {
     previousAction,
     nextPlayers,
     nextAction,
-    previousCardPlayedBy,
     isCurrentPlayOver,
 
     // checks

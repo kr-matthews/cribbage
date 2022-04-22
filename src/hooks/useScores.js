@@ -61,7 +61,6 @@ export function useScores(
   sharedStack,
   previousPlayer,
   previousAction,
-  previousCardPlayedBy,
   isCurrentPlayOver
 ) {
   //// States ////
