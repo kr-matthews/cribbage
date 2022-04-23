@@ -16,15 +16,17 @@ import Suit from "../playing-cards/Suit.js";
 let result;
 let rerender;
 
-const playerCount = 3;
-const dealer = 1;
-const starter = null;
-const crib = [];
-const hands = [[], [], []];
-const sharedStack = [];
-const previousPlayer = null;
-const previousAction = null;
-const isCurrentPlayOver = null;
+const initialProps = {
+  playerCount: 3,
+  dealer: 1,
+  starter: null,
+  crib: [],
+  hands: [[], [], []],
+  sharedStack: [],
+  previousPlayer: null,
+  previousAction: null,
+  isCurrentPlayOver: null,
+};
 
 beforeEach(() => {
   const hook = renderHook(
@@ -51,17 +53,7 @@ beforeEach(() => {
         isCurrentPlayOver
       ),
     {
-      initialProps: {
-        playerCount,
-        dealer,
-        starter,
-        crib,
-        hands,
-        sharedStack,
-        previousPlayer,
-        previousAction,
-        isCurrentPlayOver,
-      },
+      initialProps,
     }
   );
   result = hook.result;
@@ -70,57 +62,53 @@ beforeEach(() => {
 
 //// Tests ////
 
-it("initial state", () => {
-  expect(result.current.current).toStrictEqual([0, 0, 0]);
-  expect(result.current.previous).toStrictEqual([-1, -1, -1]);
-  expect(result.current.hasWinner).toBe(false);
-  expect(result.current.nonSkunkCount).toBe(0);
-  expect(result.current.skunkCount).toBe(0);
-  expect(result.current.doubleSkunkCount).toBe(0);
-  expect(result.current.tripleSkunkCount).toBe(0);
-  expect(result.current.winner).toBeNull;
-  expect(result.current.reset).toBeDefined;
-});
-
-it("reset initial state", () => {
-  act(() => result.current.reset());
-
-  expect(result.current.current).toStrictEqual([0, 0, 0]);
-  expect(result.current.previous).toStrictEqual([-1, -1, -1]);
-  expect(result.current.hasWinner).toBe(false);
-  expect(result.current.nonSkunkCount).toBe(0);
-  expect(result.current.skunkCount).toBe(0);
-  expect(result.current.doubleSkunkCount).toBe(0);
-  expect(result.current.tripleSkunkCount).toBe(0);
-  expect(result.current.winner).toBeNull;
-});
-
-it("change player count", () => {
-  rerender({
-    playerCount: 2,
-    dealer,
-    starter,
-    crib,
-    hands,
-    sharedStack,
-    previousPlayer,
-    previousAction,
-    isCurrentPlayOver,
+describe("initial state", () => {
+  it("do nothing", () => {
+    expect(result.current.current).toStrictEqual([0, 0, 0]);
+    expect(result.current.previous).toStrictEqual([-1, -1, -1]);
+    expect(result.current.hasWinner).toBe(false);
+    expect(result.current.nonSkunkCount).toBe(0);
+    expect(result.current.skunkCount).toBe(0);
+    expect(result.current.doubleSkunkCount).toBe(0);
+    expect(result.current.tripleSkunkCount).toBe(0);
+    expect(result.current.winner).toBeNull;
+    expect(result.current.reset).toBeDefined;
   });
 
-  expect(result.current.current).toStrictEqual([0, 0]);
-  expect(result.current.previous).toStrictEqual([-1, -1]);
-  expect(result.current.hasWinner).toBe(false);
-  expect(result.current.nonSkunkCount).toBe(0);
-  expect(result.current.skunkCount).toBe(0);
-  expect(result.current.doubleSkunkCount).toBe(0);
-  expect(result.current.tripleSkunkCount).toBe(0);
-  expect(result.current.winner).toBeNull;
+  it("immediately reset", () => {
+    act(() => result.current.reset());
+
+    expect(result.current.current).toStrictEqual([0, 0, 0]);
+    expect(result.current.previous).toStrictEqual([-1, -1, -1]);
+    expect(result.current.hasWinner).toBe(false);
+    expect(result.current.nonSkunkCount).toBe(0);
+    expect(result.current.skunkCount).toBe(0);
+    expect(result.current.doubleSkunkCount).toBe(0);
+    expect(result.current.tripleSkunkCount).toBe(0);
+    expect(result.current.winner).toBeNull;
+  });
+
+  it("update player count", () => {
+    rerender({ ...initialProps, playerCount: 2, hands: [[], []] });
+
+    expect(result.current.current).toStrictEqual([0, 0]);
+    expect(result.current.previous).toStrictEqual([-1, -1]);
+    expect(result.current.hasWinner).toBe(false);
+    expect(result.current.nonSkunkCount).toBe(0);
+    expect(result.current.skunkCount).toBe(0);
+    expect(result.current.doubleSkunkCount).toBe(0);
+    expect(result.current.tripleSkunkCount).toBe(0);
+    expect(result.current.winner).toBeNull;
+  });
 });
 
 // TODO: NEXT: NEXT: NEXT: continue refactoring tests
 
-it("pegTest a player once", () => {
+describe("initial state", () => {
+  //
+});
+
+it.skip("pegTest a player once", () => {
   act(() => result.current.pegTest(2, 7));
 
   expect(result.current.current).toStrictEqual([0, 0, 7]);
@@ -128,7 +116,7 @@ it("pegTest a player once", () => {
   expect(result.current.winner).toBeNull;
 });
 
-it("pegTest a player several times", () => {
+it.skip("pegTest a player several times", () => {
   act(() => result.current.pegTest(2, 7));
 
   expect(result.current.current).toStrictEqual([0, 0, 7]);
@@ -146,7 +134,7 @@ it("pegTest a player several times", () => {
   expect(result.current.winner).toBeNull;
 });
 
-it("pegTest multiple players", () => {
+it.skip("pegTest multiple players", () => {
   act(() => result.current.pegTest(1, 18));
 
   expect(result.current.current).toStrictEqual([0, 18, 0]);
@@ -164,7 +152,7 @@ it("pegTest multiple players", () => {
   expect(result.current.winner).toBeNull;
 });
 
-it("pegTest multiple players several times", () => {
+it.skip("pegTest multiple players several times", () => {
   act(() => result.current.pegTest(1, 8));
 
   expect(result.current.current).toStrictEqual([0, 8, 0]);
@@ -192,7 +180,7 @@ it("pegTest multiple players several times", () => {
   expect(result.current.winner).toBeNull;
 });
 
-it("reset after pegTestging", () => {
+it.skip("reset after pegTestging", () => {
   act(() => result.current.pegTest(1, 8));
   act(() => result.current.pegTest(0, 6));
   act(() => result.current.pegTest(1, 3));
@@ -210,7 +198,7 @@ it("reset after pegTestging", () => {
   expect(result.current.winner).toBeNull;
 });
 
-it("win and reset", () => {
+it.skip("win and reset", () => {
   act(() => result.current.pegTest(1, 60));
   act(() => result.current.pegTest(0, 24));
   act(() => result.current.pegTest(1, 2));

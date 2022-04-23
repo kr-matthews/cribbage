@@ -209,9 +209,6 @@ export function useScores(
     tripleSkunkCount,
 
     reset,
-
-    // for testing // TODO: NEXT: review this, and tests
-    pegTest: peg,
   };
 }
 
