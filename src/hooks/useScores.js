@@ -195,7 +195,7 @@ export function useScores(
 
   //// Return ////
 
-  // TODO: provide details of most recent pegging, to be observed by hsitory logger?
+  // TODO: provide details of most recent pegging, to be observed by history logger?
 
   return {
     current,
