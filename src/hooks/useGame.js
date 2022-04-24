@@ -1,19 +1,21 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import Action from "./Action.js";
 
 import { useRound } from "./useRound.js";
 import { useScores } from "./useScores.js";
 
-import Action from "./Action.js";
-
 ////// Hook //////
 
-export function useGame(deck, playerCount, nextPlayer, nextAction) {
-  //// Constants and States ////
+export function useGame(deck, playerCount) {
+  //// States ////
 
   // current dealer, via player index
   const [dealer, setDealer] = useState(null);
 
-  //// Custom Hooks ////
+  const [{ previousPlayer, previousAction }, setPreviousPlayerAction] =
+    useState({ previousPlayer: null, previousAction: null });
+
+  // Custom Hooks //
 
   // the game plays rounds until someone wins
   const round = useRound(deck, playerCount, dealer);
@@ -31,59 +33,101 @@ export function useGame(deck, playerCount, nextPlayer, nextAction) {
     round.isCurrentPlayOver
   );
 
-  //// Effects ////
+  //// Constants ////
 
-  // stop game once someone wins // TODO: refactor into next action calculation
-  // useEffect(() => {
-  //   if (scores.winner !== -1) {
-  //     // loser gets to deal next game, so they get power to start next game
-  //     dispatchNextPlay({
-  //       action: Action.START_NEW_GAME,
-  //       player: scores.winner + 1,
-  //     });
-  //   }
-  // }, [scores.winner]);
+  const rematchDealer = scores.hasWinner
+    ? (scores.winner + 1) % playerCount
+    : null;
 
   //// Helpers ////
 
-  //
+  // TODO: copied from useRound - extract as helper function
+  function makePlayerArray(player) {
+    let arr = Array(playerCount).fill(false);
+    // player might be negative
+    arr[(player + playerCount) % playerCount] = true;
+    return arr;
+  }
+
+  //// Next Action ////
+
+  const [nextPlayers, nextAction] = (() => {
+    if (scores.hasWinner) {
+      return [makePlayerArray(rematchDealer), Action.START_NEW_GAME];
+    } else if (dealer === null) {
+      return [makePlayerArray(0), Action.START_FIRST_GAME];
+    } else if (round.nextAction !== null) {
+      return [round.nextPlayers, round.nextAction];
+    } else {
+      return [makePlayerArray(dealer + 1), Action.START_NEW_ROUND];
+    }
+  })();
+
+  const nextPlayer = nextPlayers ? nextPlayers.indexOf(true) : null;
+
+  // TODO: copied from useRound - extract as custom hook
+  const setPreviousAction = useCallback(
+    (previousAction) =>
+      setPreviousPlayerAction({ previousPlayer: nextPlayer, previousAction }),
+    [setPreviousPlayerAction, nextPlayer]
+  );
+
+  //// Effects ////
+
+  // observe actions from useRound (alternatively, create function for each round function returned below)
+  useEffect(() => {
+    if (round.previousAction !== null) {
+      setPreviousPlayerAction(round.previousPlayer, round.previousAction);
+    }
+  }, [round.previousPlayer, round.previousAction]);
 
   //// Functions to return ////
 
   /** for starting fresh; all history erased */
   function reset() {
-    scores.reset();
     round.reset();
     setDealer(null);
-    setPreviousPlayerAction({ player: nextPlayer, action: Action.RESET_ALL });
+    scores.reset();
+    setPreviousAction(Action.RESET_ALL);
   }
 
   /** locking in players for a fresh game */
-  function start(firstDealer, cards) {
-    round.reset(cards);
-    setPreviousPlayerAction({
-      player: nextPlayer,
-      action: Action.START_FIRST_GAME,
-    });
-    setDealer(firstDealer);
+  function start(dealer) {
+    round.reset();
+    setDealer(dealer);
+    scores.reset();
+    setPreviousAction(Action.START_FIRST_GAME);
+  }
+
+  function startNextRound() {
+    round.reset();
+    setDealer((dealer) => (dealer + 1) % playerCount);
+    setPreviousAction(Action.START_NEW_ROUND);
   }
 
   /** for starting rematch with same players (loser goes first, gamePoints preserved) */
-  function rematch(cards) {
-    round.reset(cards);
+  function rematch() {
+    round.reset();
     scores.reset();
-    // loser already is the next player, now formally assign them as dealer
-    setDealer(nextPlayer);
-    setPreviousPlayerAction({
-      player: nextPlayer,
-      action: Action.START_NEW_GAME,
-    });
+    setDealer(rematchDealer);
+    setPreviousAction(Action.START_NEW_GAME);
   }
 
   //// Return ////
 
   return {
-    // scores
+    // UI data
+    crib: round.crib,
+    hands: round.hands,
+    piles: round.piles,
+    starter: round.starter,
+
+    // logic data
+    previousPlayer,
+    previousAction,
+    nextPlayers,
+    nextAction,
+    dealer,
     currentScores: scores.current,
     previousScores: scores.previous,
     winner: scores.winner,
@@ -92,23 +136,13 @@ export function useGame(deck, playerCount, nextPlayer, nextAction) {
     doubleSkunkCount: scores.doubleSkunkCount,
     tripleSkunkCount: scores.tripleSkunkCount,
 
-    // game
-    dealer,
-    setDealer,
-    start,
-    rematch,
-    reset,
-
-    // round
-    crib: round.crib,
-    hands: round.hands,
-    piles: round.piles,
-    starter: round.starter,
-
+    // checks
     isValidGo: round.isValidGo,
     isValidPlay: round.isValidPlay,
 
-    resetRound: round.reset,
+    // actions
+    reset,
+    start,
     deal: round.deal,
     discardToCrib: round.discardToCrib,
     cut: round.cut,
@@ -119,6 +153,9 @@ export function useGame(deck, playerCount, nextPlayer, nextAction) {
     returnToHand: round.returnToHand,
     scoreHand: round.scoreHand,
     scoreCrib: round.scoreCrib,
-    restartRound: round.restart,
+    startNextRound,
+    rematch,
   };
 }
+
+// TODO: add tests, primarily that actions line up and dealer is correct on new games/rounds

@@ -218,13 +218,7 @@ export default function App() {
   const deck = useDeck();
 
   // a single iteration of the game, which can be restarted
-  const game = useGame(
-    deck,
-    playerCount,
-    nextPlayer,
-    nextAction,
-    setPreviousPlayerAction
-  );
+  const game = useGame(deck, playerCount);
 
   // to decide who goes first in the first game
   const cutForDeal = useCutForDeal(deck, playerCount);
