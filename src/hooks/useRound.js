@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useReducer, useState } from "react";
+import { useEffect, useReducer, useState } from "react";
 
 import Action from "./Action";
 
@@ -100,7 +100,7 @@ function reduceGoed(goed, action) {
 
 ////// Hook //////
 
-export function useRound(deck, playerCount, dealer) {
+export function useRound(deck, playerCount, dealer, previousPlayerAction) {
   //// States ////
 
   const [{ crib, hands, piles, sharedStack }, dispatchStates] = useReducer(
@@ -120,9 +120,6 @@ export function useRound(deck, playerCount, dealer) {
     Array(playerCount).fill(false)
   );
 
-  const [{ previousPlayer, previousAction }, setPreviousPlayerAction] =
-    useState({ previousPlayer: null, previousAction: null });
-
   //// Helpers ////
 
   // add 1 modulo player count
@@ -130,14 +127,25 @@ export function useRound(deck, playerCount, dealer) {
     return (player + 1) % playerCount;
   }
 
-  function makePlayerArray(player) {
-    let arr = Array(playerCount).fill(false);
-    // player might be negative
-    arr[(player + playerCount) % playerCount] = true;
-    return arr;
+  // next, but skipping players who are out
+  function nextNotOut(player) {
+    return !isOut[next(player)]
+      ? next(player)
+      : !isOut[next(next(player))]
+      ? next(next(player))
+      : // only possible in 3-player game; will cycle back on 3 nexts
+        player;
   }
 
   //// Constants ////
+
+  // previous player and action
+  const {
+    previousPlayer,
+    previousAction,
+    makePlayerArray,
+    setPreviousPlayerAction,
+  } = previousPlayerAction;
 
   const needsToDiscard = Array(playerCount)
     .fill(null)
@@ -150,17 +158,10 @@ export function useRound(deck, playerCount, dealer) {
     .fill(null)
     .map(
       (_, player) =>
-        stackTotal === 31 || goed[player] || piles[player].length === 4
+        stackTotal === 31 ||
+        goed[player] ||
+        (piles[player] && piles[player].length === 4)
     );
-
-  function nextNotOut(player) {
-    return !isOut[next(player)]
-      ? next(player)
-      : !isOut[next(next(player))]
-      ? next(next(player))
-      : // only possible in 3-player game; will cycle back on 3 nexts
-        player;
-  }
 
   const isCurrentPlayOver = [
     Action.FLIP_STARTER,
@@ -213,9 +214,6 @@ export function useRound(deck, playerCount, dealer) {
 
   const [nextPlayers, nextAction] = (() => {
     switch (previousAction) {
-      case null:
-        return [makePlayerArray(dealer), Action.START_DEALING];
-
       case Action.START_DEALING:
       case Action.CONTINUE_DEALING:
         return nextToDealCardTo !== null
@@ -256,21 +254,15 @@ export function useRound(deck, playerCount, dealer) {
           : [makePlayerArray(previousPlayer + 1), Action.SCORE_HAND];
 
       case Action.SCORE_CRIB:
+        // the round is over
         return [null, null];
 
-      default:
-        console.error("Couldn't recognize previous action", previousAction);
-        return [null, null];
+      default: // action was taken outside of round's scope
+        return [makePlayerArray(dealer), Action.START_DEALING];
     }
   })();
 
   const nextPlayer = nextPlayers ? nextPlayers.indexOf(true) : null;
-
-  const setPreviousAction = useCallback(
-    (previousAction) =>
-      setPreviousPlayerAction({ previousPlayer: nextPlayer, previousAction }),
-    [setPreviousPlayerAction, nextPlayer]
-  );
 
   //// Effects ////
 
@@ -286,14 +278,14 @@ export function useRound(deck, playerCount, dealer) {
       // deal to crib
       let card = deck.draw(1)[0];
       dispatchStates({ type: "deal-crib", card });
-      setPreviousAction(Action.CONTINUE_DEALING);
+      setPreviousPlayerAction(nextPlayer, Action.CONTINUE_DEALING);
     } else if (nextToDealCardTo !== null) {
       // deal to next player
       let card = deck.draw(1)[0];
       dispatchStates({ type: "deal-player", player: nextToDealCardTo, card });
-      setPreviousAction(Action.CONTINUE_DEALING);
+      setPreviousPlayerAction(nextPlayer, Action.CONTINUE_DEALING);
     }
-  }, [nextToDealCardTo, setPreviousAction, deck]);
+  }, [nextToDealCardTo, nextPlayer, setPreviousPlayerAction, deck]);
 
   //// Checks ////
 
@@ -314,12 +306,12 @@ export function useRound(deck, playerCount, dealer) {
     setStarter(null);
     dispatchGoed({ type: "reset", playerCount });
     setPreviousCardPlayedBy(null);
-    setPreviousPlayerAction({ previousAction: null, previousPlayer: null });
+    setPreviousPlayerAction(null, null);
   }
 
   // dealing is done via side-effect, to allow to delays/animations/etc in the future
   function deal() {
-    setPreviousAction(Action.START_DEALING);
+    setPreviousPlayerAction(nextPlayer, Action.START_DEALING);
   }
 
   function discardToCrib(player, indices) {
@@ -328,54 +320,51 @@ export function useRound(deck, playerCount, dealer) {
     for (let index of descIndices) {
       dispatchStates({ type: "discard", player, index });
     }
-    setPreviousPlayerAction({
-      previousPlayer: player,
-      previousAction: Action.DISCARD,
-    });
+    setPreviousPlayerAction(player, Action.DISCARD);
   }
 
   function cut() {
     deck.cut(4);
-    setPreviousAction(Action.CUT_FOR_STARTER);
+    setPreviousPlayerAction(nextPlayer, Action.CUT_FOR_STARTER);
   }
 
   function flip() {
     setStarter(deck.draw(1)[0]);
     deck.uncut();
-    setPreviousAction(Action.FLIP_STARTER);
+    setPreviousPlayerAction(nextPlayer, Action.FLIP_STARTER);
   }
 
   function play(index) {
     setPreviousCardPlayedBy(nextPlayer);
     dispatchStates({ type: "play", player: nextPlayer, index });
-    setPreviousAction(Action.PLAY);
+    setPreviousPlayerAction(nextPlayer, Action.PLAY);
   }
 
   function go() {
     dispatchGoed({ type: "add", player: nextPlayer });
-    setPreviousAction(Action.GO);
+    setPreviousPlayerAction(nextPlayer, Action.GO);
   }
 
   function endPlay() {
     setPreviousCardPlayedBy(null);
     dispatchStates({ type: "reset-shared-stack" });
     dispatchGoed({ type: "reset" });
-    setPreviousAction(Action.FLIP_PLAYED_CARDS);
+    setPreviousPlayerAction(nextPlayer, Action.FLIP_PLAYED_CARDS);
   }
 
   function returnToHand() {
     setPreviousCardPlayedBy(null);
     dispatchStates({ type: "re-hand" });
     dispatchGoed({ type: "reset" });
-    setPreviousAction(Action.RETURN_CARDS_TO_HANDS);
+    setPreviousPlayerAction(nextPlayer, Action.RETURN_CARDS_TO_HANDS);
   }
 
   function scoreHand() {
-    setPreviousAction(Action.SCORE_HAND);
+    setPreviousPlayerAction(nextPlayer, Action.SCORE_HAND);
   }
 
   function scoreCrib() {
-    setPreviousAction(Action.SCORE_CRIB);
+    setPreviousPlayerAction(nextPlayer, Action.SCORE_CRIB);
   }
 
   //// Return ////
@@ -389,8 +378,6 @@ export function useRound(deck, playerCount, dealer) {
     sharedStack,
 
     // logic data
-    previousPlayer,
-    previousAction,
     nextPlayers,
     nextAction,
     isCurrentPlayOver,

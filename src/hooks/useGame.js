@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import Action from "./Action.js";
 
 import { useRound } from "./useRound.js";
@@ -6,19 +6,22 @@ import { useScores } from "./useScores.js";
 
 ////// Hook //////
 
-export function useGame(deck, playerCount) {
+export function useGame(deck, playerCount, previousPlayerAction) {
   //// States ////
 
   // current dealer, via player index
   const [dealer, setDealer] = useState(null);
 
-  const [{ previousPlayer, previousAction }, setPreviousPlayerAction] =
-    useState({ previousPlayer: null, previousAction: null });
-
-  // Custom Hooks //
-
   // the game plays rounds until someone wins
-  const round = useRound(deck, playerCount, dealer);
+  const round = useRound(deck, playerCount, dealer, previousPlayerAction);
+
+  // previous player and action
+  const {
+    previousPlayer,
+    previousAction,
+    makePlayerArray,
+    setPreviousPlayerAction,
+  } = previousPlayerAction;
 
   // current scores
   const scores = useScores(
@@ -28,90 +31,58 @@ export function useGame(deck, playerCount) {
     round.crib,
     round.hands,
     round.sharedStack,
-    round.previousPlayer,
-    round.previousAction,
+    previousPlayer,
+    previousAction,
     round.isCurrentPlayOver
   );
-
-  //// Constants ////
-
-  const rematchDealer = scores.hasWinner
-    ? (scores.winner + 1) % playerCount
-    : null;
-
-  //// Helpers ////
-
-  // TODO: copied from useRound - extract as helper function
-  function makePlayerArray(player) {
-    let arr = Array(playerCount).fill(false);
-    // player might be negative
-    arr[(player + playerCount) % playerCount] = true;
-    return arr;
-  }
 
   //// Next Action ////
 
   const [nextPlayers, nextAction] = (() => {
     if (scores.hasWinner) {
-      return [makePlayerArray(rematchDealer), Action.START_NEW_GAME];
-    } else if (dealer === null) {
-      return [makePlayerArray(0), Action.START_FIRST_GAME];
+      // somebody won the game (possibly mid-round), it's over
+      return [null, null];
     } else if (round.nextAction !== null) {
+      // the round is ongoing
       return [round.nextPlayers, round.nextAction];
     } else {
+      // the round is over (and nobody has won the game)
       return [makePlayerArray(dealer + 1), Action.START_NEW_ROUND];
     }
   })();
 
   const nextPlayer = nextPlayers ? nextPlayers.indexOf(true) : null;
 
-  // TODO: copied from useRound - extract as custom hook
-  const setPreviousAction = useCallback(
-    (previousAction) =>
-      setPreviousPlayerAction({ previousPlayer: nextPlayer, previousAction }),
-    [setPreviousPlayerAction, nextPlayer]
-  );
-
-  //// Effects ////
-
-  // observe actions from useRound (alternatively, create function for each round function returned below)
-  useEffect(() => {
-    if (round.previousAction !== null) {
-      setPreviousPlayerAction(round.previousPlayer, round.previousAction);
-    }
-  }, [round.previousPlayer, round.previousAction]);
-
-  //// Functions to return ////
+  //// Actions ////
 
   /** for starting fresh; all history erased */
-  function reset() {
+  function reset(newDealer = null) {
     round.reset();
-    setDealer(null);
     scores.reset();
-    setPreviousAction(Action.RESET_ALL);
+    setDealer(newDealer);
   }
 
-  /** locking in players for a fresh game */
-  function start(dealer) {
-    round.reset();
-    setDealer(dealer);
-    scores.reset();
-    setPreviousAction(Action.START_FIRST_GAME);
-  }
+  // /** locking in players for a fresh game */
+  // function start(dealer) {
+  //   round.reset();
+  //   setDealer(dealer);
+  //   scores.reset();
+  //   setPreviousPlayerAction(nextPlayer, Action.START_FIRST_GAME);
+  // }
 
   function startNextRound() {
     round.reset();
     setDealer((dealer) => (dealer + 1) % playerCount);
-    setPreviousAction(Action.START_NEW_ROUND);
+    setPreviousPlayerAction(nextPlayer, Action.START_NEW_ROUND);
   }
 
-  /** for starting rematch with same players (loser goes first, gamePoints preserved) */
-  function rematch() {
-    round.reset();
-    scores.reset();
-    setDealer(rematchDealer);
-    setPreviousAction(Action.START_NEW_GAME);
-  }
+  // /** for starting rematch with same players (loser goes first, gamePoints preserved) */
+  // function rematch() {
+  //   round.reset();
+  //   scores.reset();
+  //   setDealer(rematchDealer);
+  //   setPreviousPlayerAction(nextPlayer, Action.START_NEW_GAME);
+  // }
 
   //// Return ////
 
@@ -123,11 +94,11 @@ export function useGame(deck, playerCount) {
     starter: round.starter,
 
     // logic data
-    previousPlayer,
-    previousAction,
     nextPlayers,
     nextAction,
     dealer,
+
+    // scores
     currentScores: scores.current,
     previousScores: scores.previous,
     winner: scores.winner,
@@ -142,7 +113,6 @@ export function useGame(deck, playerCount) {
 
     // actions
     reset,
-    start,
     deal: round.deal,
     discardToCrib: round.discardToCrib,
     cut: round.cut,
@@ -154,7 +124,6 @@ export function useGame(deck, playerCount) {
     scoreHand: round.scoreHand,
     scoreCrib: round.scoreCrib,
     startNextRound,
-    rematch,
   };
 }
 

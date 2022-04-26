@@ -1,6 +1,7 @@
 import { useEffect, useReducer } from "react";
 
 import _ from "lodash";
+import Action from "./Action";
 
 //// Reducers ////
 
@@ -25,7 +26,7 @@ function reduceCuts(cuts, action) {
 
 ////// Hook //////
 
-export function useCutForDeal(deck, playerCount) {
+export function useCutForDeal(deck, playerCount, previousPlayerAction) {
   //// States ////
 
   const [cuts, dispatchCuts] = useReducer(reduceCuts, [null]);
@@ -39,6 +40,10 @@ export function useCutForDeal(deck, playerCount) {
         : -1
       : null;
 
+  // previous player and action
+  const { previousPlayer, makePlayerArray, setPreviousPlayerAction } =
+    previousPlayerAction;
+
   //// Effects ////
 
   // when players join or leave pre-game, reset
@@ -46,7 +51,27 @@ export function useCutForDeal(deck, playerCount) {
     dispatchCuts({ type: "reset", playerCount });
   }, [playerCount]);
 
-  //// Functions ////
+  //// Next Action ////
+
+  const [nextPlayers, nextAction] = (() => {
+    if (firstDealer === -1) {
+      // everyone cut but no unique lowest card
+      return [makePlayerArray(0), Action.SET_UP_CUT_FOR_DEAL_RETRY];
+    } else if (firstDealer !== null) {
+      // everyone cut and a dealer has been determined
+      return [makePlayerArray(firstDealer), Action.START_FIRST_GAME];
+    } else if (cuts[0] === null) {
+      // nobody has cut
+      return [makePlayerArray(0), Action.CUT_FOR_DEAL];
+    } else {
+      // some but not all have cut
+      return [makePlayerArray(previousPlayer + 1), Action.CUT_FOR_DEAL];
+    }
+  })();
+
+  const nextPlayer = nextPlayers ? nextPlayers.indexOf(true) : null;
+
+  //// Actions ////
 
   function cut() {
     if (cuts[playerCount - 1] !== null) return;
@@ -54,14 +79,14 @@ export function useCutForDeal(deck, playerCount) {
     deck.cut(Math.floor(deck.unCutCount / 2), 4);
     let card = deck.draw(1)[0];
     dispatchCuts({ type: "add", player: cuts.indexOf(null), card });
+    setPreviousPlayerAction(nextPlayer, Action.CUT_FOR_DEAL);
   }
 
-  function reset(cards) {
-    deck.reset(cards);
+  function reset() {
     dispatchCuts({ type: "reset", playerCount });
   }
 
   //// Return ////
 
-  return { cuts, firstDealer, cut, reset };
+  return { cuts, firstDealer, nextPlayers, nextAction, cut, reset };
 }

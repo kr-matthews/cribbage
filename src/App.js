@@ -1,12 +1,14 @@
 import { useState, useReducer } from "react";
 
 import { useLocalStorage } from "./hooks/useLocalStorage.js";
+import { usePreviousPlayerAction } from "./hooks/usePreviousPlayerAction.js";
 import { useDeck } from "./hooks/useDeck.js";
 import { useCutForDeal } from "./hooks/useCutForDeal.js";
 import { useGame } from "./hooks/useGame.js";
 import { useGamePoints } from "./hooks/useGamePoints.js";
 import { useSoundEffects } from "./hooks/useSoundEffects.js";
 import { useNetwork } from "./hooks/useNetwork.js";
+import { useGameHistory } from "./hooks/useGameHistory.js";
 
 import Action from "./hooks/Action.js";
 
@@ -20,7 +22,6 @@ import Links from "./links/Links.js";
 
 import "./game-components/gameComponents.css";
 import "./playing-cards/playingCards.css";
-import { useGameHistory } from "./hooks/useGameHistory.js";
 
 //// Constants ////
 
@@ -29,7 +30,7 @@ const HIDE_EMPTY_COLUMNS = true;
 // hand of size up to 6, plus starter card on the end
 const HAND_ALL_UNSELECTED = Array(7).fill(false);
 // longest allowed name
-const MAX_NAME_LENGTH = 12;
+const USER_NAME_MAX_LENGTH = 12;
 
 //// Helpers ////
 
@@ -77,45 +78,6 @@ function selectedReducer(selected, action) {
   return newSelected;
 }
 
-// TODO: NEXT: move logic elsewhere, if needed
-// function reduceNextPlay(nextPlay, { type, player, action, playerCount }) {
-//   // if new game with new players, need to adjust player count
-//   if (type === "reset") return null; //initialNextPlay(playerCount);
-
-//   // otherwise just use the same player count
-//   playerCount ||= nextPlay.nextPlayers.length;
-//   let newNextPlay = {
-//     // copy current players
-//     nextPlayers: [...nextPlay.nextPlayers],
-//     // use provided next action, or default to current next action
-//     nextAction: action || nextPlay.nextAction,
-//   };
-
-//   switch (type) {
-//     case "remove":
-//       newNextPlay.nextPlayers[player % playerCount] = false;
-//       break;
-
-//     case "all":
-//       newNextPlay.nextPlayers = Array(playerCount).fill(true);
-//       break;
-
-//     case "next":
-//       let oldPlayer = newNextPlay.nextPlayers.indexOf(true);
-//       let newPlayer = (oldPlayer + 1) % playerCount;
-//       newNextPlay.nextPlayers[oldPlayer] = false;
-//       newNextPlay.nextPlayers[newPlayer] = true;
-//       break;
-
-//     default:
-//       // player and action given directly, independent of prior state
-//       newNextPlay.nextPlayers = Array(playerCount).fill(false);
-//       newNextPlay.nextPlayers[player % playerCount] = true;
-//       break;
-//   }
-//   return newNextPlay;
-// }
-
 //// Helpers ////
 
 function getRandomName() {
@@ -139,7 +101,7 @@ export default function App() {
   // user's name (persists)
   const [userName, setUserName] = useLocalStorage("userName", "Undecided");
   function trySetUserName(input) {
-    const newName = input.slice(0, MAX_NAME_LENGTH).trim();
+    const newName = input.slice(0, USER_NAME_MAX_LENGTH).trim();
     if (newName.length > 0) {
       setUserName(newName);
     }
@@ -163,6 +125,7 @@ export default function App() {
       let existingNames = players.map((player) => player.name);
       let name;
 
+      // get a name which isn't already in use
       do {
         name = getRandomName();
       } while (existingNames.includes(name));
@@ -181,6 +144,13 @@ export default function App() {
     }
   }
 
+  //// Previous Action ////
+
+  // previous player and action
+  const previousPlayerAction = usePreviousPlayerAction(playerCount);
+  const { previousAction, makePlayerArray, setPreviousPlayerAction } =
+    previousPlayerAction;
+
   //// User Experience ////
 
   // colours on the board; don't use middle track when 2 players
@@ -197,31 +167,17 @@ export default function App() {
 
   //// Cards and Play ////
 
-  // TODO: NEXT: NEXT: NEXT: continue replacing nextAction with Previous action etc
-  // the previous game action which was taken, and by who
-  const [previousPlayerAction, setPreviousPlayerAction] = useState({
-    player: null,
-    action: null,
-  });
-  const previousPlayer = previousPlayerAction.player;
-  const previousAction = previousPlayerAction.action;
-
-  const nextAction = Action.LOCK_IN_PLAYERS; // TEMP - will be calculated here later
-  const nextPlayers = [false, false, false]; // TEMP - will be calculated here later
-  // if there's a unique next player, get them from here
-  const nextPlayer = nextPlayers.indexOf(true);
-
   // is the game locked in, or can new players join
-  const locked = ![null, Action.RESET_ALL].includes(nextAction);
+  const locked = ![null, Action.RESET_ALL].includes(previousAction);
 
   // the deck (used pre-game, to cut for deal); pass in card stack on reset
   const deck = useDeck();
 
   // a single iteration of the game, which can be restarted
-  const game = useGame(deck, playerCount);
+  const game = useGame(deck, playerCount, previousPlayerAction);
 
   // to decide who goes first in the first game
-  const cutForDeal = useCutForDeal(deck, playerCount);
+  const cutForDeal = useCutForDeal(deck, playerCount, previousPlayerAction);
 
   // track game points across multiple games
   const gamePoints = useGamePoints(
@@ -233,22 +189,6 @@ export default function App() {
     game.tripleSkunkCount
   );
 
-  // stop everything once match is won // TODO: refactor into next action calculation
-  // useEffect(() => {
-  //   if (gamePoints.matchWinner !== -1) {
-  //     dispatchNextPlay({
-  //       action: Action.RESET_ALL,
-  //       player: 0,
-  //     });
-  //   }
-  // }, [gamePoints.matchWinner]);
-
-  // lock in players to start (note: make sure to cut for deal before starting first game)
-  function start(cards) {
-    cutForDeal.reset(cards);
-    setPreviousPlayerAction({ player: 0, action: Action.LOCK_IN_PLAYERS });
-  }
-
   // which cards from user's hand (plus deck top card) are selected
   const [selected, dispatchSelected] = useReducer(
     selectedReducer,
@@ -259,11 +199,128 @@ export default function App() {
     .map((bool, index) => (bool ? index : null))
     .filter((index) => index !== null);
 
+  //// Next Action ////
+
+  const [nextPlayers, nextAction] = (() => {
+    if (!locked) {
+      // haven't started anything yet
+      return [makePlayerArray(0), Action.SET_UP_CUT_FOR_DEAL];
+    } else if (game.dealer === null) {
+      // TODO: NEXT: NEXT: move dealer state here, pass param to game ?
+      // need to cut for deal
+      return [cutForDeal.nextPlayers, cutForDeal.nextAction];
+    } else if (gamePoints.hasMatchWinner) {
+      // somebody won the match it's over
+      return [makePlayerArray(0), Action.RESET_ALL];
+    } else if (game.nextAction !== null) {
+      // the game is ongoing
+      return [game.nextPlayers, game.nextAction];
+    } else {
+      // the game is over (and nobody has won the match)
+      return [makePlayerArray(game.winner + 1), Action.START_NEW_GAME];
+    }
+  })();
+
+  // if there's a unique next player, get them from here
+  const nextPlayer = nextPlayers ? nextPlayers.indexOf(true) : null;
+
+  //// Actions ////
+
+  // lock in players to start (note: make sure to cut for deal before starting the first game)
+  function setUpCutForDeal() {
+    if (network.mode === "remote" && computerCount === playerCount - 1) {
+      // have to leave remote play if they want to start
+      if (
+        window.confirm(
+          "You are starting a remote game with only yourself and computer players, and will therefore automatically be switched back to local play now."
+        )
+      ) {
+        // they agree; leave remote play
+        network.leave();
+      } else {
+        // they cancelled the start
+        return;
+      }
+    }
+
+    // start the game (possibly after leaving remote play)
+    cutForDeal.reset();
+    deck.reset();
+    setPreviousPlayerAction(nextPlayer, Action.SET_UP_CUT_FOR_DEAL);
+  }
+
+  function cutForDealFunction() {
+    cutForDeal.cut();
+    setPreviousPlayerAction(nextPlayer, Action.CUT_FOR_DEAL);
+  }
+
+  function setUpCutForDealRetry() {
+    cutForDeal.reset();
+    deck.reset();
+    setPreviousPlayerAction(nextPlayer, Action.SET_UP_CUT_FOR_DEAL_RETRY);
+  }
+
+  function startFirstGame() {
+    game.reset(cutForDeal.firstDealer);
+    cutForDeal.reset();
+    deck.reset();
+    setPreviousPlayerAction(nextPlayer, Action.START_FIRST_GAME);
+  }
+
+  function discard(player) {
+    game.discardToCrib(player, selectedIndices);
+    dispatchSelected({ type: "reset" });
+  }
+
+  function cutForStarter() {
+    game.cut();
+  }
+
+  function flipStarter() {
+    game.flip();
+  }
+
+  function play() {
+    game.play(selectedIndices[0]);
+    dispatchSelected({ type: "reset" });
+  }
+
+  function go() {
+    game.go();
+    dispatchSelected({ type: "reset" });
+  }
+
+  function flipPlayedCards() {
+    game.endPlay();
+  }
+
+  function returnCardsToHands() {
+    game.returnToHand();
+  }
+
+  function scoreHand() {
+    game.scoreHand();
+  }
+
+  function scoreCrib() {
+    game.scoreCrib();
+  }
+
+  function startNewRound() {
+    game.startNextRound();
+    deck.reset();
+  }
+
+  function startNewGame() {
+    game.reset((game.winner + 1) % playerCount);
+    setPreviousPlayerAction(nextPlayer, Action.START_NEW_GAME);
+  }
+
   // reset everything -- except game history, which will persist(?)
   function reset() {
     game.reset();
     gamePoints.reset();
-    setPreviousPlayerAction({ player: nextPlayer, action: Action.RESET_ALL });
+    setPreviousPlayerAction(nextPlayer, Action.RESET_ALL);
   }
 
   //// Next Action UI parameters ////
@@ -276,64 +333,24 @@ export default function App() {
   let clickCardHandler = null;
 
   switch (nextAction) {
-    case Action.LOCK_IN_PLAYERS:
+    case Action.SET_UP_CUT_FOR_DEAL:
       labels = [nextAction.label];
-      actions = [
-        () => {
-          if (network.mode === "remote" && computerCount === playerCount - 1) {
-            // have to leave remote play if they want to start
-            if (
-              window.confirm(
-                "You are starting a remote game with only yourself and computer players, and will therefore automatically be switched back to local play now."
-              )
-            ) {
-              // they agree; leave remote play
-              network.leave();
-            } else {
-              // they cancelled the start
-              return;
-            }
-          }
-          // start the game (possibly after leaving remote play)
-          start();
-        },
-      ];
+      actions = [() => setUpCutForDeal()];
       enabled = [isOwner && [2, 3].includes(playerCount)];
       break;
 
     case Action.CUT_FOR_DEAL:
-      actions = [
-        () => {
-          cutForDeal.cut();
-          setPreviousPlayerAction({
-            player: nextPlayer,
-            action: Action.CUT_FOR_DEAL,
-          });
-        },
-      ];
+      actions = [cutForDealFunction];
       clickDeckHandler = actions[0];
       break;
 
-    case Action.RETRY_CUT_FOR_DEAL:
-      actions = [
-        () => {
-          cutForDeal.reset();
-          setPreviousPlayerAction({
-            player: nextPlayer,
-            action: Action.RETRY_CUT_FOR_DEAL,
-          });
-        },
-      ];
+    case Action.SET_UP_CUT_FOR_DEAL_RETRY:
+      actions = [() => setUpCutForDealRetry()];
       clickDeckHandler = actions[0];
       break;
 
     case Action.START_FIRST_GAME:
-      actions = [
-        () => {
-          cutForDeal.reset();
-          game.start(cutForDeal.firstDealer);
-        },
-      ];
+      actions = [() => startFirstGame()];
       clickDeckHandler = actions[0];
       break;
 
@@ -342,19 +359,14 @@ export default function App() {
       clickDeckHandler = actions[0];
       break;
 
-    case Action.DEAL:
+    case Action.CONTINUE_DEALING:
       labels = [];
       actions = [];
       enabled = [];
       break;
 
     case Action.DISCARD:
-      actions = [
-        () => {
-          game.discardToCrib(nextPlayer, selectedIndices);
-          dispatchSelected({ type: "reset" });
-        },
-      ];
+      actions = [() => discard(nextPlayer)]; // TEMP: TODO: nextPlayer -> position
       enabled = [selectedCount === 4 - playerCount];
       clickCardHandler = (index) => {
         dispatchSelected({ type: "click", index });
@@ -362,27 +374,18 @@ export default function App() {
       break;
 
     case Action.CUT_FOR_STARTER:
-      actions = [game.cut];
+      actions = [cutForStarter];
       clickDeckHandler = actions[0];
       break;
 
     case Action.FLIP_STARTER:
-      actions = [game.flip];
+      actions = [flipStarter];
       clickDeckHandler = actions[0];
       break;
 
-    case Action.PLAY:
-      labels = ["Play", "Go"]; // TODO: add option for claiming various types of points (?)
-      actions = [
-        () => {
-          game.play(selectedIndices[0]);
-          dispatchSelected({ type: "reset" });
-        },
-        () => {
-          game.go();
-          dispatchSelected({ type: "reset" });
-        },
-      ];
+    case Action.PLAY_OR_GO: // TODO: add option for claiming various types of points (?)
+      labels = ["Play", "Go"];
+      actions = [play, go];
       enabled = [
         selectedCount === 1 && game.isValidPlay(selectedIndices[0]),
         game.isValidGo(),
@@ -393,28 +396,28 @@ export default function App() {
       break;
 
     case Action.FLIP_PLAYED_CARDS:
-      actions = [game.endPlay];
+      actions = [flipPlayedCards];
       break;
 
     case Action.RETURN_CARDS_TO_HANDS:
-      actions = [game.returnToHand];
+      actions = [returnCardsToHands];
       break;
 
     case Action.SCORE_HAND: // TODO: add options to claim points (?)
-      actions = [game.scoreHand];
+      actions = [scoreHand];
       break;
 
     case Action.SCORE_CRIB:
-      actions = [game.scoreCrib];
+      actions = [scoreCrib];
       break;
 
     case Action.START_NEW_ROUND:
-      actions = [() => game.restartRound()];
+      actions = [() => startNewRound()];
       clickDeckHandler = actions[0];
       break;
 
     case Action.START_NEW_GAME:
-      actions = [() => game.rematch()];
+      actions = [() => startNewGame()];
       clickDeckHandler = actions[0];
       break;
 
@@ -458,25 +461,27 @@ export default function App() {
         join={network.join}
         leave={network.leave}
         canAddPlayer={
-          isOwner && nextAction === Action.LOCK_IN_PLAYERS && playerCount < 3
+          isOwner &&
+          nextAction === Action.SET_UP_CUT_FOR_DEAL &&
+          playerCount < 3
         }
         addPlayer={addComputerPlayer}
         players={players}
         nextPlayers={nextPlayers}
         scores={
-          nextAction === Action.LOCK_IN_PLAYERS
+          nextAction === Action.SET_UP_CUT_FOR_DEAL
             ? [null, null, null]
             : game.currentScores
         }
         gamePoints={
-          nextAction === Action.LOCK_IN_PLAYERS
+          nextAction === Action.SET_UP_CUT_FOR_DEAL
             ? [null, null, null]
             : gamePoints.points
         }
         colours={colours}
         removeable={
           isOwner &&
-          nextAction === Action.LOCK_IN_PLAYERS && [false, true, true]
+          nextAction === Action.SET_UP_CUT_FOR_DEAL && [false, true, true]
         }
         removePlayer={removePlayer}
       />
