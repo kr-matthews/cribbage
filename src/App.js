@@ -206,7 +206,6 @@ export default function App() {
       // haven't started anything yet
       return [makePlayerArray(0), Action.SET_UP_CUT_FOR_DEAL];
     } else if (game.dealer === null) {
-      // TODO: NEXT: NEXT: move dealer state here, pass param to game ?
       // need to cut for deal
       return [cutForDeal.nextPlayers, cutForDeal.nextAction];
     } else if (gamePoints.hasMatchWinner) {
