@@ -92,7 +92,7 @@
   width: 150px;
 }
 
-.play-history {
+.match-logs {
   flex-direction: column;
   height: 8em;
   overflow-y: scroll;

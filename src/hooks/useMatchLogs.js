@@ -1,4 +1,4 @@
-export function useGameHistory() {
+export function useMatchLogs() {
   // TODO
 
   //// Return ////

@@ -1,4 +1,4 @@
-export default function GameHistory({ messages = [] }) {
+export default function MatchLogs({ messages = [] }) {
   let messageDisplays = [];
   messages.forEach(({ type, colour, text, timestamp }, i) => {
     messageDisplays.unshift(
@@ -13,7 +13,7 @@ export default function GameHistory({ messages = [] }) {
     );
   });
 
-  return <div className="game-component play-history">{messageDisplays}</div>;
+  return <div className="game-component match-logs">{messageDisplays}</div>;
 }
 
 function Message({

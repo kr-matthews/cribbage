@@ -8,7 +8,7 @@ import { useGame } from "./hooks/useGame.js";
 import { useGamePoints } from "./hooks/useGamePoints.js";
 import { useSoundEffects } from "./hooks/useSoundEffects.js";
 import { useNetwork } from "./hooks/useNetwork.js";
-import { useGameHistory } from "./hooks/useGameHistory.js";
+import { useMatchLogs } from "./hooks/useMatchLogs.js";
 
 import Action from "./hooks/Action.js";
 
@@ -17,7 +17,7 @@ import Hands from "./game-components/Hands.js";
 import PlayArea from "./game-components/PlayArea.js";
 import Actions from "./game-components/Actions.js";
 // import ScoreBoard from "./game-components/ScoreBoard.js";
-import GameHistory from "./game-components/GameHistory.js";
+import MatchLogs from "./game-components/MatchLogs.js";
 import Links from "./links/Links.js";
 
 import "./game-components/gameComponents.css";
@@ -432,7 +432,7 @@ export default function App() {
 
   //// Game History ////
 
-  const gameHistory = useGameHistory();
+  const matchLogs = useMatchLogs();
 
   //// Return ////
 
@@ -522,7 +522,7 @@ export default function App() {
         actions={actions}
         enabled={enabled}
       />
-      <GameHistory messages={gameHistory.messages} />
+      <MatchLogs messages={matchLogs.messages} />
       <Links
         gitHubLink="https://github.com/kr-matthews/cribbage"
         themeType="light"
