@@ -72,6 +72,7 @@ export function useGamePoints(
   );
 
   const matchWinner = gamePoints.findIndex((points) => points >= pointsToWin);
+  const hasMatchWinner = matchWinner !== -1;
 
   //// Effects ////
 
@@ -114,5 +115,5 @@ export function useGamePoints(
 
   //// Return ////
 
-  return { points: gamePoints, matchWinner, reset };
+  return { points: gamePoints, hasMatchWinner, matchWinner, reset };
 }

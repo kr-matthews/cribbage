@@ -1,7 +1,6 @@
 import { useEffect, useReducer } from "react";
 
 import _ from "lodash";
-
 import Action from "./Action";
 
 //// Reducers ////
@@ -27,17 +26,23 @@ function reduceCuts(cuts, action) {
 
 ////// Hook //////
 
-export function useCutForDeal(deck, playerCount, dispatchNextPlay) {
+export function useCutForDeal(deck, playerCount, previousPlayerAction) {
   //// States ////
 
   const [cuts, dispatchCuts] = useReducer(reduceCuts, [null]);
   const rankIndices = cuts.map((card) => card && card.rank.index);
-  // everyone has cut and there's no tie for first (lowest card rank)
+
+  /** Index if there's a winner, -1 if there's a draw, null if incomplete */
   const firstDealer =
-    cuts[playerCount - 1] !== null &&
-    _.uniq([...rankIndices].sort((a, b) => a - b).slice(0, 2)).length === 2
-      ? rankIndices.indexOf(Math.min(...rankIndices))
+    cuts[playerCount - 1] !== null
+      ? _.uniq([...rankIndices].sort((a, b) => a - b).slice(0, 2)).length === 2
+        ? rankIndices.indexOf(Math.min(...rankIndices))
+        : -1
       : null;
+
+  // previous player and action
+  const { previousPlayer, makePlayerArray, setPreviousPlayerAction } =
+    previousPlayerAction;
 
   //// Effects ////
 
@@ -46,21 +51,27 @@ export function useCutForDeal(deck, playerCount, dispatchNextPlay) {
     dispatchCuts({ type: "reset", playerCount });
   }, [playerCount]);
 
-  // after a cut, assign the dealer if possible
-  useEffect(() => {
-    if (firstDealer !== null) {
-      // dealer identified
-      dispatchNextPlay({
-        player: firstDealer,
-        action: Action.START_FIRST_GAME,
-      });
-    } else if (!cuts.includes(null)) {
-      // tie for lowest card
-      dispatchNextPlay({ player: 0, action: Action.RETRY_CUT_FOR_DEAL });
-    }
-  }, [cuts, firstDealer, dispatchNextPlay]);
+  //// Next Action ////
 
-  //// Functions ////
+  const [nextPlayers, nextAction] = (() => {
+    if (firstDealer === -1) {
+      // everyone cut but no unique lowest card
+      return [makePlayerArray(0), Action.SET_UP_CUT_FOR_DEAL_RETRY];
+    } else if (firstDealer !== null) {
+      // everyone cut and a dealer has been determined
+      return [makePlayerArray(firstDealer), Action.START_FIRST_GAME];
+    } else if (cuts[0] === null) {
+      // nobody has cut
+      return [makePlayerArray(0), Action.CUT_FOR_DEAL];
+    } else {
+      // some but not all have cut
+      return [makePlayerArray(previousPlayer + 1), Action.CUT_FOR_DEAL];
+    }
+  })();
+
+  const nextPlayer = nextPlayers ? nextPlayers.indexOf(true) : null;
+
+  //// Actions ////
 
   function cut() {
     if (cuts[playerCount - 1] !== null) return;
@@ -68,20 +79,14 @@ export function useCutForDeal(deck, playerCount, dispatchNextPlay) {
     deck.cut(Math.floor(deck.unCutCount / 2), 4);
     let card = deck.draw(1)[0];
     dispatchCuts({ type: "add", player: cuts.indexOf(null), card });
-    dispatchNextPlay({ type: "next" });
+    setPreviousPlayerAction(nextPlayer, Action.CUT_FOR_DEAL);
   }
 
-  function retry(cards) {
-    reset(cards);
-    dispatchNextPlay({ player: 0, action: Action.CUT_FOR_DEAL });
-  }
-
-  function reset(cards) {
-    deck.reset(cards);
+  function reset() {
     dispatchCuts({ type: "reset", playerCount });
   }
 
   //// Return ////
 
-  return { cuts, firstDealer, cut, retry, reset };
+  return { cuts, firstDealer, nextPlayers, nextAction, cut, reset };
 }

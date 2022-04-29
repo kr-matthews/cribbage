@@ -1,100 +1,103 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import Action from "./Action.js";
 
 import { useRound } from "./useRound.js";
 import { useScores } from "./useScores.js";
 
-import Action from "./Action.js";
-
 ////// Hook //////
 
-export function useGame(
-  deck,
-  playerCount,
-  nextPlayer,
-  nextAction,
-  dispatchNextPlay
-) {
-  //// Constants and States ////
+export function useGame(deck, playerCount, previousPlayerAction) {
+  //// States ////
 
   // current dealer, via player index
   const [dealer, setDealer] = useState(null);
 
-  //// Custom Hooks ////
-
   // the game plays rounds until someone wins
-  const round = useRound(
-    deck,
-    playerCount,
-    dealer,
-    setDealer,
-    nextPlayer,
-    nextAction,
-    dispatchNextPlay
-  );
+  const round = useRound(deck, playerCount, dealer, previousPlayerAction);
+
+  // previous player and action
+  const {
+    previousPlayer,
+    previousAction,
+    makePlayerArray,
+    setPreviousPlayerAction,
+  } = previousPlayerAction;
 
   // current scores
   const scores = useScores(
     playerCount,
     dealer,
-    round.justPlayed,
-    round.previousPlayer,
-    round.previousScorer,
-    round.areAllInactive,
-    round.hands,
-    round.crib,
     round.starter,
-    round.sharedStack
+    round.crib,
+    round.hands,
+    round.sharedStack,
+    previousPlayer,
+    previousAction,
+    round.isCurrentPlayOver
   );
 
-  //// Effects ////
+  //// Next Action ////
 
-  // stop game once someone wins
-  useEffect(() => {
-    if (scores.winner !== -1) {
-      // loser gets to deal next game, so they get power to start next game
-      dispatchNextPlay({
-        action: Action.START_NEW_GAME,
-        player: scores.winner + 1,
-      });
+  const [nextPlayers, nextAction] = (() => {
+    if (scores.hasWinner) {
+      // somebody won the game (possibly mid-round), it's over
+      return [null, null];
+    } else if (round.nextAction !== null) {
+      // the round is ongoing
+      return [round.nextPlayers, round.nextAction];
+    } else {
+      // the round is over (and nobody has won the game)
+      return [makePlayerArray(dealer + 1), Action.START_NEW_ROUND];
     }
-  }, [scores.winner]);
+  })();
 
-  //// Helpers ////
+  const nextPlayer = nextPlayers ? nextPlayers.indexOf(true) : null;
 
-  //
-
-  //// Functions to return ////
+  //// Actions ////
 
   /** for starting fresh; all history erased */
-  function reset() {
-    scores.reset();
+  function reset(newDealer = null) {
     round.reset();
-    setDealer(null);
-    dispatchNextPlay({ player: 0, action: Action.LOCK_IN_PLAYERS });
-  }
-
-  /** locking in players for a fresh game */
-  function start(firstDealer, cards) {
-    round.reset(cards);
-    dispatchNextPlay({ player: firstDealer, action: Action.START_DEALING });
-    setDealer(firstDealer);
-  }
-
-  /** for starting rematch with same players (loser goes first, gamePoints preserved) */
-  function rematch(cards) {
-    round.reset(cards);
     scores.reset();
-    // loser already is the next player, now formally assign them as dealer
-    setDealer(nextPlayer);
-    dispatchNextPlay({
-      player: nextPlayer,
-      action: Action.START_DEALING,
-    });
+    setDealer(newDealer);
   }
+
+  // /** locking in players for a fresh game */
+  // function start(dealer) {
+  //   round.reset();
+  //   setDealer(dealer);
+  //   scores.reset();
+  //   setPreviousPlayerAction(nextPlayer, Action.START_FIRST_GAME);
+  // }
+
+  function startNextRound() {
+    round.reset();
+    setDealer((dealer) => (dealer + 1) % playerCount);
+    setPreviousPlayerAction(nextPlayer, Action.START_NEW_ROUND);
+  }
+
+  // /** for starting rematch with same players (loser goes first, gamePoints preserved) */
+  // function rematch() {
+  //   round.reset();
+  //   scores.reset();
+  //   setDealer(rematchDealer);
+  //   setPreviousPlayerAction(nextPlayer, Action.START_NEW_GAME);
+  // }
 
   //// Return ////
 
   return {
+    // UI data
+    crib: round.crib,
+    hands: round.hands,
+    piles: round.piles,
+    starter: round.starter,
+
+    // logic data
+    nextPlayers,
+    nextAction,
+    dealer,
+
     // scores
     currentScores: scores.current,
     previousScores: scores.previous,
@@ -104,23 +107,12 @@ export function useGame(
     doubleSkunkCount: scores.doubleSkunkCount,
     tripleSkunkCount: scores.tripleSkunkCount,
 
-    // game
-    dealer,
-    setDealer,
-    start,
-    rematch,
-    reset,
-
-    // round
-    crib: round.crib,
-    hands: round.hands,
-    piles: round.piles,
-    starter: round.starter,
-
+    // checks
     isValidGo: round.isValidGo,
     isValidPlay: round.isValidPlay,
 
-    resetRound: round.reset,
+    // actions
+    reset,
     deal: round.deal,
     discardToCrib: round.discardToCrib,
     cut: round.cut,
@@ -131,6 +123,8 @@ export function useGame(
     returnToHand: round.returnToHand,
     scoreHand: round.scoreHand,
     scoreCrib: round.scoreCrib,
-    restartRound: round.restart,
+    startNextRound,
   };
 }
+
+// TODO: add tests, primarily that actions line up and dealer is correct on new games/rounds

@@ -69,7 +69,7 @@ function reduceStates(states, action) {
       newStates.sharedStack = [];
       break;
 
-    case "all-goed":
+    case "reset-shared-stack":
       newStates.sharedStack = [];
       break;
 
@@ -81,14 +81,14 @@ function reduceStates(states, action) {
 }
 
 function reduceGoed(goed, action) {
-  let newGoed = new Set(goed);
+  let newGoed = [...goed];
   switch (action.type) {
     case "reset":
-      newGoed = new Set();
+      newGoed = Array(action.playerCount).fill(false);
       break;
 
     case "add":
-      newGoed.add(action.player);
+      newGoed[action.player] = true;
       break;
 
     default:
@@ -100,16 +100,8 @@ function reduceGoed(goed, action) {
 
 ////// Hook //////
 
-export function useRound(
-  deck,
-  playerCount,
-  dealer,
-  setDealer,
-  nextPlayer,
-  nextAction,
-  dispatchNextPlay
-) {
-  //// States and Constants ////
+export function useRound(deck, playerCount, dealer, previousPlayerAction) {
+  //// States ////
 
   const [{ crib, hands, piles, sharedStack }, dispatchStates] = useReducer(
     reduceStates,
@@ -117,180 +109,209 @@ export function useRound(
     initialStates
   );
 
-  const stackTotal = totalPoints(sharedStack);
-
   const [starter, setStarter] = useState(null);
 
-  // who to deal to next
-  const dealTo =
-    nextAction === Action.DEAL
-      ? playerCount === 2
-        ? // 2 players
-          hands[0].length + hands[1].length === 12
-          ? null
-          : hands[0].length > hands[1].length
-          ? 1
-          : 0
-        : // 3 players
-        crib.length === 1
-        ? null
-        : hands[0].length + hands[1].length + hands[2].length === 15
-        ? -1
-        : hands[0].length > hands[1].length
-        ? 1
-        : hands[1].length > hands[2].length
-        ? 2
-        : 0
-      : null;
+  // who played a card last in the play stage
+  const [previousCardPlayedBy, setPreviousCardPlayedBy] = useState(null);
 
   // players who have goed since sharedStack last reset
-  const [goed, dispatchGoed] = useReducer(reduceGoed, new Set());
+  const [goed, dispatchGoed] = useReducer(
+    reduceGoed,
+    Array(playerCount).fill(false)
+  );
 
-  // player is active in "play" stage if has cards and hasn't goed and stack < 31
-  const inactive = Array(playerCount)
+  //// Helpers ////
+
+  // add 1 modulo player count
+  function next(player) {
+    return (player + 1) % playerCount;
+  }
+
+  // next, but skipping players who are out
+  function nextNotOut(player) {
+    return !isOut[next(player)]
+      ? next(player)
+      : !isOut[next(next(player))]
+      ? next(next(player))
+      : // only possible in 3-player game; will cycle back on 3 nexts
+        player;
+  }
+
+  //// Constants ////
+
+  // previous player and action
+  const {
+    previousPlayer,
+    previousAction,
+    makePlayerArray,
+    setPreviousPlayerAction,
+  } = previousPlayerAction;
+
+  const needsToDiscard = Array(playerCount)
+    .fill(null)
+    .map((_, player) => hands[player] && hands[player].length > 4);
+
+  const stackTotal = totalPoints(sharedStack);
+
+  // player is out in "play" phase if stack is maxed out, they have no cards, or they previously goed
+  const isOut = Array(playerCount)
     .fill(null)
     .map(
       (_, player) =>
         stackTotal === 31 ||
-        goed.has(player) ||
-        (hands[player] && hands[player].length === 0)
+        goed[player] ||
+        (piles[player] && piles[player].length === 4)
     );
 
-  // are all players inactive in current play
-  const areAllInactive =
-    piles.some((pile) => pile.length > 1) && !inactive.includes(false);
+  const isCurrentPlayOver = [
+    Action.FLIP_STARTER,
+    Action.PLAY,
+    Action.GO,
+    Action.FLIP_PLAYED_CARDS,
+  ].includes(previousAction)
+    ? !isOut.includes(false)
+    : null;
 
-  // who **played** last in the play stage (needed in scoring hook)
-  const [previousPlayer, setPreviousPlayer] = useState(null);
-  // was the previous action in the play stage a 'play' (vs a 'go')
-  const [justPlayed, setJustPlayed] = useState(false);
+  const areAllHandsEmpty = hands.every((hand) => hand && hand.length === 0);
 
-  // which player (or crib) just scored
-  const previousScorer =
-    nextAction === Action.START_NEW_ROUND
-      ? -1 // crib
-      : nextAction === Action.SCORE_CRIB
-      ? dealer // final hand before crib
-      : nextAction === Action.SCORE_HAND &&
-        nextPlayer !== (dealer + 1) % playerCount
-      ? (nextPlayer - 1 + playerCount) % playerCount // prior hands
-      : null; // no hand or crib was just scored
+  // in the "play" phase
+  const nextToPlayCard =
+    previousAction === Action.FLIP_STARTER
+      ? next(dealer)
+      : previousAction === Action.FLIP_PLAYED_CARDS
+      ? previousPlayer
+      : [Action.PLAY, Action.GO].includes(previousAction)
+      ? isCurrentPlayOver
+        ? next(previousCardPlayedBy)
+        : nextNotOut(previousPlayer)
+      : null;
 
-  //// Helpers ////
+  // who to deal to next
+  const nextToDealCardTo = [
+    Action.START_DEALING,
+    Action.CONTINUE_DEALING,
+  ].includes(previousAction)
+    ? playerCount === 2
+      ? // 2 players
+        hands[0].length + hands[1].length === 12
+        ? null
+        : hands[0].length > hands[1].length
+        ? 1
+        : 0
+      : // 3 players
+      crib.length === 1
+      ? null
+      : hands[0].length + hands[1].length + hands[2].length === 15
+      ? -1
+      : hands[0].length > hands[1].length
+      ? 1
+      : hands[1].length > hands[2].length
+      ? 2
+      : 0
+    : null;
 
-  //
+  //// Next Action ////
+
+  const [nextPlayers, nextAction] = (() => {
+    switch (previousAction) {
+      case Action.START_DEALING:
+      case Action.CONTINUE_DEALING:
+        return nextToDealCardTo !== null
+          ? [makePlayerArray(dealer), Action.CONTINUE_DEALING]
+          : [Array(playerCount).fill(true), Action.DISCARD];
+
+      case Action.DISCARD:
+        return needsToDiscard.includes(true)
+          ? [needsToDiscard, Action.DISCARD]
+          : [makePlayerArray(dealer - 1), Action.CUT_FOR_STARTER];
+
+      case Action.CUT_FOR_STARTER:
+        return [makePlayerArray(dealer), Action.FLIP_STARTER];
+
+      case Action.FLIP_STARTER:
+        return [makePlayerArray(nextToPlayCard), Action.PLAY_OR_GO];
+
+      case Action.PLAY:
+      case Action.GO:
+        return [
+          makePlayerArray(areAllHandsEmpty ? dealer : nextToPlayCard),
+          isCurrentPlayOver
+            ? areAllHandsEmpty
+              ? Action.RETURN_CARDS_TO_HANDS
+              : Action.FLIP_PLAYED_CARDS
+            : Action.PLAY_OR_GO,
+        ];
+
+      case Action.FLIP_PLAYED_CARDS:
+        return [makePlayerArray(nextToPlayCard), Action.PLAY_OR_GO];
+
+      case Action.RETURN_CARDS_TO_HANDS:
+        return [makePlayerArray(dealer + 1), Action.SCORE_HAND];
+
+      case Action.SCORE_HAND:
+        return previousPlayer === dealer
+          ? [makePlayerArray(dealer), Action.SCORE_CRIB]
+          : [makePlayerArray(previousPlayer + 1), Action.SCORE_HAND];
+
+      case Action.SCORE_CRIB:
+        // the round is over
+        return [null, null];
+
+      default: // action was taken outside of round's scope
+        return [makePlayerArray(dealer), Action.START_DEALING];
+    }
+  })();
+
+  const nextPlayer = nextPlayers ? nextPlayers.indexOf(true) : null;
 
   //// Effects ////
 
   // reset if player count changes
   useEffect(() => {
     dispatchStates({ type: "reset", playerCount });
+    dispatchGoed({ type: "reset", playerCount });
   }, [playerCount]);
 
   // deal
   useEffect(() => {
-    if (nextAction === Action.DEAL) {
-      if (dealTo === null) {
-        // stop dealing
-        dispatchNextPlay({ type: "all", action: Action.DISCARD });
-      } else if (dealTo === -1) {
-        // deal to crib
-        let card = deck.draw(1)[0];
-        dispatchStates({ type: "deal-crib", card });
-      } else {
-        // deal to next player
-        let card = deck.draw(1)[0];
-        dispatchStates({ type: "deal-player", player: dealTo, card });
-      }
+    if (nextToDealCardTo === -1) {
+      // deal to crib
+      let card = deck.draw(1)[0];
+      dispatchStates({ type: "deal-crib", card });
+      setPreviousPlayerAction(nextPlayer, Action.CONTINUE_DEALING);
+    } else if (nextToDealCardTo !== null) {
+      // deal to next player
+      let card = deck.draw(1)[0];
+      dispatchStates({ type: "deal-player", player: nextToDealCardTo, card });
+      setPreviousPlayerAction(nextPlayer, Action.CONTINUE_DEALING);
     }
-  }, [nextAction, dealTo, deck, dispatchNextPlay]);
-
-  // once everyone has submitted to the crib
-  useEffect(() => {
-    if (nextAction === Action.DISCARD && crib.length === 4) {
-      dispatchNextPlay({
-        player: dealer + 1,
-        action: Action.CUT_FOR_STARTER,
-      });
-    }
-  }, [nextAction, crib.length, dispatchNextPlay, dealer]);
-
-  // skip players who are inactive (if there are still active players)
-  useEffect(() => {
-    if (
-      [Action.PLAY, Action.FLIP_PLAYED_CARDS].includes(nextAction) &&
-      inactive[nextPlayer] &&
-      inactive.includes(false)
-    ) {
-      dispatchNextPlay({ type: "next" });
-    }
-  }, [nextAction, nextPlayer, inactive, dispatchNextPlay]);
-
-  // if play stage not over, once everyone is inactive (or 31 is hit), reset sharedStack
-  useEffect(() => {
-    if (
-      nextAction === Action.PLAY &&
-      (inactive.every((bool) => bool) || stackTotal === 31)
-    ) {
-      dispatchGoed({ type: "reset" });
-      dispatchStates({ type: "all-goed" });
-      dispatchNextPlay({
-        player: nextPlayer,
-        action: Action.FLIP_PLAYED_CARDS,
-      });
-    }
-  }, [
-    nextAction,
-    inactive,
-    stackTotal,
-    dispatchGoed,
-    dispatchStates,
-    dispatchNextPlay,
-    nextPlayer,
-  ]);
-
-  // once all cards have been played in play stage
-  useEffect(() => {
-    if (
-      nextAction === Action.PLAY &&
-      hands.every((hand) => hand.length === 0)
-    ) {
-      dispatchNextPlay({
-        player: dealer + 1,
-        action: Action.RETURN_CARDS_TO_HANDS,
-      });
-    }
-  }, [nextAction, hands, dispatchNextPlay, dealer]);
+  }, [nextToDealCardTo, nextPlayer, setPreviousPlayerAction, deck]);
 
   //// Checks ////
 
   function isValidGo() {
-    return hands[nextPlayer].every(({ rank }) => stackTotal + rank.points > 31);
+    const hand = hands[nextPlayer];
+    return hand.every(({ rank }) => stackTotal + rank.points > 31);
   }
 
   function isValidPlay(index) {
-    //, claim, amount = sharedStack.length + 1) {
     const card = hands[nextPlayer][index];
-
-    // can't play if it goes over 31
-    // if (stackTotal + card.rank.points > 31) return false;
     return stackTotal + card.rank.points <= 31;
-
-    // // if no claim (for points) then it's good
-    // if (!claim) return true;
-
-    // // can't claim if stack doesn't have enough cards
-    // if (sharedStack.length + 1 < amount) return false;
-
-    // const cards = [...sharedStack.slice(sharedStack.length - amount - 1), card];
-
-    // // now check claim
-    // return checkClaim(cards, claim);
   }
+
   //// Actions ////
 
+  function reset() {
+    dispatchStates({ type: "reset", playerCount });
+    setStarter(null);
+    dispatchGoed({ type: "reset", playerCount });
+    setPreviousCardPlayedBy(null);
+    setPreviousPlayerAction(null, null);
+  }
+
+  // dealing is done via side-effect, to allow to delays/animations/etc in the future
   function deal() {
-    dispatchNextPlay({ player: dealer, action: Action.DEAL });
+    setPreviousPlayerAction(nextPlayer, Action.START_DEALING);
   }
 
   function discardToCrib(player, indices) {
@@ -299,94 +320,73 @@ export function useRound(
     for (let index of descIndices) {
       dispatchStates({ type: "discard", player, index });
     }
-
-    dispatchNextPlay({ type: "remove", player });
+    setPreviousPlayerAction(player, Action.DISCARD);
   }
 
   function cut() {
     deck.cut(4);
-    dispatchNextPlay({ player: dealer, action: Action.FLIP_STARTER });
+    setPreviousPlayerAction(nextPlayer, Action.CUT_FOR_STARTER);
   }
 
   function flip() {
     setStarter(deck.draw(1)[0]);
     deck.uncut();
-    dispatchNextPlay({ player: dealer + 1, action: Action.PLAY });
+    setPreviousPlayerAction(nextPlayer, Action.FLIP_STARTER);
   }
 
   function play(index) {
-    setPreviousPlayer(nextPlayer);
-    setJustPlayed(true);
+    setPreviousCardPlayedBy(nextPlayer);
     dispatchStates({ type: "play", player: nextPlayer, index });
-    dispatchNextPlay({ type: "next" });
+    setPreviousPlayerAction(nextPlayer, Action.PLAY);
   }
 
   function go() {
-    setJustPlayed(false);
     dispatchGoed({ type: "add", player: nextPlayer });
-    dispatchNextPlay({ type: "next" });
+    setPreviousPlayerAction(nextPlayer, Action.GO);
   }
 
   function endPlay() {
-    setJustPlayed(false);
-    // TODO: flip current piles face-down
-    dispatchNextPlay({ player: nextPlayer, action: Action.PLAY });
+    setPreviousCardPlayedBy(null);
+    dispatchStates({ type: "reset-shared-stack" });
+    dispatchGoed({ type: "reset" });
+    setPreviousPlayerAction(nextPlayer, Action.FLIP_PLAYED_CARDS);
   }
 
   function returnToHand() {
-    setPreviousPlayer(null);
-    setJustPlayed(false);
+    setPreviousCardPlayedBy(null);
     dispatchStates({ type: "re-hand" });
-    dispatchNextPlay({ player: nextPlayer, action: Action.SCORE_HAND });
+    dispatchGoed({ type: "reset" });
+    setPreviousPlayerAction(nextPlayer, Action.RETURN_CARDS_TO_HANDS);
   }
 
   function scoreHand() {
-    if (nextPlayer === dealer) {
-      dispatchNextPlay({ player: dealer, action: Action.SCORE_CRIB });
-    } else {
-      dispatchNextPlay({ type: "next" });
-    }
+    setPreviousPlayerAction(nextPlayer, Action.SCORE_HAND);
   }
 
   function scoreCrib() {
-    dispatchNextPlay({ player: dealer + 1, action: Action.START_NEW_ROUND });
-  }
-
-  /** mid-game, post round, to start a new round */
-  function restart(cards) {
-    let newDealer = (dealer + 1) % playerCount;
-    setDealer(newDealer);
-    dispatchStates({ type: "reset" });
-    setStarter(null);
-    deck.reset(cards);
-    dispatchNextPlay({ player: newDealer, action: Action.START_DEALING });
-  }
-
-  /** pre-game, when game started */
-  function reset(cards) {
-    dispatchStates({ type: "reset" });
-    // if owner started game remotely, then they sent the deck configuration
-    deck.reset(cards);
-    setStarter(null);
+    setPreviousPlayerAction(nextPlayer, Action.SCORE_CRIB);
   }
 
   //// Return ////
 
   return {
+    // UI data
     starter,
-    sharedStack,
     crib,
     hands,
     piles,
+    sharedStack,
 
-    areAllInactive,
-    justPlayed,
-    previousPlayer,
-    previousScorer,
+    // logic data
+    nextPlayers,
+    nextAction,
+    isCurrentPlayOver,
 
+    // checks
     isValidGo,
     isValidPlay,
 
+    // actions
     reset,
     deal,
     discardToCrib,
@@ -398,6 +398,5 @@ export function useRound(
     returnToHand,
     scoreHand,
     scoreCrib,
-    restart,
   };
 }
