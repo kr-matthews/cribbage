@@ -432,7 +432,12 @@ export default function App() {
 
   //// Game History ////
 
-  const matchLogs = useMatchLogs();
+  const matchLogs = useMatchLogs(
+    players.map((player) => player.name),
+    colours,
+    previousPlayerAction.previousPlayer,
+    previousPlayerAction.previousAction
+  );
 
   //// Return ////
 
