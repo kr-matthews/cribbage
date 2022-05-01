@@ -112,11 +112,18 @@ export default function App() {
   // user's name (persists)
   const [userName, setUserName] = useLocalStorage("userName", "Undecided");
   function trySetUserName(input) {
-    // TODO: NEXT: prevent updating while playing?
-    const newName = input.slice(0, USER_NAME_MAX_LENGTH).trim();
-    if (newName.length > 0) {
-      setUserName(newName);
+    // can't change while playing remotely
+    if (network.mode === "remote") {
+      alert("You can't change your name while playing remotely.");
+      return;
     }
+    // can't set to empty
+    const newName = input.trim().slice(0, USER_NAME_MAX_LENGTH).trim();
+    if (newName.length === 0) {
+      alert("You can't have an empty name.");
+      return;
+    }
+    setUserName(newName);
   }
 
   // list of up to 3 players
@@ -170,6 +177,20 @@ export default function App() {
 
   // handle network connection, for remote play (can still play locally if there's no connection)
   const network = useNetwork({ capacityPerCode: 3, playerCount });
+
+  function nameChangeWarning() {
+    return window.confirm(
+      "Note that you won't be able to change your name once you join."
+    );
+  }
+
+  function join(code) {
+    if (nameChangeWarning()) network.join(code);
+  }
+
+  function create() {
+    if (nameChangeWarning()) network.create();
+  }
 
   //// Cards and Play ////
 
@@ -473,8 +494,8 @@ export default function App() {
         isSoundOn={soundEffects.isOn}
         toggleSound={soundEffects.toggle}
         code={network.code}
-        create={network.create}
-        join={network.join}
+        create={create}
+        join={join}
         leave={network.leave}
         canAddPlayer={
           isOwner &&
