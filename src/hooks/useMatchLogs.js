@@ -27,8 +27,7 @@ function messagesReducer(messages, action) {
 }
 
 export function useMatchLogs(
-  names,
-  colours,
+  players,
   previousPlayer,
   previousAction,
   storageLimit = DEFAULT_LIMIT
@@ -40,11 +39,11 @@ export function useMatchLogs(
   //// Helpers ////
 
   const addMessage = useCallback(
-    (names, colours, player, action) => {
+    (players, player, action) => {
       let message = {
         type: "auto",
-        colour: colours[player],
-        text: `${names[player]} did ${action.label}`,
+        colour: players[player].colour,
+        text: `${players[player].name} did ${action && action.label}`,
         timestamp: Date.now(),
       };
       dispatchMessages({ type: "add", message, storageLimit });
@@ -54,13 +53,13 @@ export function useMatchLogs(
 
   //// Effects ////
 
-  // TODO: figure out whether addMessage should be used internally via effects, or externally
+  // TODO: NEXT: remove effects, use addMessage in App
 
   useEffect(() => {
     if (previousAction) {
-      addMessage(names, colours, previousPlayer, previousAction);
+      addMessage(players, previousPlayer, previousAction);
     }
-  }, [previousPlayer, previousAction, addMessage]); // TODO: name and colour arrays are recalculated every time, consider combining into one array in App.js
+  }, [players, previousPlayer, previousAction, addMessage]);
 
   //// Return ////
 

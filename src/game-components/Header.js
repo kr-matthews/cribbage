@@ -21,7 +21,6 @@ export default function Header({
   nextPlayers = [false, false, false],
   scores = [null, null, null],
   gamePoints = [null, null, null],
-  colours = [null, null, null],
   removeable,
   removePlayer,
 }) {
@@ -42,7 +41,7 @@ export default function Header({
         join={join}
         leave={leave}
       />
-      {players.map(({ name, isComputer }, index) => {
+      {players.map(({ name, isComputer, colour }, index) => {
         return (
           <InfoBox
             key={index}
@@ -55,7 +54,7 @@ export default function Header({
             tooltip={"Click to remove this player"}
             name={name}
             type={isComputer ? "Computer" : "Human"}
-            colour={colours[index]}
+            colour={colour}
             score={scores[index]}
             gamePoints={gamePoints[index]}
           />

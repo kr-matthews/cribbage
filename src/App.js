@@ -1,4 +1,4 @@
-import { useState, useReducer } from "react";
+import { useState, useReducer, useEffect } from "react";
 
 import { useLocalStorage } from "./hooks/useLocalStorage.js";
 import { usePreviousPlayerAction } from "./hooks/usePreviousPlayerAction.js";
@@ -31,13 +31,14 @@ const HIDE_EMPTY_COLUMNS = true;
 const HAND_ALL_UNSELECTED = Array(7).fill(false);
 // longest allowed name
 const USER_NAME_MAX_LENGTH = 12;
-
-//// Helpers ////
+// colours on the board (don't use middle track when 2 players)
+var COLOURS = ["DarkRed", "DarkGreen", "DarkBlue"];
 
 //// Reducers ////
 
 function playersReducer(players, action) {
   const newPlayers = [...players];
+
   switch (action.type) {
     case "add":
       newPlayers.push({});
@@ -47,15 +48,25 @@ function playersReducer(players, action) {
       const ind = action.player || newPlayers.length - 1;
       const isComputer = action.isComputer || newPlayers[ind].isComputer;
       const name = action.name || newPlayers[ind].name;
-      // const colour = action.colour || newPlayers[ind].colour;
       newPlayers[ind] = { isComputer, name };
       break;
+
     case "remove":
       newPlayers.splice(action.player, 1);
       break;
+
     default:
       console.error("playersReducer couldn't recognize action", action);
   }
+
+  // update colours
+  const newPlayerCount = newPlayers.length;
+  for (let ind = 0; ind < newPlayerCount; ind++) {
+    // if 2 players, 2 * ind maps indices to inner, outer tracks
+    newPlayers[ind].colour =
+      newPlayerCount === 3 ? COLOURS[ind] : COLOURS[2 * ind];
+  }
+
   return newPlayers;
 }
 
@@ -101,6 +112,7 @@ export default function App() {
   // user's name (persists)
   const [userName, setUserName] = useLocalStorage("userName", "Undecided");
   function trySetUserName(input) {
+    // TODO: NEXT: prevent updating while playing?
     const newName = input.slice(0, USER_NAME_MAX_LENGTH).trim();
     if (newName.length > 0) {
       setUserName(newName);
@@ -108,9 +120,7 @@ export default function App() {
   }
 
   // list of up to 3 players
-  const [players, dispatchPlayers] = useReducer(playersReducer, [
-    { name: "You", isComputer: false },
-  ]);
+  const [players, dispatchPlayers] = useReducer(playersReducer, []);
 
   // what spot the user is 'sitting' in (can't be 'standing')
   const [position, setPosition] = useState(0);
@@ -152,10 +162,6 @@ export default function App() {
     previousPlayerAction;
 
   //// User Experience ////
-
-  // colours on the board; don't use middle track when 2 players
-  var colours = ["DarkRed", "DarkGreen", "DarkBlue"];
-  playerCount === 2 && colours.splice(1, 1);
 
   // sound effects (can be muted)
   const soundEffects = useSoundEffects();
@@ -433,11 +439,17 @@ export default function App() {
   //// Game History ////
 
   const matchLogs = useMatchLogs(
-    players.map((player) => player.name),
-    colours,
+    players,
     previousPlayerAction.previousPlayer,
     previousPlayerAction.previousAction
   );
+
+  //// Effects ////
+
+  // add player on creation
+  useEffect(() => {
+    dispatchPlayers({ type: "add", isComputer: false, name: "You" });
+  }, []);
 
   //// Return ////
 
@@ -482,7 +494,6 @@ export default function App() {
             ? [null, null, null]
             : gamePoints.points
         }
-        colours={colours}
         removeable={
           isOwner &&
           nextAction === Action.SET_UP_CUT_FOR_DEAL && [false, true, true]
