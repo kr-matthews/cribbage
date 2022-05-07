@@ -36,14 +36,13 @@ export function useMatchLogs(
 
   const [messages, dispatchMessages] = useReducer(messagesReducer, []);
 
-  //// Helpers ////
+  //// Actions ////
 
-  const addMessage = useCallback(
-    (players, player, action) => {
+  const postUpdate = useCallback(
+    (text) => {
       let message = {
         type: "auto",
-        colour: players[player].colour,
-        text: `${players[player].name} did ${action && action.label}`,
+        text,
         timestamp: Date.now(),
       };
       dispatchMessages({ type: "add", message, storageLimit });
@@ -51,80 +50,44 @@ export function useMatchLogs(
     [dispatchMessages, storageLimit]
   );
 
-  //// Effects ////
+  // TODO: NEXT: NEXT: decide how to log actions with additional data (cards, points) and remove temporary log below
 
-  // TODO: NEXT: remove effects, use addMessage in App
+  const postAction = useCallback(
+    (players, player, action) => {
+      if (action && action.pastDescription) {
+        let message = {
+          type: "auto",
+          colour: players[player].colour,
+          text: `${players[player].name} ${action && action.pastDescription}.`,
+          timestamp: Date.now(),
+        };
+        dispatchMessages({ type: "add", message, storageLimit });
+      } else if (action && action.label)
+        dispatchMessages({
+          type: "add",
+          storageLimit,
+          message: {
+            text: (action && action.label) + " - more details required (WIP)",
+            timestamp: Date.now(),
+          },
+        }); // TEMP
+    },
+    [dispatchMessages, storageLimit]
+  );
+
+  function reset() {
+    dispatchMessages({ type: "reset" });
+  }
+
+  //// Effects ////
 
   useEffect(() => {
     if (previousAction) {
-      addMessage(players, previousPlayer, previousAction);
+      postAction(players, previousPlayer, previousAction);
     }
-  }, [players, previousPlayer, previousAction, addMessage]);
+  }, [players, previousPlayer, previousAction, postAction]);
 
   //// Return ////
 
-  return { messages };
+  return { messages, postUpdate, postAction, reset };
 }
-
-const sampleMessages = [
-  {
-    type: "auto",
-    colour: "blue",
-    text: "You score 8 points from your hand",
-    timestamp: Date.now() + 1,
-  },
-  {
-    type: "auto",
-    colour: "red",
-    text: "Joe scores 19 points from their hand",
-    timestamp: Date.now() + 60001,
-  },
-  {
-    type: "auto",
-    colour: "blue",
-    text: "You claim 3 missed points from Joe's hand",
-    timestamp: Date.now() + 80801,
-  },
-  {
-    type: "manual",
-    colour: "red",
-    text: "Joe: Nice play!",
-    timestamp: Date.now() + 105411,
-  },
-  {
-    type: "auto",
-    colour: "red",
-    text: "Joe scores 1 point from their crib",
-    timestamp: Date.now() + 504541,
-  },
-  {
-    type: "auto",
-    colour: "blue",
-    text: "You score 8 points from your hand",
-    timestamp: Date.now(),
-  },
-  {
-    type: "auto",
-    colour: "red",
-    text: "Joe scores 19 points from their hand",
-    timestamp: Date.now() + 6000,
-  },
-  {
-    type: "auto",
-    colour: "blue",
-    text: "You claim 3 missed points from Joe's hand",
-    timestamp: Date.now() + 8080,
-  },
-  {
-    type: "manual",
-    colour: "red",
-    text: "Joe: Nice play!",
-    timestamp: Date.now() + 10541,
-  },
-  {
-    type: "auto",
-    colour: "red",
-    text: "Joe scores 1 point from their crib",
-    timestamp: Date.now() + 50454,
-  },
-];

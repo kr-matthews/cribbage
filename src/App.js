@@ -124,6 +124,7 @@ export default function App() {
       return;
     }
     setUserName(newName);
+    matchLogs.postUpdate(`You changed your name to ${newName}.`);
   }
 
   // list of up to 3 players
@@ -138,7 +139,7 @@ export default function App() {
   const computerCount = players.filter((player) => player.isComputer).length;
 
   function addComputerPlayer() {
-    if (!locked && playerCount < 3) {
+    if (!isLocked && playerCount < 3) {
       let existingNames = players.map((player) => player.name);
       let name;
 
@@ -152,12 +153,18 @@ export default function App() {
         isComputer: true,
         name,
       });
+      matchLogs.postUpdate(`Added computer player ${name}.`);
     }
   }
 
   function removePlayer(player) {
-    if (!locked && player > 0 && players[player]) {
+    if (!isLocked && player > 0 && players[player]) {
       dispatchPlayers({ type: "remove", player });
+      matchLogs.postUpdate(
+        `${players[player].isComputer && "Computer player "}${
+          players[player].name
+        } has left.`
+      );
     }
   }
 
@@ -195,7 +202,7 @@ export default function App() {
   //// Cards and Play ////
 
   // is the game locked in, or can new players join
-  const locked = ![null, Action.RESET_ALL].includes(previousAction);
+  const isLocked = ![null, Action.RESET_ALL].includes(previousAction);
 
   // the deck (used pre-game, to cut for deal); pass in card stack on reset
   const deck = useDeck();
@@ -229,7 +236,7 @@ export default function App() {
   //// Next Action ////
 
   const [nextPlayers, nextAction] = (() => {
-    if (!locked) {
+    if (!isLocked) {
       // haven't started anything yet
       return [makePlayerArray(0), Action.SET_UP_CUT_FOR_DEAL];
     } else if (game.dealer === null) {
@@ -467,9 +474,10 @@ export default function App() {
 
   //// Effects ////
 
-  // add player on creation
+  // add player and message on creation
   useEffect(() => {
     dispatchPlayers({ type: "add", isComputer: false, name: "You" });
+    matchLogs.postUpdate("Welcome to Cribbage.");
   }, []);
 
   //// Return ////
@@ -552,8 +560,8 @@ export default function App() {
         }
         nextAction={
           nextPlayers[position]
-            ? nextAction.internalMessage
-            : nextAction.externalMessage
+            ? nextAction.futureDescriptionOfSelf
+            : nextAction.futureDescriptionOfOther
         }
         labels={labels}
         actions={actions}
