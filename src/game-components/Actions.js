@@ -18,7 +18,7 @@ export default function Actions({
     );
   }
   const waitingMessage = "Waiting for " + nextToAct + " to " + nextAction + ".";
-  // TEMP: should just be 1 div with {waiting ? waitingMessage : buttons}
+  // ~ should just be 1 div with {waiting ? waitingMessage : buttons}
   return (
     <>
       <div className="game-component actions">{waitingMessage}</div>

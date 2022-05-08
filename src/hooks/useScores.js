@@ -124,7 +124,7 @@ export function useScores(
       // 15s, kinds, runs
       for (let claimType of claimTypes) {
         if (claimType === "flush") continue;
-        let claim = "auto"; // TODO: SCORING: allow manual scoring - get claim from outside
+        let claim = "auto"; // todo SCORING: allow manual scoring - get claim from outside
 
         if (claim === "auto") {
           points += autoScoreStackForClaimType(sharedStack, claimType);
@@ -168,7 +168,7 @@ export function useScores(
 
       let points = 0;
 
-      // TODO: SCORING: refactor to allow manual scoring
+      // todo SCORING: refactor to allow manual scoring
 
       for (let claimType of claimTypes) {
         points += autoScoreHandForClaimType(hand, starter, claimType, isCrib);
@@ -195,7 +195,7 @@ export function useScores(
 
   //// Return ////
 
-  // TODO: provide details of most recent pegging, to be observed by history logger?
+  // todo provide details of most recent pegging, to be observed by history logger?
 
   return {
     current,
@@ -212,7 +212,7 @@ export function useScores(
   };
 }
 
-//// TODO: old code for validation from useRound
+//// todo old code for validation from useRound
 
 // function isValidPlay(index, claim, amount = sharedStack.length + 1) {
 //   const card = hands[nextPlayer][index];

@@ -127,4 +127,4 @@ export function useGame(deck, playerCount, previousPlayerAction) {
   };
 }
 
-// TODO: add tests, primarily that actions line up and dealer is correct on new games/rounds
+// todo add tests, primarily that actions line up and dealer is correct on new games/rounds

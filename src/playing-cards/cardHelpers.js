@@ -27,7 +27,7 @@ for (let rank of [
   Rank.KING,
 ]) {
   for (let suit of [Suit.CLUB, Suit.DIAMOND, Suit.SPADE, Suit.HEART]) {
-    allCards.push({ rank, suit, faceUp: true }); // TEMP: face up
+    allCards.push({ rank, suit, faceUp: true }); // ~ face up
   }
 }
 

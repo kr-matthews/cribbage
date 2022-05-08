@@ -11,6 +11,6 @@ export default function ScoreBoard({ gamePoints, currentScores, priorScores }) {
   );
 }
 
-// TODO: SCOREBOARD: use an image as a background, place pins/circles on top
+// todo SCOREBOARD: use an image as a background, place pins/circles on top
 
 // if only 2 players, use inner and outer tracks

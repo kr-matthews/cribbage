@@ -281,27 +281,27 @@ describe("the play phase", () => {
   });
 
   it("ending with a go", () => {
-    // TODO: useScores test: end on go
+    // todo useScores test: end on go
   });
 
   it("ending on 31", () => {
-    // TODO: useScores test: end on 31
+    // todo useScores test: end on 31
   });
 
   it("ending on last card", () => {
-    // TODO: useScores test: end on last card
+    // todo useScores test: end on last card
   });
 });
 
 describe("the scoring phase", () => {
   it("test", () => {
-    // TODO: useScores test: scoring hands, crib
+    // todo useScores test: scoring hands, crib
   });
 });
 
 describe("tracking 1st and 2nd pegs", () => {
   it("test", () => {
-    // TODO: useScores test: peg positions
+    // todo useScores test: peg positions
   });
 });
 

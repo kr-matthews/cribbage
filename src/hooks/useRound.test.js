@@ -9,13 +9,13 @@ import { cardSorter } from "../playing-cards/cardHelpers.js";
 
 //// Setup ////
 
-// QUESTION: how to preserve the hook state between tests, to avoid dealing etc at the start of each test?
+// ? how to preserve the hook state between tests, to avoid dealing etc at the start of each test?
 // nothing I've tried works
 
 // NOTE: Certain round actions only change things inside the parameters (the deck, and the previousPlayerAction)
 // so renderHook doesn't seem to rerender itself and side-effects aren't run. A manual call to rerender was added to fix this.
 
-// TODO: Probably best to remove `expect` statements about the mockedPreviousPlayerAction? (And the commented out tests.)
+// todo Probably best to remove `expect` statements about the mockedPreviousPlayerAction? and the commented out expects
 
 //// Params for the useRound hook being tested ////
 

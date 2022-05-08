@@ -399,7 +399,7 @@ export default function App() {
       break;
 
     case Action.DISCARD:
-      actions = [() => discard(nextPlayer)]; // TEMP: TODO: nextPlayer -> position
+      actions = [() => discard(nextPlayer)]; // ~ nextPlayer -> position
       enabled = [selectedCount === 4 - playerCount];
       clickCardHandler = (index) => {
         dispatchSelected({ type: "click", index });
@@ -416,7 +416,7 @@ export default function App() {
       clickDeckHandler = actions[0];
       break;
 
-    case Action.PLAY_OR_GO: // TODO: add option for claiming various types of points (?)
+    case Action.PLAY_OR_GO: // todo add option for claiming various types of points (?)
       labels = ["Play", "Go"];
       actions = [play, go];
       enabled = [
@@ -436,7 +436,7 @@ export default function App() {
       actions = [returnCardsToHands];
       break;
 
-    case Action.SCORE_HAND: // TODO: add options to claim points (?)
+    case Action.SCORE_HAND: // todo add options to claim points (?)
       actions = [scoreHand];
       break;
 
@@ -483,7 +483,7 @@ export default function App() {
   //// Return ////
 
   return (
-    // TEMP: WIP warning just below, and missing scoreboard
+    // ~ WIP warning just below, and missing scoreboard
     <div className="app">
       {/* <ScoreBoard
         gamePoints={gamePoints.points}
@@ -533,9 +533,9 @@ export default function App() {
         hideEmptyColumns={HIDE_EMPTY_COLUMNS}
         crib={game.crib}
         hands={game.hands}
-        activePosition={nextPlayer} // TEMP: position
+        activePosition={nextPlayer} // ~ nextPlayer -> position
         selectedCards={selected}
-        clickCardHandler={clickCardHandler} // TEMP: nextPlayers[position] && clickCardHandler
+        clickCardHandler={clickCardHandler} // ~ clickCardHandler -> nextPlayers[position] && clickCardHandler
         maxSize={game.crib.length === 4 ? 4 : 8 - playerCount}
       />
       <PlayArea

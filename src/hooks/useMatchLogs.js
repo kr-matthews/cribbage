@@ -50,7 +50,7 @@ export function useMatchLogs(
     [dispatchMessages, storageLimit]
   );
 
-  // TODO: NEXT: NEXT: decide how to log actions with additional data (cards, points) and remove temporary log below
+  // !!! decide how to log actions with additional data (cards, points) and remove temporary log below
 
   const postAction = useCallback(
     (players, player, action) => {
@@ -70,7 +70,7 @@ export function useMatchLogs(
             text: (action && action.label) + " - more details required (WIP)",
             timestamp: Date.now(),
           },
-        }); // TEMP
+        }); // ~ remove else case
     },
     [dispatchMessages, storageLimit]
   );

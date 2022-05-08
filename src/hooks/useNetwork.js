@@ -66,12 +66,10 @@ export function useNetwork({ capacityPerCode = 2, playerCount }) {
   // listen for incoming messages
   useEffect(() => {
     if (messageHandler) {
-      console.info("Adding handler for incoming messages"); // TEMP
       const listener = { message: messageHandler };
       pubnub.addListener(listener);
 
       return function cleanupListener() {
-        console.info("Removing handler for incoming messages"); // TEMP
         pubnub.removeListener(listener);
       };
     }
@@ -81,7 +79,7 @@ export function useNetwork({ capacityPerCode = 2, playerCount }) {
 
   // check how many people are using a code
   function checkPresence(code) {
-    // TODO: NETWORK: define checkPresence: how many users using code
+    // todo NETWORK: define checkPresence: how many users using code
     return Math.floor(Math.random() * 4);
   }
 
@@ -142,14 +140,14 @@ export function useNetwork({ capacityPerCode = 2, playerCount }) {
         );
         return;
       } else if (presenceCount === 3) {
-        // TODO: NETWORK: joining - what if 2 players already started a game?
+        // todo NETWORK: joining - what if 2 players already started a game?
         alert(`Failed to play remotely: That remote code is full.`);
         return;
       }
       subscribeTo(newCode);
       setCode(newCode);
       alert(`Success: Playing remotely.`);
-      // TODO: NETWORK: send player info (or is that elsewhere?)
+      // todo NETWORK: send player info (or is that elsewhere?)
     } catch (e) {
       console.error(e);
       alert(`Failed to play remotely: ${e.message} `);
@@ -160,7 +158,7 @@ export function useNetwork({ capacityPerCode = 2, playerCount }) {
   function leave() {
     try {
       unsubscribeFrom(code);
-      // TODO: NETWORK: send leaving message (or is that elsewhere?)
+      // todo NETWORK: send leaving message (or is that elsewhere?)
     } catch (e) {
       console.error(e);
     } finally {
@@ -192,6 +190,6 @@ export function useNetwork({ capacityPerCode = 2, playerCount }) {
     join,
     leave,
     sendMessage,
-    setMessageHandler, // QUESTION: maybe pass in via object which never changes?
+    setMessageHandler, // ? maybe pass in via object which never changes?
   };
 }
