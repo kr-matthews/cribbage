@@ -3,9 +3,10 @@ import { useCallback, useState } from "react";
 export function usePreviousPlayerAction(playerCount) {
   //// States ////
 
-  const [{ previousPlayer, previousAction }, setPrevious] = useState({
+  const [{ previousPlayer, previousAction, data }, setPrevious] = useState({
     previousPlayer: null,
     previousAction: null,
+    data: {},
   });
 
   //// Helpers ////
@@ -18,10 +19,11 @@ export function usePreviousPlayerAction(playerCount) {
   }
 
   const setPreviousPlayerAction = useCallback(
-    (player, action) =>
+    (player, action, data) =>
       setPrevious({
         previousPlayer: player,
         previousAction: action,
+        data,
       }),
     [setPrevious]
   );
@@ -31,6 +33,7 @@ export function usePreviousPlayerAction(playerCount) {
   return {
     previousPlayer,
     previousAction,
+    data,
 
     makePlayerArray,
 

@@ -62,27 +62,11 @@ export function useGame(deck, playerCount, previousPlayerAction) {
     setDealer(newDealer);
   }
 
-  // /** locking in players for a fresh game */
-  // function start(dealer) {
-  //   round.reset();
-  //   setDealer(dealer);
-  //   scores.reset();
-  //   setPreviousPlayerAction(nextPlayer, Action.START_FIRST_GAME);
-  // }
-
   function startNextRound() {
     round.reset();
     setDealer((dealer) => (dealer + 1) % playerCount);
     setPreviousPlayerAction(nextPlayer, Action.START_NEW_ROUND);
   }
-
-  // /** for starting rematch with same players (loser goes first, gamePoints preserved) */
-  // function rematch() {
-  //   round.reset();
-  //   scores.reset();
-  //   setDealer(rematchDealer);
-  //   setPreviousPlayerAction(nextPlayer, Action.START_NEW_GAME);
-  // }
 
   //// Return ////
 

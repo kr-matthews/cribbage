@@ -41,14 +41,13 @@ export default class Action {
   static CONTINUE_DEALING = new Action(null, null, "finish dealing");
   static DISCARD = new Action(
     "Discard",
-    "discarded to the crib",
-    "discard to your crib",
+    null, //"discarded to the crib",
     "discard to the crib"
   );
   static CUT_FOR_STARTER = new Action("Cut", "cut the deck", "cut the deck");
   static FLIP_STARTER = new Action("Flip", null, "flip the starter");
   static PLAY = new Action("Play", null, null);
-  static GO = new Action("Go", "said 'Go'", null);
+  static GO = new Action("Go", ": 'Go'", null);
   static PLAY_OR_GO = new Action(null, null, "play a card, or go");
   static FLIP_PLAYED_CARDS = new Action(
     "Next",
@@ -94,3 +93,5 @@ export default class Action {
       futureDescriptionOfOther || futureDescriptionOfSelf;
   }
 }
+
+// !!! remove pastDescription, add it to switch in match logs

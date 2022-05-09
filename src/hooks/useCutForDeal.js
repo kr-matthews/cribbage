@@ -79,7 +79,7 @@ export function useCutForDeal(deck, playerCount, previousPlayerAction) {
     deck.cut(Math.floor(deck.unCutCount / 2), 4);
     let card = deck.draw(1)[0];
     dispatchCuts({ type: "add", player: cuts.indexOf(null), card });
-    setPreviousPlayerAction(nextPlayer, Action.CUT_FOR_DEAL);
+    setPreviousPlayerAction(nextPlayer, Action.CUT_FOR_DEAL, { card });
   }
 
   function reset() {

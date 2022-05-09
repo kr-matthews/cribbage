@@ -284,7 +284,6 @@ export default function App() {
 
   function cutForDealFunction() {
     cutForDeal.cut();
-    setPreviousPlayerAction(nextPlayer, Action.CUT_FOR_DEAL);
   }
 
   function setUpCutForDealRetry() {
@@ -469,7 +468,8 @@ export default function App() {
   const matchLogs = useMatchLogs(
     players,
     previousPlayerAction.previousPlayer,
-    previousPlayerAction.previousAction
+    previousPlayerAction.previousAction,
+    previousPlayerAction.data
   );
 
   //// Effects ////

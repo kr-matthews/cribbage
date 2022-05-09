@@ -320,7 +320,7 @@ export function useRound(deck, playerCount, dealer, previousPlayerAction) {
     for (let index of descIndices) {
       dispatchStates({ type: "discard", player, index });
     }
-    setPreviousPlayerAction(player, Action.DISCARD);
+    setPreviousPlayerAction(player, Action.DISCARD, { count: indices.length });
   }
 
   function cut() {
@@ -329,15 +329,21 @@ export function useRound(deck, playerCount, dealer, previousPlayerAction) {
   }
 
   function flip() {
-    setStarter(deck.draw(1)[0]);
+    let card = deck.draw(1)[0];
+    setStarter(card);
     deck.uncut();
-    setPreviousPlayerAction(nextPlayer, Action.FLIP_STARTER);
+    setPreviousPlayerAction(nextPlayer, Action.FLIP_STARTER, { card });
   }
 
   function play(index) {
+    let card = hands[nextPlayer][index];
     setPreviousCardPlayedBy(nextPlayer);
     dispatchStates({ type: "play", player: nextPlayer, index });
-    setPreviousPlayerAction(nextPlayer, Action.PLAY);
+    setPreviousPlayerAction(nextPlayer, Action.PLAY, {
+      card,
+      points: "-1", // !! figure out how to deduce points here
+      stackTotal: stackTotal + card.rank.points,
+    });
   }
 
   function go() {
@@ -360,11 +366,11 @@ export function useRound(deck, playerCount, dealer, previousPlayerAction) {
   }
 
   function scoreHand() {
-    setPreviousPlayerAction(nextPlayer, Action.SCORE_HAND);
+    setPreviousPlayerAction(nextPlayer, Action.SCORE_HAND, { points: "-1" }); // !! figure out how to deduce points here
   }
 
   function scoreCrib() {
-    setPreviousPlayerAction(nextPlayer, Action.SCORE_CRIB);
+    setPreviousPlayerAction(nextPlayer, Action.SCORE_CRIB, { points: "-1" }); // !! figure out how to deduce points here
   }
 
   //// Return ////
