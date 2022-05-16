@@ -36,8 +36,7 @@ export function useMatchLogs(
   starter,
   piles,
   stackTotal,
-  currentScores,
-  previousScores,
+  delta,
   storageLimit = DEFAULT_LIMIT
 ) {
   //// States ////
@@ -61,16 +60,7 @@ export function useMatchLogs(
 
   // colour-coded, starting with player name
   const postAction = useCallback(
-    (
-      player,
-      action,
-      cuts,
-      starter,
-      piles,
-      stackTotal,
-      currentScores,
-      previousScores
-    ) => {
+    (player, action, cuts, starter, piles, stackTotal, delta) => {
       // base message
       let message = {
         type: "auto",
@@ -115,18 +105,12 @@ export function useMatchLogs(
           }s: '${stackTotal}${false ? ` for ${"some"}` : ""}'.`;
           break;
 
-        // !! figure out how to deal with scoring effects, or move them directly into round actions
-
         case Action.SCORE_HAND:
-          message.text += `scored ${
-            currentScores[player] - previousScores[player]
-          } from their hand.`; // ! from your hand
+          message.text += `scored ${delta} from their hand.`; // ! from your hand
           break;
 
         case Action.SCORE_CRIB:
-          message.text += `scored ${
-            currentScores[player] - previousScores[player]
-          } from the crib.`;
+          message.text += `scored ${delta} from the crib.`;
           break;
 
         default:
@@ -157,8 +141,7 @@ export function useMatchLogs(
         starter,
         piles,
         stackTotal,
-        currentScores,
-        previousScores
+        delta
       );
     }
   }, [
@@ -168,8 +151,7 @@ export function useMatchLogs(
     starter,
     piles,
     stackTotal,
-    currentScores,
-    previousScores,
+    delta,
     postAction,
   ]);
 

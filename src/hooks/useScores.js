@@ -1,15 +1,4 @@
 import { useReducer, useEffect } from "react";
-import {
-  totalPoints,
-  claimTypes,
-  checkClaim,
-  pointsForClaim,
-  autoScoreHandForClaimType,
-  autoScoreStackForClaimType,
-} from "../playing-cards/cardHelpers";
-
-import Rank from "../playing-cards/Rank";
-import Action from "./Action";
 
 //// Constants ////
 
@@ -24,57 +13,51 @@ function initialScores(playerCount) {
   return {
     current: Array(playerCount).fill(0), // current (1st peg)
     previous: Array(playerCount).fill(-1), // previous (2nd peg)
+    delta: Array(playerCount).fill(null), // updates even when pegging 0 (unlike current - previous)
   };
 }
 
 //// Reducers ////
 
 function scoresReducer(
-  { current, previous },
+  { current, previous, delta },
   { type, player, points, playerCount }
 ) {
   if (type === "reset") return initialScores(playerCount);
 
   let newPrevious = [...previous];
   let newCurrent = [...current];
+  let newDelta = 0; // default, for when scored 0
+
   switch (type) {
     case "increment":
-      if (points <= 0) return { current, previous }; // don't move any pegs if "pegging" 0
-      newPrevious[player] = current[player];
-      newCurrent[player] += points;
+      // only update pegs and calculate delta when applicable
+      if (points > 0) {
+        newPrevious[player] = current[player];
+        newCurrent[player] += points;
+        newDelta = newCurrent[player] - newPrevious[player];
+      }
       break;
 
     default:
       console.error("scoresReducer couldn't recognize action type", type);
   }
-  return { current: newCurrent, previous: newPrevious };
+  return { current: newCurrent, previous: newPrevious, delta: newDelta };
 }
 
 //// Hook ////
 
-export function useScores(
-  playerCount,
-  dealer,
-  starter,
-  crib,
-  hands,
-  sharedStack,
-  previousPlayer,
-  previousAction,
-  isCurrentPlayOver
-) {
+export function useScores(playerCount) {
   //// States ////
 
   // the most recent two scores for each player (correspond to peg positions)
-  const [{ current, previous }, dispatchScores] = useReducer(
+  const [{ current, previous, delta }, dispatchScores] = useReducer(
     scoresReducer,
     playerCount,
     initialScores
   );
 
   //// Constants ////
-
-  const stackTotal = totalPoints(sharedStack);
 
   const winner = current.findIndex((score) => WIN_LINE < score);
   const hasWinner = winner !== -1;
@@ -97,10 +80,6 @@ export function useScores(
 
   //// Helpers ////
 
-  function peg(player, points) {
-    dispatchScores({ type: "increment", player, points });
-  }
-
   //// Effects ////
 
   // reset if player count changes
@@ -108,86 +87,85 @@ export function useScores(
     dispatchScores({ type: "reset", playerCount });
   }, [playerCount]);
 
-  // peg 2 for cutting a jack
-  useEffect(() => {
-    if (starter && starter.rank === Rank.JACK) {
-      peg(dealer, 2);
-    }
-  }, [dealer, starter]);
+  // !!! remove the effects below
 
-  // peg after playing a card
-  //  combine into one big effect so that all points are in a single pegging
-  useEffect(() => {
-    if (previousAction === Action.PLAY) {
-      let points = 0;
+  // // peg after playing a card
+  // //  combine into one big effect so that all points are in a single pegging
+  // useEffect(() => {
+  //   if (previousAction === Action.PLAY) {
+  //     let points = 0;
 
-      // 15s, kinds, runs
-      for (let claimType of claimTypes) {
-        if (claimType === "flush") continue;
-        let claim = "auto"; // todo SCORING: allow manual scoring - get claim from outside
+  //     // 15s, kinds, runs
+  //     for (let claimType of claimTypes) {
+  //       if (claimType === "flush") continue;
+  //       let claim = "auto"; // todo SCORING: allow manual scoring - get claim from outside
 
-        if (claim === "auto") {
-          points += autoScoreStackForClaimType(sharedStack, claimType);
-        } else if (Number.isInteger(claim) || claim === "all") {
-          claim = claim === "all" ? sharedStack.length : claim;
-          let sliceAmount = sharedStack.length - claim;
-          if (checkClaim(sharedStack.slice(sliceAmount), claimType)) {
-            points += pointsForClaim(claimType, claim);
-          }
-        }
-      }
+  //       if (claim === "auto") {
+  //         points += autoScoreStackForClaimType(sharedStack, claimType);
+  //       } else if (Number.isInteger(claim) || claim === "all") {
+  //         claim = claim === "all" ? sharedStack.length : claim;
+  //         let sliceAmount = sharedStack.length - claim;
+  //         if (checkClaim(sharedStack.slice(sliceAmount), claimType)) {
+  //           points += pointsForClaim(claimType, claim);
+  //         }
+  //       }
+  //     }
 
-      // end of play?
-      if (isCurrentPlayOver) {
-        points += stackTotal === 31 ? 2 : 1;
-      }
+  //     // end of play?
+  //     if (isCurrentPlayOver) {
+  //       points += stackTotal === 31 ? 2 : 1;
+  //     }
 
-      // peg all points at once
-      peg(previousPlayer, points);
-    }
-  }, [
-    previousAction,
-    previousPlayer,
-    sharedStack,
-    isCurrentPlayOver,
-    stackTotal,
-  ]);
+  //     // peg all points at once
+  //     peg(previousPlayer, points);
+  //   }
+  // }, [
+  //   previousAction,
+  //   previousPlayer,
+  //   sharedStack,
+  //   isCurrentPlayOver,
+  //   stackTotal,
+  // ]);
 
-  // peg after a go which ends a play
-  useEffect(() => {
-    if (previousAction === Action.GO && isCurrentPlayOver) {
-      peg(previousPlayer, 1);
-    }
-  }, [previousAction, isCurrentPlayOver, previousPlayer]);
+  // // peg after a go which ends a play
+  // useEffect(() => {
+  //   if (previousAction === Action.GO && isCurrentPlayOver) {
+  //     peg(previousPlayer, 1);
+  //   }
+  // }, [previousAction, isCurrentPlayOver, previousPlayer]);
 
-  // score a hand (or the crib)
-  useEffect(() => {
-    if ([Action.SCORE_HAND, Action.SCORE_CRIB].includes(previousAction)) {
-      let isCrib = previousAction === Action.SCORE_CRIB;
-      let hand = isCrib ? [...crib] : [...hands[previousPlayer]];
+  // // score a hand (or the crib)
+  // useEffect(() => {
+  //   if ([Action.SCORE_HAND, Action.SCORE_CRIB].includes(previousAction)) {
+  //     let isCrib = previousAction === Action.SCORE_CRIB;
+  //     let hand = isCrib ? [...crib] : [...hands[previousPlayer]];
 
-      let points = 0;
+  //     let points = 0;
 
-      // todo SCORING: refactor to allow manual scoring
+  //     // todo SCORING: refactor to allow manual scoring
 
-      for (let claimType of claimTypes) {
-        points += autoScoreHandForClaimType(hand, starter, claimType, isCrib);
-      }
+  //     for (let claimType of claimTypes) {
+  //       points += autoScoreHandForClaimType(hand, starter, claimType, isCrib);
+  //     }
 
-      // his nobs: score jack with same colour as starter
-      if (
-        hand.some(
-          (card) => card.rank === Rank.JACK && card.suit === starter.suit
-        )
-      ) {
-        points += 1;
-      }
+  //     // his nobs: score jack with same colour as starter
+  //     if (
+  //       hand.some(
+  //         (card) => card.rank === Rank.JACK && card.suit === starter.suit
+  //       )
+  //     ) {
+  //       points += 1;
+  //     }
 
-      peg(previousPlayer, points);
-    }
-  }, [previousAction, previousPlayer, starter, crib, hands, dealer]);
+  //     peg(previousPlayer, points);
+  //   }
+  // }, [previousAction, previousPlayer, starter, crib, hands, dealer]);
 
   //// Return Functions ////
+
+  function peg(player, points) {
+    dispatchScores({ type: "increment", player, points });
+  }
 
   function reset() {
     dispatchScores({ type: "reset", playerCount });
@@ -195,11 +173,10 @@ export function useScores(
 
   //// Return ////
 
-  // todo provide details of most recent pegging, to be observed by history logger?
-
   return {
     current,
     previous,
+    delta,
 
     hasWinner,
     winner,
@@ -208,6 +185,7 @@ export function useScores(
     doubleSkunkCount,
     tripleSkunkCount,
 
+    peg,
     reset,
   };
 }

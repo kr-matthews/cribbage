@@ -10,31 +10,22 @@ import { useScores } from "./useScores.js";
 export function useGame(deck, playerCount, previousPlayerAction) {
   //// States ////
 
+  // previous player and action
+  const { makePlayerArray, setPreviousPlayerAction } = previousPlayerAction;
+
   // current dealer, via player index
   const [dealer, setDealer] = useState(null);
 
-  // the game plays rounds until someone wins
-  const round = useRound(deck, playerCount, dealer, previousPlayerAction);
-
-  // previous player and action
-  const {
-    previousPlayer,
-    previousAction,
-    makePlayerArray,
-    setPreviousPlayerAction,
-  } = previousPlayerAction;
-
   // current scores
-  const scores = useScores(
+  const scores = useScores(playerCount);
+
+  // the game plays rounds until someone wins
+  const round = useRound(
+    deck,
     playerCount,
     dealer,
-    round.starter,
-    round.crib,
-    round.hands,
-    round.sharedStack,
-    previousPlayer,
-    previousAction,
-    round.isCurrentPlayOver
+    previousPlayerAction,
+    scores.peg
   );
 
   //// Next Action ////
@@ -89,6 +80,7 @@ export function useGame(deck, playerCount, previousPlayerAction) {
     // scores
     currentScores: scores.current,
     previousScores: scores.previous,
+    scoreDelta: scores.delta,
     winner: scores.winner,
     nonSkunkCount: scores.nonSkunkCount,
     skunkCount: scores.skunkCount,

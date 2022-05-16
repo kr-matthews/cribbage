@@ -17,12 +17,7 @@ import { renderHook, act } from "@testing-library/react-hooks";
 
 import { useScores } from "./useScores.js";
 
-import {
-  checkClaim,
-  pointsForClaim,
-  autoScoreHandForClaimType,
-  autoScoreStackForClaimType,
-} from "../playing-cards/cardHelpers.js";
+import { autoScoreStackForClaimType } from "../playing-cards/cardHelpers.js";
 
 import Rank from "../playing-cards/Rank.js";
 import Suit from "../playing-cards/Suit.js";
@@ -46,6 +41,8 @@ const initialProps = {
   previousAction: null,
   isCurrentPlayOver: null,
 };
+
+// !! move applicable tests to round tests, and fix the rest
 
 beforeEach(() => {
   const hook = renderHook(

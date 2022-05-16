@@ -3,6 +3,7 @@ import { useEffect, useReducer, useState } from "react";
 import Action from "./Action";
 
 import { cardSorter, totalPoints } from "../playing-cards/cardHelpers.js";
+import Rank from "../playing-cards/Rank";
 
 //// Helpers ////
 
@@ -100,7 +101,7 @@ function reduceGoed(goed, action) {
 
 ////// Hook //////
 
-export function useRound(deck, playerCount, dealer, previousPlayerAction) {
+export function useRound(deck, playerCount, dealer, previousPlayerAction, peg) {
   //// States ////
 
   const [{ crib, hands, piles, sharedStack }, dispatchStates] = useReducer(
@@ -330,19 +331,22 @@ export function useRound(deck, playerCount, dealer, previousPlayerAction) {
   function flip() {
     let card = deck.draw(1)[0];
     setStarter(card);
+    peg(nextPlayer, card.rank === Rank.JACK ? 2 : 0);
     deck.uncut();
     setPreviousPlayerAction(nextPlayer, Action.FLIP_STARTER);
   }
 
   function play(index) {
-    let card = hands[nextPlayer][index];
+    // let card = hands[nextPlayer][index];
     setPreviousCardPlayedBy(nextPlayer);
     dispatchStates({ type: "play", player: nextPlayer, index });
+    // !!! peg
     setPreviousPlayerAction(nextPlayer, Action.PLAY);
   }
 
   function go() {
     dispatchGoed({ type: "add", player: nextPlayer });
+    // !!! peg
     setPreviousPlayerAction(nextPlayer, Action.GO);
   }
 
@@ -361,10 +365,12 @@ export function useRound(deck, playerCount, dealer, previousPlayerAction) {
   }
 
   function scoreHand() {
+    // !!! peg
     setPreviousPlayerAction(nextPlayer, Action.SCORE_HAND);
   }
 
   function scoreCrib() {
+    // !!! peg
     setPreviousPlayerAction(nextPlayer, Action.SCORE_CRIB);
   }
 
@@ -381,7 +387,6 @@ export function useRound(deck, playerCount, dealer, previousPlayerAction) {
     // logic data
     nextPlayers,
     nextAction,
-    isCurrentPlayOver,
 
     // checks
     isValidGo,

@@ -473,8 +473,7 @@ export default function App() {
     game.starter,
     game.piles,
     game.stackTotal,
-    game.currentScores,
-    game.previousScores
+    game.scoreDelta
   );
 
   //// Effects ////
