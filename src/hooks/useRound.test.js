@@ -1107,8 +1107,8 @@ describe("run through a round", () => {
 
       expect(mockPreviousPlayerAction.previousPlayer).toBeNull;
       expect(mockPreviousPlayerAction.previousAction).toBeNull;
-      expect(result.current.nextPlayers).toStrictEqual([false, false, true]);
-      expect(result.current.nextAction).toBe(Action.START_DEALING);
+      expect(result.current.nextPlayers).toBe(null);
+      expect(result.current.nextAction).toBe(null);
       // expect(roundHook.current.previousCardPlayedBy).toBeNull;
       expect(result.current.isCurrentPlayOver).toBeNull;
     });

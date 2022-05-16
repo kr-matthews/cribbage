@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useReducer } from "react";
 import Action from "./Action";
+import Rank from "../playing-cards/Rank.js";
 
 // amount of messages to keep
 const DEFAULT_LIMIT = 30;
@@ -31,7 +32,12 @@ export function useMatchLogs(
   players,
   previousPlayer,
   previousAction,
-  data,
+  cuts,
+  starter,
+  piles,
+  stackTotal,
+  currentScores,
+  previousScores,
   storageLimit = DEFAULT_LIMIT
 ) {
   //// States ////
@@ -55,9 +61,16 @@ export function useMatchLogs(
 
   // colour-coded, starting with player name
   const postAction = useCallback(
-    (player, action, data) => {
-      let { card, points, stackTotal, count } = data || {};
-
+    (
+      player,
+      action,
+      cuts,
+      starter,
+      piles,
+      stackTotal,
+      currentScores,
+      previousScores
+    ) => {
       // base message
       let message = {
         type: "auto",
@@ -72,31 +85,48 @@ export function useMatchLogs(
           return;
 
         case Action.CUT_FOR_DEAL:
+          if (!cuts[player]) return;
           message.text += `cut a${
-            [1, 8].includes(card.rank.points) ? "n" : ""
-          } ${card.rank.name}.`;
+            [1, 8].includes(cuts[player].rank.points) ? "n" : ""
+          } ${cuts[player].rank.name}.`;
           break;
 
         case Action.DISCARD:
-          message.text += `discarded ${count} card${
-            count === 1 ? "" : "s"
-          } to the crib.`;
+          // message.text += `discarded ${count} card${
+          //   count === 1 ? "" : "s"
+          // } to the crib.`;
+          message.text += `discarded to the crib.`;
           break;
 
         case Action.FLIP_STARTER:
-          message.text += `revealed the starter to be the ${card.rank.name} of ${card.suit.name}s.`;
+          // if (!starter) return;
+          message.text += `revealed the starter to be the ${
+            starter.rank.name
+          } of ${starter.suit.name}s${
+            starter.rank.symbol === Rank.JACK ? " for 2" : ""
+          }.`;
           break;
 
         case Action.PLAY:
-          message.text += `played the ${card.rank.name} of ${card.suit.name}s: '${stackTotal} for ${points}'.`; // !!! remove points if 0
+          message.text += `played the ${
+            piles[player][piles[player].length - 1].rank.name
+          } of ${
+            piles[player][piles[player].length - 1].suit.name
+          }s: '${stackTotal}${false ? ` for ${"some"}` : ""}'.`;
           break;
 
+        // !! figure out how to deal with scoring effects, or move them directly into round actions
+
         case Action.SCORE_HAND:
-          message.text += `scored ${points} from their hand.`; // ! from your hand
+          message.text += `scored ${
+            currentScores[player] - previousScores[player]
+          } from their hand.`; // ! from your hand
           break;
 
         case Action.SCORE_CRIB:
-          message.text += `scored ${points} from the crib.`;
+          message.text += `scored ${
+            currentScores[player] - previousScores[player]
+          } from the crib.`;
           break;
 
         default:
@@ -120,9 +150,28 @@ export function useMatchLogs(
   // automatically post message based on previous action
   useEffect(() => {
     if (previousAction) {
-      postAction(previousPlayer, previousAction, data);
+      postAction(
+        previousPlayer,
+        previousAction,
+        cuts,
+        starter,
+        piles,
+        stackTotal,
+        currentScores,
+        previousScores
+      );
     }
-  }, [previousPlayer, previousAction, data, postAction]);
+  }, [
+    previousPlayer,
+    previousAction,
+    cuts,
+    starter,
+    piles,
+    stackTotal,
+    currentScores,
+    previousScores,
+    postAction,
+  ]);
 
   //// Return ////
 

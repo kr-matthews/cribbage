@@ -39,7 +39,7 @@ function scoresReducer(
   let newCurrent = [...current];
   switch (type) {
     case "increment":
-      if (points <= 0) break; // don't move any pegs if "pegging" 0
+      if (points <= 0) return { current, previous }; // don't move any pegs if "pegging" 0
       newPrevious[player] = current[player];
       newCurrent[player] += points;
       break;

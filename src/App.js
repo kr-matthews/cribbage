@@ -469,7 +469,12 @@ export default function App() {
     players,
     previousPlayerAction.previousPlayer,
     previousPlayerAction.previousAction,
-    previousPlayerAction.data
+    cutForDeal.cuts,
+    game.starter,
+    game.piles,
+    game.stackTotal,
+    game.currentScores,
+    game.previousScores
   );
 
   //// Effects ////

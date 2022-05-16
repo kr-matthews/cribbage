@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { totalPoints } from "../playing-cards/cardHelpers.js";
 import Action from "./Action.js";
 
 import { useRound } from "./useRound.js";
@@ -81,6 +82,9 @@ export function useGame(deck, playerCount, previousPlayerAction) {
     nextPlayers,
     nextAction,
     dealer,
+
+    // more data
+    stackTotal: totalPoints(round.sharedStack),
 
     // scores
     currentScores: scores.current,
