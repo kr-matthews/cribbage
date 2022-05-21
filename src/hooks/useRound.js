@@ -1,8 +1,17 @@
 import { useEffect, useReducer, useState } from "react";
+import _ from "lodash";
 
 import Action from "./Action";
 
-import { cardSorter, totalPoints } from "../playing-cards/cardHelpers.js";
+import {
+  autoScoreHandForClaimType,
+  autoScoreStackForClaimType,
+  cardSorter,
+  checkClaim,
+  claimTypes,
+  pointsForClaim,
+  totalPoints,
+} from "../playing-cards/cardHelpers.js";
 import Rank from "../playing-cards/Rank";
 
 //// Helpers ////
@@ -265,6 +274,19 @@ export function useRound(deck, playerCount, dealer, previousPlayerAction, peg) {
 
   const nextPlayer = nextPlayers ? nextPlayers.indexOf(true) : null;
 
+  function willEndCurrentPlay(index = 0) {
+    // will hit 31, OR: only one left and either can't play any cards or on last card
+    // if "go"ing, index doesn't matter so default to any which exists
+    return (
+      stackTotal + hands[nextPlayer][index].rank.points === 31 ||
+      (_.countBy(isOut)[true] === 1 &&
+        (Math.min(...hands[nextPlayer].map((card) => card.rank.points)) +
+          stackTotal >
+          31 ||
+          hands[nextPlayer].length === 1))
+    );
+  }
+
   //// Effects ////
 
   // reset if player count changes
@@ -300,6 +322,64 @@ export function useRound(deck, playerCount, dealer, previousPlayerAction, peg) {
     return stackTotal + card.rank.points <= 31;
   }
 
+  //// Scoring ////
+
+  // NOTE: always peg, even if it's 0, to ensure scores.delta updates
+
+  function scoreFlip(card) {
+    peg(nextPlayer, card.rank === Rank.JACK ? 2 : 0);
+  }
+
+  function scorePlay(index) {
+    let newStack = [...sharedStack, hands[nextPlayer][index]]; // NOTE: awkwardly simulating shared stack
+    let points = 0;
+    // 15s, kinds, runs
+    for (let claimType of claimTypes) {
+      if (claimType === "flush") continue; // skip flush
+      let claim = "auto"; // todo SCORING: allow manual scoring - get claim from outside
+
+      if (claim === "auto") {
+        points += autoScoreStackForClaimType(newStack, claimType);
+      } else if (Number.isInteger(claim) || claim === "all") {
+        claim = claim === "all" ? sharedStack.length : claim;
+        let sliceAmount = sharedStack.length - claim;
+        if (checkClaim(newStack.slice(sliceAmount), claimType)) {
+          points += pointsForClaim(claimType, claim);
+        }
+      }
+    }
+
+    if (willEndCurrentPlay(index)) {
+      points += totalPoints(newStack) === 31 ? 2 : 1;
+    }
+
+    // peg all points at once
+    peg(nextPlayer, points);
+  }
+
+  function scoreGo() {
+    peg(previousCardPlayedBy, willEndCurrentPlay() ? 1 : 0);
+  }
+
+  // todo SCORING: refactor to allow manual scoring
+  function scoreHandOrCrib(isCrib) {
+    let hand = isCrib ? [...crib] : [...hands[nextPlayer]];
+    let points = 0;
+
+    for (let claimType of claimTypes) {
+      points += autoScoreHandForClaimType(hand, starter, claimType, isCrib);
+    }
+
+    // his nobs: score jack with same colour as starter
+    if (
+      hand.some((card) => card.rank === Rank.JACK && card.suit === starter.suit)
+    ) {
+      points += 1;
+    }
+
+    peg(nextPlayer, points);
+  }
+
   //// Actions ////
 
   function reset() {
@@ -331,7 +411,7 @@ export function useRound(deck, playerCount, dealer, previousPlayerAction, peg) {
   function flip() {
     let card = deck.draw(1)[0];
     setStarter(card);
-    peg(nextPlayer, card.rank === Rank.JACK ? 2 : 0);
+    scoreFlip(card);
     deck.uncut();
     setPreviousPlayerAction(nextPlayer, Action.FLIP_STARTER);
   }
@@ -340,13 +420,13 @@ export function useRound(deck, playerCount, dealer, previousPlayerAction, peg) {
     // let card = hands[nextPlayer][index];
     setPreviousCardPlayedBy(nextPlayer);
     dispatchStates({ type: "play", player: nextPlayer, index });
-    // !!! peg
+    scorePlay(index);
     setPreviousPlayerAction(nextPlayer, Action.PLAY);
   }
 
   function go() {
     dispatchGoed({ type: "add", player: nextPlayer });
-    // !!! peg
+    scoreGo();
     setPreviousPlayerAction(nextPlayer, Action.GO);
   }
 
@@ -365,12 +445,12 @@ export function useRound(deck, playerCount, dealer, previousPlayerAction, peg) {
   }
 
   function scoreHand() {
-    // !!! peg
+    scoreHandOrCrib(false);
     setPreviousPlayerAction(nextPlayer, Action.SCORE_HAND);
   }
 
   function scoreCrib() {
-    // !!! peg
+    scoreHandOrCrib(true);
     setPreviousPlayerAction(nextPlayer, Action.SCORE_CRIB);
   }
 
