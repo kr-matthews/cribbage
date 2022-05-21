@@ -9,13 +9,13 @@ import { cardSorter } from "../playing-cards/cardHelpers.js";
 
 //// Setup ////
 
-// ? how to preserve the hook state between tests, to avoid dealing etc at the start of each test?
-// nothing I've tried works
+// ? how to preserve the hook state between tests, to avoid repeating all prior actions at the start of each test?
+// ? nothing I've tried works
 
-// NOTE: Certain round actions only change things inside the parameters (the deck, and the previousPlayerAction)
-// so renderHook doesn't seem to rerender itself and side-effects aren't run. A manual call to rerender was added to fix this.
+// ? Certain round actions only change things inside the parameters (the deck, and the previousPlayerAction)
+// ? so renderHook doesn't seem to rerender itself and side-effects aren't run. A manual call to rerender was added to fix this.
 
-// todo Probably best to remove `expect` statements about the mockedPreviousPlayerAction? and the commented out expects
+// todo Probably best to remove `expect` statements about the mockedPreviousPlayerAction?
 
 //// Params for the useRound hook being tested ////
 
@@ -65,6 +65,7 @@ mockPreviousPlayerAction.setPreviousPlayerAction = setPreviousPlayerAction;
 // other params
 const playerCount = 3;
 let dealer = 2;
+const peg = jest.fn();
 
 //// Params and Returns of renderHook ///
 
@@ -74,6 +75,7 @@ let initialProps = {
   playerCount,
   dealer,
   mockPreviousPlayerAction,
+  peg,
 };
 
 // returns
@@ -98,8 +100,8 @@ beforeEach(() => {
 
   // render hook from scratch
   const renderedHook = renderHook(
-    ({ mockDeck, playerCount, dealer, mockPreviousPlayerAction }) =>
-      useRound(mockDeck, playerCount, dealer, mockPreviousPlayerAction),
+    ({ mockDeck, playerCount, dealer, mockPreviousPlayerAction, peg }) =>
+      useRound(mockDeck, playerCount, dealer, mockPreviousPlayerAction, peg),
     { initialProps }
   );
 
@@ -123,8 +125,7 @@ describe("run through a round", () => {
       expect(mockPreviousPlayerAction.previousAction).toBeNull;
       expect(result.current.nextPlayers).toStrictEqual([false, false, true]);
       expect(result.current.nextAction).toBe(Action.START_DEALING);
-      // expect(roundHook.current.previousCardPlayedBy).toBeNull;
-      expect(result.current.isCurrentPlayOver).toBeNull;
+      expect(peg).toHaveBeenCalledTimes(0);
     });
   });
 
@@ -171,8 +172,7 @@ describe("run through a round", () => {
       );
       expect(result.current.nextPlayers).toStrictEqual([true, true, true]);
       expect(result.current.nextAction).toBe(Action.DISCARD);
-      // expect(roundHook.current.previousCardPlayedBy).toBeNull;
-      expect(result.current.isCurrentPlayOver).toBeNull;
+      expect(peg).toHaveBeenCalledTimes(0);
     });
   });
 
@@ -218,8 +218,7 @@ describe("run through a round", () => {
       expect(mockPreviousPlayerAction.previousAction).toBe(Action.DISCARD);
       expect(result.current.nextPlayers).toStrictEqual([true, true, false]);
       expect(result.current.nextAction).toBe(Action.DISCARD);
-      // expect(roundHook.current.previousCardPlayedBy).toBeNull;
-      expect(result.current.isCurrentPlayOver).toBeNull;
+      expect(peg).toHaveBeenCalledTimes(0);
     });
 
     test("then player 0", () => {
@@ -264,8 +263,7 @@ describe("run through a round", () => {
       expect(mockPreviousPlayerAction.previousAction).toBe(Action.DISCARD);
       expect(result.current.nextPlayers).toStrictEqual([false, true, false]);
       expect(result.current.nextAction).toBe(Action.DISCARD);
-      // expect(roundHook.current.previousCardPlayedBy).toBeNull;
-      expect(result.current.isCurrentPlayOver).toBeNull;
+      expect(peg).toHaveBeenCalledTimes(0);
     });
 
     test("finally player 1", () => {
@@ -311,8 +309,7 @@ describe("run through a round", () => {
       expect(mockPreviousPlayerAction.previousAction).toBe(Action.DISCARD);
       expect(result.current.nextPlayers).toStrictEqual([false, true, false]);
       expect(result.current.nextAction).toBe(Action.CUT_FOR_STARTER);
-      // expect(roundHook.current.previousCardPlayedBy).toBeNull;
-      expect(result.current.isCurrentPlayOver).toBeNull;
+      expect(peg).toHaveBeenCalledTimes(0);
     });
   });
 
@@ -364,8 +361,7 @@ describe("run through a round", () => {
       );
       expect(result.current.nextPlayers).toStrictEqual([false, false, true]);
       expect(result.current.nextAction).toBe(Action.FLIP_STARTER);
-      // expect(roundHook.current.previousCardPlayedBy).toBeNull;
-      expect(result.current.isCurrentPlayOver).toBeNull;
+      expect(peg).toHaveBeenCalledTimes(0);
     });
 
     test("then flip", () => {
@@ -414,8 +410,8 @@ describe("run through a round", () => {
       expect(mockPreviousPlayerAction.previousAction).toBe(Action.FLIP_STARTER);
       expect(result.current.nextPlayers).toStrictEqual([true, false, false]);
       expect(result.current.nextAction).toBe(Action.PLAY_OR_GO);
-      // expect(roundHook.current.previousCardPlayedBy).toBeNull;
-      expect(result.current.isCurrentPlayOver).toBe(false);
+      expect(peg).toHaveBeenCalledTimes(1);
+      expect(peg).toHaveBeenLastCalledWith(dealer, 0);
     });
   });
 
@@ -435,6 +431,7 @@ describe("run through a round", () => {
       expect(result.current.isValidPlay(2)).toBe(true); // 5
       expect(result.current.isValidPlay(3)).toBe(true); // K
       expect(result.current.isValidGo()).toBe(false);
+      expect(peg).toHaveBeenCalledTimes(1);
     });
 
     test("opening play", () => {
@@ -490,8 +487,8 @@ describe("run through a round", () => {
       expect(mockPreviousPlayerAction.previousAction).toBe(Action.PLAY);
       expect(result.current.nextPlayers).toStrictEqual([false, true, false]);
       expect(result.current.nextAction).toBe(Action.PLAY_OR_GO);
-      // expect(roundHook.current.previousCardPlayedBy).toBe(0);
-      expect(result.current.isCurrentPlayOver).toBe(false);
+      expect(peg).toHaveBeenCalledTimes(2);
+      expect(peg).toHaveBeenLastCalledWith(0, 0);
     });
 
     test("check follow-up play/go", () => {
@@ -566,8 +563,8 @@ describe("run through a round", () => {
       expect(mockPreviousPlayerAction.previousAction).toBe(Action.PLAY);
       expect(result.current.nextPlayers).toStrictEqual([false, false, true]);
       expect(result.current.nextAction).toBe(Action.PLAY_OR_GO);
-      // expect(roundHook.current.previousCardPlayedBy).toBe(1);
-      expect(result.current.isCurrentPlayOver).toBe(false);
+      expect(peg).toHaveBeenCalledTimes(3);
+      expect(peg).toHaveBeenLastCalledWith(1, 2);
     });
 
     test("check 3rd play/go", () => {
@@ -644,8 +641,8 @@ describe("run through a round", () => {
       expect(mockPreviousPlayerAction.previousAction).toBe(Action.PLAY);
       expect(result.current.nextPlayers).toStrictEqual([true, false, false]);
       expect(result.current.nextAction).toBe(Action.PLAY_OR_GO);
-      // expect(roundHook.current.previousCardPlayedBy).toBe(2);
-      expect(result.current.isCurrentPlayOver).toBe(false);
+      expect(peg).toHaveBeenCalledTimes(4);
+      expect(peg).toHaveBeenLastCalledWith(2, 0);
     });
   });
 
@@ -669,8 +666,6 @@ describe("run through a round", () => {
       ]);
       expect(result.current.nextPlayers).toStrictEqual([false, true, false]);
       expect(result.current.nextAction).toBe(Action.PLAY_OR_GO);
-      // expect(roundHook.current.previousCardPlayedBy).toBe(0);
-      expect(result.current.isCurrentPlayOver).toBe(false);
 
       // 1 plays J: K, J -> 20
       expect(result.current.isValidGo()).toBe(false);
@@ -682,8 +677,6 @@ describe("run through a round", () => {
       ]);
       expect(result.current.nextPlayers).toStrictEqual([false, false, true]);
       expect(result.current.nextAction).toBe(Action.PLAY_OR_GO);
-      // expect(roundHook.current.previousCardPlayedBy).toBe(1);
-      expect(result.current.isCurrentPlayOver).toBe(false);
 
       // 2 plays Q: K, J, Q -> 30
       expect(result.current.isValidGo()).toBe(false);
@@ -697,8 +690,8 @@ describe("run through a round", () => {
       expect(mockPreviousPlayerAction.previousAction).toBe(Action.PLAY);
       expect(result.current.nextPlayers).toStrictEqual([true, false, false]);
       expect(result.current.nextAction).toBe(Action.PLAY_OR_GO);
-      // expect(roundHook.current.previousCardPlayedBy).toBe(2);
-      expect(result.current.isCurrentPlayOver).toBe(false);
+      expect(peg).toHaveBeenCalledTimes(4);
+      expect(peg).toHaveBeenLastCalledWith(2, 3);
 
       // 0 can't play
       expect(result.current.isValidPlay(0)).toBe(false);
@@ -714,8 +707,8 @@ describe("run through a round", () => {
       expect(mockPreviousPlayerAction.previousAction).toBe(Action.GO);
       expect(result.current.nextPlayers).toStrictEqual([false, true, false]);
       expect(result.current.nextAction).toBe(Action.PLAY_OR_GO);
-      // expect(roundHook.current.previousCardPlayedBy).toBe(2);
-      expect(result.current.isCurrentPlayOver).toBe(false);
+      expect(peg).toHaveBeenCalledTimes(5);
+      expect(peg).toHaveBeenLastCalledWith(2, 0);
 
       // 1 must play A: K, J, Q, A -> 31
       expect(result.current.isValidPlay(0)).toBe(true);
@@ -732,8 +725,8 @@ describe("run through a round", () => {
       expect(mockPreviousPlayerAction.previousAction).toBe(Action.PLAY);
       expect(result.current.nextPlayers).toStrictEqual([false, false, true]);
       expect(result.current.nextAction).toBe(Action.FLIP_PLAYED_CARDS);
-      // expect(roundHook.current.previousCardPlayedBy).toBe(1);
-      expect(result.current.isCurrentPlayOver).toBe(true);
+      expect(peg).toHaveBeenCalledTimes(6);
+      expect(peg).toHaveBeenLastCalledWith(1, 2);
 
       // 2 ends current play
       act(() => result.current.endPlay());
@@ -743,8 +736,8 @@ describe("run through a round", () => {
       );
       expect(result.current.nextPlayers).toStrictEqual([false, false, true]);
       expect(result.current.nextAction).toBe(Action.PLAY_OR_GO);
-      // expect(roundHook.current.previousCardPlayedBy).toBeNull;
-      expect(result.current.isCurrentPlayOver).toBe(false);
+      expect(peg).toHaveBeenCalledTimes(6);
+      expect(peg).toHaveBeenLastCalledWith(1, 2);
 
       // 2 plays J: J -> 10
       expect(result.current.isValidGo()).toBe(false);
@@ -756,8 +749,8 @@ describe("run through a round", () => {
       expect(mockPreviousPlayerAction.previousAction).toBe(Action.PLAY);
       expect(result.current.nextPlayers).toStrictEqual([true, false, false]);
       expect(result.current.nextAction).toBe(Action.PLAY_OR_GO);
-      // expect(roundHook.current.previousCardPlayedBy).toBe(2);
-      expect(result.current.isCurrentPlayOver).toBe(false);
+      expect(peg).toHaveBeenCalledTimes(7);
+      expect(peg).toHaveBeenLastCalledWith(2, 0);
 
       // 0 plays 5 for 15: J, 5 -> 15
       expect(result.current.isValidGo()).toBe(false);
@@ -770,8 +763,8 @@ describe("run through a round", () => {
       expect(mockPreviousPlayerAction.previousAction).toBe(Action.PLAY);
       expect(result.current.nextPlayers).toStrictEqual([false, true, false]);
       expect(result.current.nextAction).toBe(Action.PLAY_OR_GO);
-      // expect(roundHook.current.previousCardPlayedBy).toBe(0);
-      expect(result.current.isCurrentPlayOver).toBe(false);
+      expect(peg).toHaveBeenCalledTimes(8);
+      expect(peg).toHaveBeenLastCalledWith(0, 2);
 
       // 1 plays 10: J, 5, 10 -> 25
       expect(result.current.isValidGo()).toBe(false);
@@ -786,8 +779,8 @@ describe("run through a round", () => {
       expect(mockPreviousPlayerAction.previousAction).toBe(Action.PLAY);
       expect(result.current.nextPlayers).toStrictEqual([true, false, false]);
       expect(result.current.nextAction).toBe(Action.PLAY_OR_GO);
-      // expect(roundHook.current.previousCardPlayedBy).toBe(2);
-      expect(result.current.isCurrentPlayOver).toBe(false);
+      expect(peg).toHaveBeenCalledTimes(10);
+      expect(peg).toHaveBeenLastCalledWith(2, 0);
 
       // 0, 1, 2 must go
       expect(result.current.isValidGo()).toBe(true);
@@ -796,8 +789,8 @@ describe("run through a round", () => {
       expect(mockPreviousPlayerAction.previousAction).toBe(Action.GO);
       expect(result.current.nextPlayers).toStrictEqual([false, true, false]);
       expect(result.current.nextAction).toBe(Action.PLAY_OR_GO);
-      // expect(roundHook.current.previousCardPlayedBy).toBe(2);
-      expect(result.current.isCurrentPlayOver).toBe(false);
+      expect(peg).toHaveBeenCalledTimes(11);
+      expect(peg).toHaveBeenLastCalledWith(2, 0);
 
       expect(result.current.isValidGo()).toBe(true);
       expect(result.current.isValidPlay(0)).toBe(false);
@@ -805,8 +798,8 @@ describe("run through a round", () => {
       expect(mockPreviousPlayerAction.previousAction).toBe(Action.GO);
       expect(result.current.nextPlayers).toStrictEqual([false, false, true]);
       expect(result.current.nextAction).toBe(Action.PLAY_OR_GO);
-      // expect(roundHook.current.previousCardPlayedBy).toBe(2);
-      expect(result.current.isCurrentPlayOver).toBe(false);
+      expect(peg).toHaveBeenCalledTimes(12);
+      expect(peg).toHaveBeenLastCalledWith(2, 0);
 
       expect(result.current.isValidGo()).toBe(true);
       expect(result.current.isValidPlay(0)).toBe(false);
@@ -814,8 +807,8 @@ describe("run through a round", () => {
       expect(mockPreviousPlayerAction.previousAction).toBe(Action.GO);
       expect(result.current.nextPlayers).toStrictEqual([true, false, false]);
       expect(result.current.nextAction).toBe(Action.FLIP_PLAYED_CARDS);
-      // expect(roundHook.current.previousCardPlayedBy).toBe(2);
-      expect(result.current.isCurrentPlayOver).toBe(true);
+      expect(peg).toHaveBeenCalledTimes(13);
+      expect(peg).toHaveBeenLastCalledWith(2, 1);
 
       // 0 restarts
       act(() => result.current.endPlay());
@@ -824,8 +817,6 @@ describe("run through a round", () => {
       );
       expect(result.current.nextPlayers).toStrictEqual([true, false, false]);
       expect(result.current.nextAction).toBe(Action.PLAY_OR_GO);
-      // expect(roundHook.current.previousCardPlayedBy).toBe(null);
-      expect(result.current.isCurrentPlayOver).toBe(false);
 
       // ... etc., play remaining cards
       expect(result.current.isValidPlay(0)).toBe(true);
@@ -839,16 +830,16 @@ describe("run through a round", () => {
       expect(mockPreviousPlayerAction.previousAction).toBe(Action.PLAY);
       expect(result.current.nextPlayers).toStrictEqual([true, false, false]);
       expect(result.current.nextAction).toBe(Action.PLAY_OR_GO);
-      // expect(roundHook.current.previousCardPlayedBy).toBe(2);
-      expect(result.current.isCurrentPlayOver).toBe(false);
+      expect(peg).toHaveBeenCalledTimes(16);
+      expect(peg).toHaveBeenLastCalledWith(2, 0);
 
       expect(result.current.isValidPlay(0)).toBe(true);
       act(() => result.current.play(0));
       expect(mockPreviousPlayerAction.previousAction).toBe(Action.PLAY);
       expect(result.current.nextPlayers).toStrictEqual([false, false, true]);
       expect(result.current.nextAction).toBe(Action.RETURN_CARDS_TO_HANDS);
-      // expect(roundHook.current.previousCardPlayedBy).toBe(0);
-      expect(result.current.isCurrentPlayOver).toBe(true);
+      expect(peg).toHaveBeenCalledTimes(17);
+      expect(peg).toHaveBeenLastCalledWith(0, 1);
     });
   });
 
@@ -933,8 +924,6 @@ describe("run through a round", () => {
       );
       expect(result.current.nextPlayers).toStrictEqual([true, false, false]);
       expect(result.current.nextAction).toBe(Action.SCORE_HAND);
-      // expect(roundHook.current.previousCardPlayedBy).toBeNull;
-      expect(result.current.isCurrentPlayOver).toBeNull;
     });
 
     test("then score all hands", () => {
@@ -980,6 +969,8 @@ describe("run through a round", () => {
 
       act(() => result.current.scoreHand());
       rerender({ ...initialProps });
+      expect(peg).toHaveBeenCalledTimes(18);
+      expect(peg).toHaveBeenLastCalledWith(0, 10);
 
       expect(result.current.starter).toStrictEqual(starter);
       expect(result.current.crib).toStrictEqual([
@@ -1017,20 +1008,20 @@ describe("run through a round", () => {
       expect(mockPreviousPlayerAction.previousAction).toBe(Action.SCORE_HAND);
       expect(result.current.nextPlayers).toStrictEqual([false, true, false]);
       expect(result.current.nextAction).toBe(Action.SCORE_HAND);
-      // expect(roundHook.current.previousCardPlayedBy).toBeNull;
-      expect(result.current.isCurrentPlayOver).toBeNull;
 
       act(() => result.current.scoreHand());
       rerender({ ...initialProps });
+      expect(peg).toHaveBeenCalledTimes(19);
+      expect(peg).toHaveBeenLastCalledWith(1, 2);
       act(() => result.current.scoreHand());
       rerender({ ...initialProps });
+      expect(peg).toHaveBeenCalledTimes(20);
+      expect(peg).toHaveBeenLastCalledWith(2, 10);
 
       expect(mockPreviousPlayerAction.previousPlayer).toBe(2);
       expect(mockPreviousPlayerAction.previousAction).toBe(Action.SCORE_HAND);
       expect(result.current.nextPlayers).toStrictEqual([false, false, true]);
       expect(result.current.nextAction).toBe(Action.SCORE_CRIB);
-      // expect(roundHook.current.previousCardPlayedBy).toBeNull;
-      expect(result.current.isCurrentPlayOver).toBeNull;
 
       act(() => result.current.scoreCrib());
       rerender({ ...initialProps });
@@ -1039,8 +1030,8 @@ describe("run through a round", () => {
       expect(mockPreviousPlayerAction.previousAction).toBe(Action.SCORE_CRIB);
       expect(result.current.nextPlayers).toBeNull;
       expect(result.current.nextAction).toBeNull;
-      // expect(roundHook.current.previousCardPlayedBy).toBeNull;
-      expect(result.current.isCurrentPlayOver).toBeNull;
+      expect(peg).toHaveBeenCalledTimes(21);
+      expect(peg).toHaveBeenLastCalledWith(2, 10);
     });
   });
 
@@ -1109,8 +1100,6 @@ describe("run through a round", () => {
       expect(mockPreviousPlayerAction.previousAction).toBeNull;
       expect(result.current.nextPlayers).toBe(null);
       expect(result.current.nextAction).toBe(null);
-      // expect(roundHook.current.previousCardPlayedBy).toBeNull;
-      expect(result.current.isCurrentPlayOver).toBeNull;
     });
   });
 });

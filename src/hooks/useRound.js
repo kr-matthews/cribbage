@@ -279,7 +279,7 @@ export function useRound(deck, playerCount, dealer, previousPlayerAction, peg) {
     // if "go"ing, index doesn't matter so default to any which exists
     return (
       stackTotal + hands[nextPlayer][index].rank.points === 31 ||
-      (_.countBy(isOut)[true] === 1 &&
+      (_.countBy(isOut)[false] === 1 &&
         (Math.min(...hands[nextPlayer].map((card) => card.rank.points)) +
           stackTotal >
           31 ||
