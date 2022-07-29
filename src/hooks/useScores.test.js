@@ -1,77 +1,20 @@
 //// Mocking ////
 
-jest.mock("../playing-cards/cardHelpers.js", () => {
-  const actualModule = jest.requireActual("../playing-cards/cardHelpers.js");
-
-  return {
-    __esModule: true,
-    ...actualModule,
-    autoScoreHandForClaimType: jest.fn(),
-    autoScoreStackForClaimType: jest.fn(),
-  };
-});
-
 //// Imports ////
 
 import { renderHook, act } from "@testing-library/react-hooks";
 
 import { useScores } from "./useScores.js";
 
-import { autoScoreStackForClaimType } from "../playing-cards/cardHelpers.js";
-
-import Rank from "../playing-cards/Rank.js";
-import Suit from "../playing-cards/Suit.js";
-import Action from "./Action.js";
-
-const starter = { rank: Rank.FIVE, suit: Suit.SPADE };
-
 //// Initial Values ////
 
 let result;
 let rerender;
 
-const initialProps = {
-  playerCount: 3,
-  dealer: 1,
-  starter: null,
-  crib: [],
-  hands: [[], [], []],
-  sharedStack: [],
-  previousPlayer: null,
-  previousAction: null,
-  isCurrentPlayOver: null,
-};
-
-// !! move applicable tests to round tests, and fix the rest
-
 beforeEach(() => {
-  const hook = renderHook(
-    ({
-      playerCount,
-      dealer,
-      starter,
-      crib,
-      hands,
-      sharedStack,
-      previousPlayer,
-      previousAction,
-      isCurrentPlayOver,
-    }) =>
-      useScores(
-        playerCount,
-        dealer,
-        starter,
-        crib,
-        hands,
-        sharedStack,
-        previousPlayer,
-        previousAction,
-        isCurrentPlayOver
-      ),
-    {
-      initialProps,
-    }
-  );
+  const hook = renderHook(({ playerCount }) => useScores(playerCount), {
+    initialProps: { playerCount: 3 },
+  });
 
   result = hook.result;
   rerender = hook.rerender;
@@ -106,7 +49,7 @@ describe("initial state", () => {
   });
 
   it("update player count", () => {
-    rerender({ ...initialProps, playerCount: 2, hands: [[], []] });
+    rerender({ playerCount: 2 });
 
     expect(result.current.current).toStrictEqual([0, 0]);
     expect(result.current.previous).toStrictEqual([-1, -1]);
@@ -119,258 +62,12 @@ describe("initial state", () => {
   });
 });
 
-describe("revealing the starter card", () => {
-  it("cutting a non-Jack", () => {
-    rerender({
-      ...initialProps,
-      starter: { rank: Rank.FIVE, suit: Suit.SPADE },
-    });
-
-    expect(result.current.current).toStrictEqual([0, 0, 0]);
-    expect(result.current.previous).toStrictEqual([-1, -1, -1]);
-    expect(result.current.hasWinner).toBe(false);
-    expect(result.current.winner).toBeNull;
-  });
-
-  it("cutting a Jack", () => {
-    rerender({
-      ...initialProps,
-      starter: { rank: Rank.JACK, suit: Suit.HEART },
-    });
-
-    expect(result.current.current).toStrictEqual([0, 2, 0]);
-    expect(result.current.previous).toStrictEqual([-1, 0, -1]);
-    expect(result.current.hasWinner).toBe(false);
-    expect(result.current.winner).toBeNull;
-  });
-});
-
-describe("the play phase", () => {
-  it("first card", () => {
-    autoScoreStackForClaimType.mockReturnValue(0);
-    rerender({ ...initialProps, starter });
-    rerender({
-      ...initialProps,
-      starter,
-      sharedStack: [{ rank: Rank.ACE, suit: Suit.DIAMOND }],
-      previousPlayer: 2,
-      previousAction: Action.PLAY,
-      isCurrentPlayOver: false,
-    });
-
-    expect(result.current.current).toStrictEqual([0, 0, 0]);
-    expect(result.current.previous).toStrictEqual([-1, -1, -1]);
-    expect(result.current.hasWinner).toBe(false);
-    expect(result.current.winner).toBeNull;
-  });
-
-  it("second cards", () => {
-    autoScoreStackForClaimType.mockReturnValue(0);
-    rerender({ ...initialProps, starter });
-    rerender({
-      ...initialProps,
-      starter,
-      sharedStack: [{ rank: Rank.SIX, suit: Suit.CLUB }],
-      previousPlayer: 2,
-      previousAction: Action.PLAY,
-      isCurrentPlayOver: false,
-    });
-
-    autoScoreStackForClaimType.mockImplementation((_, claim) =>
-      claim === "15" ? 2 : 0
-    );
-    rerender({
-      ...initialProps,
-      starter,
-      sharedStack: [{ rank: Rank.NINE, suit: Suit.DIAMOND }],
-      previousPlayer: 0,
-      previousAction: Action.PLAY,
-      isCurrentPlayOver: false,
-    });
-
-    expect(result.current.current).toStrictEqual([2, 0, 0]);
-    expect(result.current.previous).toStrictEqual([0, -1, -1]);
-    expect(result.current.hasWinner).toBe(false);
-    expect(result.current.winner).toBeNull;
-  });
-
-  it("a go", () => {
-    autoScoreStackForClaimType.mockReturnValue(0);
-    rerender({ ...initialProps, starter });
-    rerender({
-      ...initialProps,
-      starter,
-      sharedStack: [{ rank: Rank.SIX, suit: Suit.CLUB }],
-      previousPlayer: 2,
-      previousAction: Action.PLAY,
-      isCurrentPlayOver: false,
-    });
-
-    expect(result.current.current).toStrictEqual([0, 0, 0]);
-    expect(result.current.previous).toStrictEqual([-1, -1, -1]);
-
-    autoScoreStackForClaimType.mockReturnValue(0);
-    rerender({
-      ...initialProps,
-      starter,
-      sharedStack: [
-        { rank: Rank.SIX, suit: Suit.CLUB },
-        { rank: Rank.FOUR, suit: Suit.SPADE },
-      ],
-      previousPlayer: 0,
-      previousAction: Action.PLAY,
-      isCurrentPlayOver: false,
-    });
-
-    expect(result.current.current).toStrictEqual([0, 0, 0]);
-    expect(result.current.previous).toStrictEqual([-1, -1, -1]);
-
-    autoScoreStackForClaimType.mockReturnValue(99);
-    rerender({
-      ...initialProps,
-      starter,
-      sharedStack: [
-        { rank: Rank.SIX, suit: Suit.CLUB },
-        { rank: Rank.FOUR, suit: Suit.SPADE },
-      ],
-      previousPlayer: 1,
-      previousAction: Action.GO,
-      isCurrentPlayOver: false,
-    });
-
-    expect(result.current.current).toStrictEqual([0, 0, 0]);
-    expect(result.current.previous).toStrictEqual([-1, -1, -1]);
-
-    autoScoreStackForClaimType.mockReturnValue(99);
-    rerender({
-      ...initialProps,
-      starter,
-      sharedStack: [
-        { rank: Rank.SIX, suit: Suit.CLUB },
-        { rank: Rank.FOUR, suit: Suit.SPADE },
-        { rank: Rank.FIVE, suit: Suit.CLUB },
-      ],
-      previousPlayer: 2,
-      previousAction: Action.GO,
-      isCurrentPlayOver: false,
-    });
-
-    expect(result.current.current).toStrictEqual([0, 0, 0]);
-    expect(result.current.previous).toStrictEqual([-1, -1, -1]);
-
-    autoScoreStackForClaimType.mockImplementation((_, claim) =>
-      claim === "run" ? 3 : 0
-    );
-    rerender({
-      ...initialProps,
-      starter,
-      sharedStack: [
-        { rank: Rank.SIX, suit: Suit.CLUB },
-        { rank: Rank.FOUR, suit: Suit.SPADE },
-      ],
-      previousPlayer: 0,
-      previousAction: Action.PLAY,
-      isCurrentPlayOver: false,
-    });
-
-    expect(result.current.current).toStrictEqual([3, 0, 0]);
-    expect(result.current.previous).toStrictEqual([0, -1, -1]);
-  });
-
-  it("ending with a go", () => {
-    // todo useScores test: end on go
-  });
-
-  it("ending on 31", () => {
-    // todo useScores test: end on 31
-  });
-
-  it("ending on last card", () => {
-    // todo useScores test: end on last card
-  });
-});
-
-describe("the scoring phase", () => {
-  it("test", () => {
-    // todo useScores test: scoring hands, crib
-  });
-});
-
 describe("tracking 1st and 2nd pegs", () => {
-  it("test", () => {
-    // todo useScores test: peg positions
-  });
-});
+  it("one peg", () => {
+    act(() => result.current.peg(2, 1));
 
-describe("winning", () => {
-  it("test", () => {
-    rerender({ ...initialProps, starter });
-
-    autoScoreStackForClaimType.mockImplementation((_, claim) =>
-      claim === "15" ? 100 : 0
-    );
-    rerender({
-      ...initialProps,
-      starter,
-      sharedStack: [{ rank: Rank.NINE, suit: Suit.DIAMOND }],
-      previousPlayer: 1,
-      previousAction: Action.PLAY,
-      isCurrentPlayOver: false,
-    });
-
-    expect(result.current.current).toStrictEqual([0, 100, 0]);
-    expect(result.current.previous).toStrictEqual([-1, 0, -1]);
-    expect(result.current.hasWinner).toBe(false);
-    expect(result.current.winner).toBeNull;
-
-    autoScoreStackForClaimType.mockImplementation((_, claim) =>
-      claim === "15" ? 61 : 0
-    );
-    rerender({
-      ...initialProps,
-      starter,
-      sharedStack: [{ rank: Rank.NINE, suit: Suit.DIAMOND }],
-      previousPlayer: 2,
-      previousAction: Action.PLAY,
-      isCurrentPlayOver: false,
-    });
-
-    expect(result.current.current).toStrictEqual([0, 100, 61]);
-    expect(result.current.previous).toStrictEqual([-1, 0, 0]);
-    expect(result.current.hasWinner).toBe(false);
-    expect(result.current.winner).toBeNull;
-
-    autoScoreStackForClaimType.mockImplementation((_, claim) =>
-      claim === "15" ? 60 : 0
-    );
-    rerender({
-      ...initialProps,
-      starter,
-      sharedStack: [{ rank: Rank.NINE, suit: Suit.DIAMOND }],
-      previousPlayer: 0,
-      previousAction: Action.PLAY,
-      isCurrentPlayOver: false,
-    });
-
-    expect(result.current.current).toStrictEqual([60, 100, 61]);
-    expect(result.current.previous).toStrictEqual([0, 0, 0]);
-    expect(result.current.hasWinner).toBe(false);
-    expect(result.current.winner).toBeNull;
-
-    autoScoreStackForClaimType.mockImplementation((_, claim) =>
-      claim === "15" ? 60 : 0
-    );
-    rerender({
-      ...initialProps,
-      starter,
-      sharedStack: [{ rank: Rank.NINE, suit: Suit.DIAMOND }],
-      previousPlayer: 0,
-      previousAction: Action.PLAY,
-      isCurrentPlayOver: false,
-    });
-
-    expect(result.current.current).toStrictEqual([120, 100, 61]);
-    expect(result.current.previous).toStrictEqual([60, 0, 0]);
+    expect(result.current.current).toStrictEqual([0, 0, 1]);
+    expect(result.current.previous).toStrictEqual([-1, -1, 0]);
     expect(result.current.hasWinner).toBe(false);
     expect(result.current.nonSkunkCount).toBe(0);
     expect(result.current.skunkCount).toBe(0);
@@ -378,27 +75,52 @@ describe("winning", () => {
     expect(result.current.tripleSkunkCount).toBe(0);
     expect(result.current.winner).toBeNull;
 
-    autoScoreStackForClaimType.mockImplementation((_, claim) =>
-      claim === "15" ? 21 : 0
-    );
-    rerender({
-      ...initialProps,
-      starter,
-      sharedStack: [{ rank: Rank.NINE, suit: Suit.DIAMOND }],
-      previousPlayer: 1,
-      previousAction: Action.PLAY,
-      isCurrentPlayOver: false,
-    });
+    act(() => result.current.peg(0, 29));
 
-    expect(result.current.current).toStrictEqual([120, 121, 61]);
-    expect(result.current.previous).toStrictEqual([60, 100, 0]);
-    expect(result.current.hasWinner).toBe(true);
-    expect(result.current.nonSkunkCount).toBe(1);
-    expect(result.current.skunkCount).toBe(1);
+    expect(result.current.current).toStrictEqual([29, 0, 1]);
+    expect(result.current.previous).toStrictEqual([0, -1, 0]);
+    expect(result.current.hasWinner).toBe(false);
+    expect(result.current.nonSkunkCount).toBe(0);
+    expect(result.current.skunkCount).toBe(0);
     expect(result.current.doubleSkunkCount).toBe(0);
     expect(result.current.tripleSkunkCount).toBe(0);
-    expect(result.current.winner).toBe(1);
+    expect(result.current.winner).toBeNull;
+
+    act(() => result.current.peg(1, 2));
+
+    expect(result.current.current).toStrictEqual([29, 2, 1]);
+    expect(result.current.previous).toStrictEqual([0, 0, 0]);
+    expect(result.current.hasWinner).toBe(false);
+    expect(result.current.nonSkunkCount).toBe(0);
+    expect(result.current.skunkCount).toBe(0);
+    expect(result.current.doubleSkunkCount).toBe(0);
+    expect(result.current.tripleSkunkCount).toBe(0);
+    expect(result.current.winner).toBeNull;
+  });
+
+  it("multiple pegs", () => {
+    act(() => result.current.peg(1, 6));
+    act(() => result.current.peg(1, 1));
+    act(() => result.current.peg(0, 4));
+    act(() => result.current.peg(1, 28));
+
+    expect(result.current.current).toStrictEqual([4, 35, 0]);
+    expect(result.current.previous).toStrictEqual([0, 7, -1]);
+    expect(result.current.hasWinner).toBe(false);
+    expect(result.current.nonSkunkCount).toBe(0);
+    expect(result.current.skunkCount).toBe(0);
+    expect(result.current.doubleSkunkCount).toBe(0);
+    expect(result.current.tripleSkunkCount).toBe(0);
+    expect(result.current.winner).toBeNull;
   });
 });
 
-// NOTE: could test other actions during a round _don't_ cause any points to be scored
+describe("winning", () => {
+  // todo useScores test: winning
+  it("no winner yet", () => {});
+  it("exactly 120", () => {});
+  it("regular win", () => {});
+  it("skunk win", () => {});
+  it("double-skunk win", () => {});
+  it("triple skunk win", () => {});
+});
