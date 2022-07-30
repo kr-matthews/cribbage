@@ -58,6 +58,8 @@ export function useMatchLogs(
     [dispatchMessages, storageLimit]
   );
 
+  // todo: ideally, make the messages formatable strings which accept arguments
+
   // colour-coded, starting with player name
   const postAction = useCallback(
     (player, action, cuts, starter, piles, stackTotal, delta) => {
@@ -74,6 +76,14 @@ export function useMatchLogs(
         case null:
           return;
 
+        case Action.RESET_ALL:
+          message.text += "reset the match and all history.";
+          break;
+
+        case Action.SET_UP_CUT_FOR_DEAL:
+          message.text += "confirmed players and shuffled the deck.";
+          break;
+
         case Action.CUT_FOR_DEAL:
           if (!cuts[player]) return;
           message.text += `cut a${
@@ -81,11 +91,39 @@ export function useMatchLogs(
           } ${cuts[player].rank.name}.`;
           break;
 
+        case Action.SET_UP_CUT_FOR_DEAL_RETRY:
+          message.text += "reshuffled the deck.";
+          break;
+
+        case Action.START_FIRST_GAME:
+          message.text +=
+            "claimed dealer and shuffled the deck for the first game.";
+          break;
+
+        case Action.START_NEW_GAME:
+          message.text += "shuffled the deck for a new game.";
+          break;
+
+        case Action.START_NEW_ROUND:
+          message.text += "shuffled the deck for the next round.";
+          break;
+
+        case Action.START_DEALING:
+          message.text += "dealt the cards for the round.";
+          break;
+
+        case Action.CONTINUE_DEALING:
+          return;
+
         case Action.DISCARD:
           // message.text += `discarded ${count} card${
           //   count === 1 ? "" : "s"
           // } to the crib.`;
           message.text += `discarded to the crib.`;
+          break;
+
+        case Action.CUT_FOR_STARTER:
+          message.text += "cut the deck.";
           break;
 
         case Action.FLIP_STARTER:
@@ -105,6 +143,21 @@ export function useMatchLogs(
           }s: '${stackTotal}${false ? ` for ${"some"}` : ""}'.`;
           break;
 
+        case Action.GO:
+          message.text += ": 'Go'.";
+          break;
+
+        case Action.PLAY_OR_GO:
+          return;
+
+        case Action.FLIP_PLAYED_CARDS:
+          message.text += "flipped the old cards over.";
+          break;
+
+        case Action.RETURN_CARDS_TO_HANDS:
+          message.text += "started the hand-scoring phase.";
+          break;
+
         case Action.SCORE_HAND:
           message.text += `scored ${delta} from their hand.`; // ! from your hand
           break;
@@ -114,9 +167,7 @@ export function useMatchLogs(
           break;
 
         default:
-          if (action.pastDescription) {
-            message.text += `${action.pastDescription}.`;
-          } else return;
+          return;
       }
 
       // log the message
