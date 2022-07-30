@@ -30,6 +30,8 @@ function messagesReducer(messages, action) {
 
 export function useMatchLogs(
   players,
+  userPosition,
+  dealerPosition,
   previousPlayer,
   previousAction,
   cuts,
@@ -109,7 +111,7 @@ export function useMatchLogs(
           break;
 
         case Action.START_DEALING:
-          message.text += "dealt the cards for the round.";
+          message.text += "dealt the cards for the new round.";
           break;
 
         case Action.CONTINUE_DEALING:
@@ -119,7 +121,13 @@ export function useMatchLogs(
           // message.text += `discarded ${count} card${
           //   count === 1 ? "" : "s"
           // } to the crib.`;
-          message.text += `discarded to the crib.`;
+          message.text += `discarded to ${
+            userPosition === dealerPosition
+              ? "your"
+              : player === dealerPosition
+              ? "their"
+              : "the"
+          } crib.`;
           break;
 
         case Action.CUT_FOR_STARTER:
@@ -151,19 +159,27 @@ export function useMatchLogs(
           return;
 
         case Action.FLIP_PLAYED_CARDS:
-          message.text += "flipped the old cards over.";
+          message.text += "finished the play.";
           break;
 
         case Action.RETURN_CARDS_TO_HANDS:
-          message.text += "started the hand-scoring phase.";
+          message.text += "ended the play phase.";
           break;
 
         case Action.SCORE_HAND:
-          message.text += `scored ${delta} from their hand.`; // ! from your hand
+          message.text += `scored ${delta} from ${
+            userPosition === player ? "your" : "their"
+          } hand.`;
           break;
 
         case Action.SCORE_CRIB:
-          message.text += `scored ${delta} from the crib.`;
+          message.text += `scored ${delta} from ${
+            userPosition === dealerPosition
+              ? "your"
+              : player === dealerPosition
+              ? "their"
+              : "the"
+          } crib.`;
           break;
 
         default:
@@ -173,7 +189,7 @@ export function useMatchLogs(
       // log the message
       dispatchMessages({ type: "add", message, storageLimit });
     },
-    [players, dispatchMessages, storageLimit]
+    [players, userPosition, dealerPosition, dispatchMessages, storageLimit]
   );
 
   function reset() {

@@ -131,8 +131,8 @@ export default function App() {
   const [players, dispatchPlayers] = useReducer(playersReducer, []);
 
   // what spot the user is 'sitting' in (can't be 'standing')
-  const [position, setPosition] = useState(0);
-  const isOwner = position === 0;
+  const [userPosition, setUserPosition] = useState(0);
+  const isOwner = userPosition === 0;
 
   // amount of players present (note: user is always present)
   const playerCount = players.length;
@@ -467,6 +467,8 @@ export default function App() {
 
   const matchLogs = useMatchLogs(
     players,
+    userPosition,
+    game.dealer,
     previousPlayerAction.previousPlayer,
     previousPlayerAction.previousAction,
     cutForDeal.cuts,
@@ -482,6 +484,7 @@ export default function App() {
   useEffect(() => {
     dispatchPlayers({ type: "add", isComputer: false, name: "You" });
     matchLogs.postUpdate("Welcome to Cribbage.");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   //// Return ////
@@ -500,7 +503,7 @@ export default function App() {
         hideEmptyColumns={HIDE_EMPTY_COLUMNS}
         userName={userName}
         updateUserName={trySetUserName}
-        userPosition={position}
+        userPosition={userPosition}
         dealerPosition={game.dealer}
         mode={network.mode}
         isSoundOn={soundEffects.isOn}
@@ -550,20 +553,20 @@ export default function App() {
         deckTopSize={nextAction === Action.FLIP_STARTER && deck.cutCounts[0]}
         starter={game.starter}
         isStarterSelected={selected[6]}
-        clickDeckHandler={nextPlayers[position] && clickDeckHandler}
+        clickDeckHandler={nextPlayers[userPosition] && clickDeckHandler}
         piles={game.piles}
         cutSizes={deck.cutCounts}
         cutCards={cutForDeal.cuts}
       />
       <Actions
-        waiting={!nextPlayers[position]}
+        waiting={!nextPlayers[userPosition]}
         nextToAct={
           nextPlayers.reduce((count, curr) => count + (curr ? 1 : 0), 0) === 1
             ? players[nextPlayer].name
             : "everyone else"
         }
         nextAction={
-          nextPlayers[position]
+          nextPlayers[userPosition]
             ? nextAction.futureDescriptionOfSelf
             : nextAction.futureDescriptionOfOther
         }
