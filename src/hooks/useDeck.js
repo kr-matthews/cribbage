@@ -2,7 +2,10 @@ import { useReducer, useState } from "react";
 
 import _ from "lodash";
 
-import { allCards, shuffle } from "../playing-cards/cardHelpers.js";
+import { allCards, riggedDeck, shuffle } from "../playing-cards/cardHelpers.js";
+
+// change to false for deployment
+const TESTING = true;
 
 //// Reducers ////
 
@@ -12,6 +15,7 @@ function cardsReducer(cards, action) {
     case "reset":
       newCards = [...allCards];
       shuffle(newCards);
+      if (TESTING) return riggedDeck;
       break;
 
     case "custom":
@@ -40,7 +44,7 @@ function cardsReducer(cards, action) {
  * is provided, in which case shuffle a sorted deck.
  * (Except cutCount, which is for visual purposes only.)
  */
-export function useDeck(initialCards) {
+export function useDeck(initialCards = TESTING ? riggedDeck : null) {
   //// Constants and States ////
 
   // the deck, stored in an array in shuffled order

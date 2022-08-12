@@ -31,6 +31,49 @@ for (let rank of [
   }
 }
 
+/**
+ * An array with enough cards, in a rigged order.
+ */
+export const riggedDeck = [
+  // used in cut for dealer, and for hands
+  { rank: Rank.ACE, suit: Suit.CLUB },
+  { rank: Rank.TWO, suit: Suit.CLUB },
+  { rank: Rank.THREE, suit: Suit.CLUB },
+
+  { rank: Rank.TEN, suit: Suit.DIAMOND, faceUp: true },
+  { rank: Rank.NINE, suit: Suit.SPADE, faceUp: true },
+  { rank: Rank.TEN, suit: Suit.CLUB, faceUp: true },
+
+  { rank: Rank.ACE, suit: Suit.DIAMOND, faceUp: true },
+  { rank: Rank.NINE, suit: Suit.DIAMOND, faceUp: true },
+  { rank: Rank.SEVEN, suit: Suit.HEART, faceUp: true },
+
+  { rank: Rank.ACE, suit: Suit.HEART, faceUp: true },
+  { rank: Rank.SIX, suit: Suit.DIAMOND, faceUp: true },
+  { rank: Rank.FOUR, suit: Suit.CLUB, faceUp: true },
+
+  { rank: Rank.FIVE, suit: Suit.HEART, faceUp: true },
+  { rank: Rank.KING, suit: Suit.CLUB },
+  { rank: Rank.KING, suit: Suit.CLUB },
+  // end of hands (for 3 players)
+
+  { rank: Rank.ACE, suit: Suit.CLUB },
+  { rank: Rank.ACE, suit: Suit.CLUB },
+  { rank: Rank.ACE, suit: Suit.CLUB },
+
+  { rank: Rank.ACE, suit: Suit.CLUB },
+  { rank: Rank.ACE, suit: Suit.CLUB },
+  { rank: Rank.ACE, suit: Suit.CLUB },
+
+  { rank: Rank.ACE, suit: Suit.CLUB },
+  { rank: Rank.ACE, suit: Suit.CLUB },
+  { rank: Rank.ACE, suit: Suit.CLUB },
+
+  { rank: Rank.ACE, suit: Suit.CLUB },
+  { rank: Rank.ACE, suit: Suit.CLUB },
+  { rank: Rank.ACE, suit: Suit.CLUB },
+].reverse();
+
 //// General Helpers ////
 
 /**
