@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useReducer } from "react";
 import Action from "./Action";
-import Rank from "../playing-cards/Rank.js";
 
 // amount of messages to keep
 const DEFAULT_LIMIT = 30;
@@ -73,7 +72,6 @@ export function useMatchLogs(
         text: `${players[player].name} `,
         timestamp: Date.now(),
       };
-      let needExtraMessage = false;
       const s = player === userPosition ? "" : "s";
       const yourOrTheir = userPosition === player ? "your" : "their";
       const yourTheirOrThe =
@@ -149,9 +147,12 @@ export function useMatchLogs(
           break;
 
         case Action.GO:
-          needExtraMessage = delta === 1 && scorer !== player;
           message.text += `say${s} 'Go${
-            delta > 0 && scorer === player ? ` for ${delta}` : ""
+            delta > 0 && scorer === player
+              ? ` for ${delta}` // get 1 for going last
+              : delta === 1 && scorer !== player
+              ? `, ${delta} for ${players[scorer].name}` // someone else gets 1 for going last
+              : "" // not the last go
           }'.`;
           break;
 
@@ -186,21 +187,18 @@ export function useMatchLogs(
       // log the message
       dispatchMessages({ type: "add", message, storageLimit });
 
-      // !!! this isn't working proeprly
       // if someone else pegged 1 from this GO
-      if (needExtraMessage) {
-        dispatchMessages({
-          type: "add",
-          message: {
-            type: "auto",
-            colour: players[scorer].colour,
-            text: `${players[scorer].name} score${
-              scorer === userPosition ? "" : "s"
-            } 1.`,
-            timestamp: Date.now(),
-          },
-        });
-      }
+      // dispatchMessages({
+      //   type: "add",
+      //   message: {
+      //     type: "auto",
+      //     colour: players[scorer].colour,
+      //     text: `${players[scorer].name} score${
+      //       scorer === userPosition ? "" : "s"
+      //     } 1.`,
+      //     timestamp: Date.now(),
+      //   },
+      // });
     },
     [players, userPosition, dealerPosition, dispatchMessages, storageLimit]
   );
