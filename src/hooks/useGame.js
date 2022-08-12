@@ -81,6 +81,7 @@ export function useGame(deck, playerCount, previousPlayerAction) {
     currentScores: scores.current,
     previousScores: scores.previous,
     scoreDelta: scores.delta,
+    scoreScorer: scores.scorer,
     winner: scores.winner,
     nonSkunkCount: scores.nonSkunkCount,
     skunkCount: scores.skunkCount,

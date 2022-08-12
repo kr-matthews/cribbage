@@ -13,14 +13,15 @@ function initialScores(playerCount) {
   return {
     current: Array(playerCount).fill(0), // current (1st peg)
     previous: Array(playerCount).fill(-1), // previous (2nd peg)
-    delta: Array(playerCount).fill(null), // updates even when pegging 0 (unlike current - previous)
+    delta: 0, // updates even when pegging 0 (unlike current - previous)
+    scorer: null, // who scored last - needed for pegging 1 for being last to play
   };
 }
 
 //// Reducers ////
 
 function scoresReducer(
-  { current, previous, delta },
+  { current, previous },
   { type, player, points, playerCount }
 ) {
   if (type === "reset") return initialScores(playerCount);
@@ -42,7 +43,12 @@ function scoresReducer(
     default:
       console.error("scoresReducer couldn't recognize action type", type);
   }
-  return { current: newCurrent, previous: newPrevious, delta: newDelta };
+  return {
+    current: newCurrent,
+    previous: newPrevious,
+    delta: newDelta,
+    scorer: player,
+  };
 }
 
 //// Hook ////
@@ -51,7 +57,7 @@ export function useScores(playerCount) {
   //// States ////
 
   // the most recent two scores for each player (correspond to peg positions)
-  const [{ current, previous, delta }, dispatchScores] = useReducer(
+  const [{ current, previous, delta, scorer }, dispatchScores] = useReducer(
     scoresReducer,
     playerCount,
     initialScores
@@ -103,6 +109,7 @@ export function useScores(playerCount) {
     current,
     previous,
     delta,
+    scorer,
 
     hasWinner,
     winner,

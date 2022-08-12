@@ -39,6 +39,7 @@ export function useMatchLogs(
   piles,
   stackTotal,
   delta,
+  scorer,
   storageLimit = DEFAULT_LIMIT
 ) {
   //// States ////
@@ -64,7 +65,7 @@ export function useMatchLogs(
 
   // colour-coded, starting with player name
   const postAction = useCallback(
-    (player, action, cuts, starter, piles, stackTotal, delta) => {
+    (player, action, cuts, starter, piles, stackTotal, delta, scorer) => {
       // base message
       let message = {
         type: "auto",
@@ -72,6 +73,9 @@ export function useMatchLogs(
         text: `${players[player].name} `,
         timestamp: Date.now(),
       };
+      let needExtraMessage = false;
+      const sayOrSays = player === userPosition ? "say" : "says";
+      const yourTheirOrThe = "todo";
 
       // add details to text
       switch (action) {
@@ -138,9 +142,7 @@ export function useMatchLogs(
           // if (!starter) return;
           message.text += `revealed the starter to be the ${
             starter.rank.name
-          } of ${starter.suit.name}s${
-            starter.rank.symbol === Rank.JACK ? " for 2" : ""
-          }.`;
+          } of ${starter.suit.name}s${delta > 0 ? ` for ${delta}` : ""}.`;
           break;
 
         case Action.PLAY:
@@ -148,18 +150,28 @@ export function useMatchLogs(
             piles[player][piles[player].length - 1].rank.name
           } of ${
             piles[player][piles[player].length - 1].suit.name
-          }s: '${stackTotal}${false ? ` for ${"some"}` : ""}'.`;
+          }s and ${sayOrSays} '${stackTotal}${
+            delta > 0 ? ` for ${delta}` : ""
+          }'.`;
           break;
 
         case Action.GO:
-          message.text += ": 'Go'.";
+          needExtraMessage = delta === 1 && scorer !== player;
+          message.text += `${sayOrSays} Go${
+            delta > 0 && scorer === player ? ` for ${delta}` : ""
+          }.`;
+          break;
+
+        // if someone else scores 1 for a go
+        case Action.SCORE_FROM_OTHER_GO:
+          message.text += "pegs 1.";
           break;
 
         case Action.PLAY_OR_GO:
           return;
 
         case Action.FLIP_PLAYED_CARDS:
-          message.text += "finished the play.";
+          message.text += "started a new play.";
           break;
 
         case Action.RETURN_CARDS_TO_HANDS:
@@ -186,8 +198,23 @@ export function useMatchLogs(
           return;
       }
 
+      // !! clean up tenses above (switch to present!)
+
       // log the message
       dispatchMessages({ type: "add", message, storageLimit });
+
+      // if someone else pegged 1 from this GO
+      if (needExtraMessage) {
+        dispatchMessages({
+          type: "add",
+          message: {
+            type: "auto",
+            colour: players[scorer].colour,
+            text: `${players[scorer].name} scores 1.`,
+            timestamp: Date.now(),
+          },
+        });
+      }
     },
     [players, userPosition, dealerPosition, dispatchMessages, storageLimit]
   );
@@ -208,7 +235,8 @@ export function useMatchLogs(
         starter,
         piles,
         stackTotal,
-        delta
+        delta,
+        scorer
       );
     }
   }, [
@@ -219,6 +247,7 @@ export function useMatchLogs(
     piles,
     stackTotal,
     delta,
+    scorer,
     postAction,
   ]);
 

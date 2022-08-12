@@ -475,7 +475,8 @@ export default function App() {
     game.starter,
     game.piles,
     game.stackTotal,
-    game.scoreDelta
+    game.scoreDelta,
+    game.scoreScorer
   );
 
   //// Effects ////
