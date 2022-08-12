@@ -74,8 +74,14 @@ export function useMatchLogs(
         timestamp: Date.now(),
       };
       let needExtraMessage = false;
-      const sayOrSays = player === userPosition ? "say" : "says";
-      const yourTheirOrThe = "todo";
+      const s = player === userPosition ? "" : "s";
+      const yourOrTheir = userPosition === player ? "your" : "their";
+      const yourTheirOrThe =
+        userPosition === dealerPosition
+          ? "your"
+          : player === dealerPosition
+          ? "their"
+          : "the";
 
       // add details to text
       switch (action) {
@@ -83,126 +89,104 @@ export function useMatchLogs(
           return;
 
         case Action.RESET_ALL:
-          message.text += "reset the match and all history.";
+          message.text += `reset${s} the match and all history.`;
           break;
 
         case Action.SET_UP_CUT_FOR_DEAL:
-          message.text += "confirmed players and shuffled the deck.";
+          message.text += `confirm${s} current players and shuffle${s} the deck.`;
           break;
 
         case Action.CUT_FOR_DEAL:
           if (!cuts[player]) return;
-          message.text += `cut a${
+          message.text += `cut${s} a${
             [1, 8].includes(cuts[player].rank.points) ? "n" : ""
           } ${cuts[player].rank.name}.`;
           break;
 
         case Action.SET_UP_CUT_FOR_DEAL_RETRY:
-          message.text += "reshuffled the deck.";
+          message.text += `reshuffle${s} the deck.`;
           break;
 
         case Action.START_FIRST_GAME:
-          message.text +=
-            "claimed dealer and shuffled the deck for the first game.";
+          message.text += `claim${s} dealership and shuffle${s} the deck for the first game.`;
           break;
 
         case Action.START_NEW_GAME:
-          message.text += "shuffled the deck for a new game.";
+          message.text += `shuffle${s} the deck for a new game.`;
           break;
 
         case Action.START_NEW_ROUND:
-          message.text += "shuffled the deck for the next round.";
+          message.text += `shuffle${s} the deck for the next round.`;
           break;
 
         case Action.START_DEALING:
-          message.text += "dealt the cards for the new round.";
+          message.text += `deal${s} the cards for the new round.`;
           break;
 
         case Action.CONTINUE_DEALING:
           return;
 
         case Action.DISCARD:
-          // message.text += `discarded ${count} card${
-          //   count === 1 ? "" : "s"
-          // } to the crib.`;
-          message.text += `discarded to ${
-            userPosition === dealerPosition
-              ? "your"
-              : player === dealerPosition
-              ? "their"
-              : "the"
-          } crib.`;
+          message.text += `discard${s} to ${yourTheirOrThe} crib.`;
           break;
 
         case Action.CUT_FOR_STARTER:
-          message.text += "cut the deck.";
+          message.text += `cut${s} the deck.`;
           break;
 
         case Action.FLIP_STARTER:
-          // if (!starter) return;
-          message.text += `revealed the starter to be the ${
+          message.text += `reveal${s} the starter to be the ${
             starter.rank.name
           } of ${starter.suit.name}s${delta > 0 ? ` for ${delta}` : ""}.`;
           break;
 
         case Action.PLAY:
-          message.text += `played the ${
+          message.text += `play${s} the ${
             piles[player][piles[player].length - 1].rank.name
           } of ${
             piles[player][piles[player].length - 1].suit.name
-          }s and ${sayOrSays} '${stackTotal}${
-            delta > 0 ? ` for ${delta}` : ""
-          }'.`;
+          }s and say${s} '${stackTotal}${delta > 0 ? ` for ${delta}` : ""}'.`;
           break;
 
         case Action.GO:
           needExtraMessage = delta === 1 && scorer !== player;
-          message.text += `${sayOrSays} Go${
+          message.text += `say${s} 'Go${
             delta > 0 && scorer === player ? ` for ${delta}` : ""
-          }.`;
+          }'.`;
           break;
 
         // if someone else scores 1 for a go
         case Action.SCORE_FROM_OTHER_GO:
-          message.text += "pegs 1.";
+          message.text += `peg${s} 1.`;
           break;
 
         case Action.PLAY_OR_GO:
           return;
 
         case Action.FLIP_PLAYED_CARDS:
-          message.text += "started a new play.";
+          message.text += `start${s} a new play.`;
           break;
 
         case Action.RETURN_CARDS_TO_HANDS:
-          message.text += "ended the play phase.";
+          message.text += `end${s} the play phase.`;
           break;
 
         case Action.SCORE_HAND:
-          message.text += `scored ${delta} from ${
-            userPosition === player ? "your" : "their"
-          } hand.`;
+          message.text += `score${s} ${delta} from ${yourOrTheir} hand.`;
           break;
 
         case Action.SCORE_CRIB:
-          message.text += `scored ${delta} from ${
-            userPosition === dealerPosition
-              ? "your"
-              : player === dealerPosition
-              ? "their"
-              : "the"
-          } crib.`;
+          message.text += `score${s} ${delta} from ${yourTheirOrThe} crib.`;
           break;
 
         default:
           return;
       }
 
-      // !! clean up tenses above (switch to present!)
-
       // log the message
       dispatchMessages({ type: "add", message, storageLimit });
 
+      // !!! this isn't working proeprly
       // if someone else pegged 1 from this GO
       if (needExtraMessage) {
         dispatchMessages({
@@ -210,7 +194,9 @@ export function useMatchLogs(
           message: {
             type: "auto",
             colour: players[scorer].colour,
-            text: `${players[scorer].name} scores 1.`,
+            text: `${players[scorer].name} score${
+              scorer === userPosition ? "" : "s"
+            } 1.`,
             timestamp: Date.now(),
           },
         });

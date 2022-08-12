@@ -5,7 +5,7 @@ import _ from "lodash";
 import { allCards, riggedDeck, shuffle } from "../playing-cards/cardHelpers.js";
 
 // change to false for deployment
-const TESTING = true;
+const TESTING = false;
 
 //// Reducers ////
 
