@@ -31,14 +31,12 @@ for (let rank of [
   }
 }
 
-/**
- * An array with enough cards, in a rigged order.
- */
-export const riggedDeck = [
+// these cards will appear on the top of the deck
+const manuallyOrderedCards = [
   // used in cut for dealer, and for hands
-  { rank: Rank.ACE, suit: Suit.CLUB },
-  { rank: Rank.TWO, suit: Suit.CLUB },
-  { rank: Rank.THREE, suit: Suit.CLUB },
+  { rank: Rank.ACE, suit: Suit.CLUB, faceUp: true },
+  { rank: Rank.TWO, suit: Suit.CLUB, faceUp: true },
+  { rank: Rank.THREE, suit: Suit.CLUB, faceUp: true },
 
   { rank: Rank.TEN, suit: Suit.DIAMOND, faceUp: true },
   { rank: Rank.NINE, suit: Suit.SPADE, faceUp: true },
@@ -53,26 +51,20 @@ export const riggedDeck = [
   { rank: Rank.FOUR, suit: Suit.CLUB, faceUp: true },
 
   { rank: Rank.FIVE, suit: Suit.HEART, faceUp: true },
-  { rank: Rank.KING, suit: Suit.CLUB },
-  { rank: Rank.KING, suit: Suit.CLUB },
+  { rank: Rank.KING, suit: Suit.CLUB, faceUp: true },
+  { rank: Rank.KING, suit: Suit.SPADE, faceUp: true },
   // end of hands (for 3 players)
+];
 
-  { rank: Rank.ACE, suit: Suit.CLUB },
-  { rank: Rank.ACE, suit: Suit.CLUB },
-  { rank: Rank.ACE, suit: Suit.CLUB },
+// pad the deck up to 52
+for (let index = manuallyOrderedCards.length; index < 52; index++) {
+  manuallyOrderedCards.push({ rank: Rank.ACE, suit: Suit.CLUB });
+}
 
-  { rank: Rank.ACE, suit: Suit.CLUB },
-  { rank: Rank.ACE, suit: Suit.CLUB },
-  { rank: Rank.ACE, suit: Suit.CLUB },
-
-  { rank: Rank.ACE, suit: Suit.CLUB },
-  { rank: Rank.ACE, suit: Suit.CLUB },
-  { rank: Rank.ACE, suit: Suit.CLUB },
-
-  { rank: Rank.ACE, suit: Suit.CLUB },
-  { rank: Rank.ACE, suit: Suit.CLUB },
-  { rank: Rank.ACE, suit: Suit.CLUB },
-].reverse();
+/**
+ * The desired deck order.
+ */
+export const riggedDeck = manuallyOrderedCards.reverse();
 
 //// General Helpers ////
 
