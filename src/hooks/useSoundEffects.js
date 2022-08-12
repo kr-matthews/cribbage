@@ -6,7 +6,7 @@ export function useSoundEffects() {
     setIsOn(!isOn);
   }
 
-  // todo SOUND: actual effects
+  // ! (basic) sound effects
 
   return { isOn, toggle };
 }

@@ -116,7 +116,7 @@ describe("tracking 1st and 2nd pegs", () => {
 });
 
 describe("winning", () => {
-  // todo useScores test: winning
+  // todo TESTS: useScores - winning
   it("no winner yet", () => {});
   it("exactly 120", () => {});
   it("regular win", () => {});

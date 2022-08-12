@@ -193,3 +193,5 @@ export function useNetwork({ capacityPerCode = 2, playerCount }) {
     setMessageHandler, // ? maybe pass in via object which never changes?
   };
 }
+
+// !! NETWORK: todos in this file

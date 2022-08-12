@@ -28,6 +28,7 @@ for (let rank of [
 ]) {
   for (let suit of [Suit.CLUB, Suit.DIAMOND, Suit.SPADE, Suit.HEART]) {
     allCards.push({ rank, suit, faceUp: true }); // ~ face up
+    // !!! face-up-ness of cards (allowing for easy debug mode with everything face up)
   }
 }
 

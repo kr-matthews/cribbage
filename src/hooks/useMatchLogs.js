@@ -60,7 +60,7 @@ export function useMatchLogs(
     [dispatchMessages, storageLimit]
   );
 
-  // todo: ideally, make the messages formatable strings which accept arguments
+  // todo CLEAN-UP: ideally, make the messages formatable strings which accept arguments
 
   // colour-coded, starting with player name
   const postAction = useCallback(

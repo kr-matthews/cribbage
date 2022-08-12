@@ -123,7 +123,7 @@ export function useScores(playerCount) {
   };
 }
 
-//// todo old code for validation from useRound
+//// todo SCORING: old code for validation from `useRound`; for custom scoring
 
 // function isValidPlay(index, claim, amount = sharedStack.length + 1) {
 //   const card = hands[nextPlayer][index];

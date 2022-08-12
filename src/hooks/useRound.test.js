@@ -15,7 +15,7 @@ import { cardSorter } from "../playing-cards/cardHelpers.js";
 // ? Certain round actions only change things inside the parameters (the deck, and the previousPlayerAction)
 // ? so renderHook doesn't seem to rerender itself and side-effects aren't run. A manual call to rerender was added to fix this.
 
-// todo Probably best to remove `expect` statements about the mockedPreviousPlayerAction?
+// ? Probably best to remove `expect` statements about the mockedPreviousPlayerAction?
 
 //// Params for the useRound hook being tested ////
 

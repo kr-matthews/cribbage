@@ -36,7 +36,7 @@ it("bit counts", () => {
   expect(bitCountTest(31, 5)).toBe(5);
 });
 
-// todo add tests for other functions, like below (this was moved from elsewhere)
+// todo TESTS: add tests for other functions, like below (this was moved from elsewhere)
 
 it.skip("scoring a sample hand", () => {
   starter = { rank: Rank.FOUR, suit: Suit.SPADE };

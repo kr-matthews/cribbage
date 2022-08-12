@@ -138,6 +138,7 @@ export default function App() {
   const playerCount = players.length;
   const computerCount = players.filter((player) => player.isComputer).length;
 
+  // ! add basic computer player playing logic
   function addComputerPlayer() {
     if (!isLocked && playerCount < 3) {
       let existingNames = players.map((player) => player.name);
@@ -415,7 +416,7 @@ export default function App() {
       clickDeckHandler = actions[0];
       break;
 
-    case Action.PLAY_OR_GO: // todo add option for claiming various types of points (?)
+    case Action.PLAY_OR_GO: // todo SCORING: add option for claiming various types of points (?)
       labels = ["Play", "Go"];
       actions = [play, go];
       enabled = [
@@ -435,7 +436,7 @@ export default function App() {
       actions = [returnCardsToHands];
       break;
 
-    case Action.SCORE_HAND: // todo add options to claim points (?)
+    case Action.SCORE_HAND: // todo SCORING: add options to claim points (?)
       actions = [scoreHand];
       break;
 
