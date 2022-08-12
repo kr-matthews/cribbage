@@ -137,7 +137,7 @@ export function useRound(deck, playerCount, dealer, previousPlayerAction, peg) {
     return (player + 1) % playerCount;
   }
 
-  // next, but skipping players who are out
+  // next, but skipping players who are out (no cards, or said 'go')
   function nextNotOut(player) {
     return !isOut[next(player)]
       ? next(player)
@@ -145,6 +145,15 @@ export function useRound(deck, playerCount, dealer, previousPlayerAction, peg) {
       ? next(next(player))
       : // only possible in 3-player game; will cycle back on 3 nexts
         player;
+  }
+
+  // next, but skipping players who have no cards
+  function nextWithCards(player) {
+    return hasCards[next(player)]
+      ? next(player)
+      : hasCards[next(next(player))]
+      ? next(next(player))
+      : next(next(next(player)));
   }
 
   //// Constants ////
@@ -173,6 +182,10 @@ export function useRound(deck, playerCount, dealer, previousPlayerAction, peg) {
         (piles[player] && piles[player].length === 4)
     );
 
+  const hasCards = Array(playerCount)
+    .fill(null)
+    .map((_, player) => piles[player] && piles[player].length < 4);
+
   const isCurrentPlayOver = [
     Action.FLIP_STARTER,
     Action.PLAY,
@@ -192,7 +205,7 @@ export function useRound(deck, playerCount, dealer, previousPlayerAction, peg) {
       ? previousPlayer
       : [Action.PLAY, Action.GO].includes(previousAction)
       ? isCurrentPlayOver
-        ? next(previousCardPlayedBy)
+        ? nextWithCards(previousCardPlayedBy)
         : nextNotOut(previousPlayer)
       : null;
 
