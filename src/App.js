@@ -23,10 +23,14 @@ import Links from "./links/Links.js";
 import "./game-components/gameComponents.css";
 import "./playing-cards/playingCards.css";
 
-//// Constants ////
+//// Flags ////
 
+// make all cards face-up for debugging
+const DEBUG_MODE = false;
 // always use four columns
 const HIDE_EMPTY_COLUMNS = true;
+
+//// Constants ////
 // hand of size up to 6, plus starter card on the end
 const HAND_ALL_UNSELECTED = Array(7).fill(false);
 // longest allowed name
@@ -209,7 +213,13 @@ export default function App() {
   const deck = useDeck();
 
   // a single iteration of the game, which can be restarted
-  const game = useGame(deck, playerCount, previousPlayerAction);
+  const game = useGame(
+    deck,
+    playerCount,
+    userPosition,
+    previousPlayerAction,
+    DEBUG_MODE
+  );
 
   // to decide who goes first in the first game
   const cutForDeal = useCutForDeal(deck, playerCount, previousPlayerAction);

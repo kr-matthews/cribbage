@@ -64,6 +64,7 @@ mockPreviousPlayerAction.setPreviousPlayerAction = setPreviousPlayerAction;
 
 // other params
 const playerCount = 3;
+const userPosition = 0;
 let dealer = 2;
 const peg = jest.fn();
 
@@ -73,6 +74,7 @@ const peg = jest.fn();
 let initialProps = {
   mockDeck,
   playerCount,
+  userPosition,
   dealer,
   mockPreviousPlayerAction,
   peg,
@@ -88,6 +90,7 @@ let rerender;
 const starter = {
   rank: Rank.TEN,
   suit: Suit.DIAMOND,
+  faceUp: true,
 };
 
 //// Test Set Up ////
@@ -100,8 +103,22 @@ beforeEach(() => {
 
   // render hook from scratch
   const renderedHook = renderHook(
-    ({ mockDeck, playerCount, dealer, mockPreviousPlayerAction, peg }) =>
-      useRound(mockDeck, playerCount, dealer, mockPreviousPlayerAction, peg),
+    ({
+      mockDeck,
+      playerCount,
+      userPosition,
+      dealer,
+      mockPreviousPlayerAction,
+      peg,
+    }) =>
+      useRound(
+        mockDeck,
+        playerCount,
+        userPosition,
+        dealer,
+        mockPreviousPlayerAction,
+        peg
+      ),
     { initialProps }
   );
 
@@ -136,31 +153,31 @@ describe("run through a round", () => {
 
       expect(result.current.starter).toBeNull;
       expect(result.current.crib).toStrictEqual([
-        { rank: Rank.FIVE, suit: Suit.DIAMOND },
+        { rank: Rank.FIVE, suit: Suit.DIAMOND, faceUp: false },
       ]);
       expect(
         result.current.hands.map((hand) => hand.sort(cardSorter))
       ).toStrictEqual([
         [
-          { rank: Rank.THREE, suit: Suit.HEART },
-          { rank: Rank.FIVE, suit: Suit.CLUB },
-          { rank: Rank.FIVE, suit: Suit.HEART },
-          { rank: Rank.SIX, suit: Suit.SPADE },
-          { rank: Rank.KING, suit: Suit.CLUB },
+          { rank: Rank.THREE, suit: Suit.HEART, faceUp: true },
+          { rank: Rank.FIVE, suit: Suit.CLUB, faceUp: true },
+          { rank: Rank.FIVE, suit: Suit.HEART, faceUp: true },
+          { rank: Rank.SIX, suit: Suit.SPADE, faceUp: true },
+          { rank: Rank.KING, suit: Suit.CLUB, faceUp: true },
         ],
         [
-          { rank: Rank.ACE, suit: Suit.DIAMOND },
-          { rank: Rank.TWO, suit: Suit.HEART },
-          { rank: Rank.TEN, suit: Suit.SPADE },
-          { rank: Rank.JACK, suit: Suit.CLUB },
-          { rank: Rank.QUEEN, suit: Suit.HEART },
+          { rank: Rank.ACE, suit: Suit.DIAMOND, faceUp: false },
+          { rank: Rank.TWO, suit: Suit.HEART, faceUp: false },
+          { rank: Rank.TEN, suit: Suit.SPADE, faceUp: false },
+          { rank: Rank.JACK, suit: Suit.CLUB, faceUp: false },
+          { rank: Rank.QUEEN, suit: Suit.HEART, faceUp: false },
         ],
         [
-          { rank: Rank.FIVE, suit: Suit.SPADE },
-          { rank: Rank.NINE, suit: Suit.HEART },
-          { rank: Rank.JACK, suit: Suit.DIAMOND },
-          { rank: Rank.JACK, suit: Suit.HEART },
-          { rank: Rank.QUEEN, suit: Suit.DIAMOND },
+          { rank: Rank.FIVE, suit: Suit.SPADE, faceUp: false },
+          { rank: Rank.NINE, suit: Suit.HEART, faceUp: false },
+          { rank: Rank.JACK, suit: Suit.DIAMOND, faceUp: false },
+          { rank: Rank.JACK, suit: Suit.HEART, faceUp: false },
+          { rank: Rank.QUEEN, suit: Suit.DIAMOND, faceUp: false },
         ],
       ]);
       expect(result.current.piles).toStrictEqual([[], [], []]);
@@ -184,31 +201,31 @@ describe("run through a round", () => {
 
       expect(result.current.starter).toBeNull;
       expect(result.current.crib).toStrictEqual([
-        { rank: Rank.FIVE, suit: Suit.DIAMOND },
-        { rank: Rank.JACK, suit: Suit.DIAMOND },
+        { rank: Rank.FIVE, suit: Suit.DIAMOND, faceUp: false },
+        { rank: Rank.JACK, suit: Suit.DIAMOND, faceUp: false },
       ]);
       expect(
         result.current.hands.map((hand) => hand.sort(cardSorter))
       ).toStrictEqual([
         [
-          { rank: Rank.THREE, suit: Suit.HEART },
-          { rank: Rank.FIVE, suit: Suit.CLUB },
-          { rank: Rank.FIVE, suit: Suit.HEART },
-          { rank: Rank.SIX, suit: Suit.SPADE },
-          { rank: Rank.KING, suit: Suit.CLUB },
+          { rank: Rank.THREE, suit: Suit.HEART, faceUp: true },
+          { rank: Rank.FIVE, suit: Suit.CLUB, faceUp: true },
+          { rank: Rank.FIVE, suit: Suit.HEART, faceUp: true },
+          { rank: Rank.SIX, suit: Suit.SPADE, faceUp: true },
+          { rank: Rank.KING, suit: Suit.CLUB, faceUp: true },
         ],
         [
-          { rank: Rank.ACE, suit: Suit.DIAMOND },
-          { rank: Rank.TWO, suit: Suit.HEART },
-          { rank: Rank.TEN, suit: Suit.SPADE },
-          { rank: Rank.JACK, suit: Suit.CLUB },
-          { rank: Rank.QUEEN, suit: Suit.HEART },
+          { rank: Rank.ACE, suit: Suit.DIAMOND, faceUp: false },
+          { rank: Rank.TWO, suit: Suit.HEART, faceUp: false },
+          { rank: Rank.TEN, suit: Suit.SPADE, faceUp: false },
+          { rank: Rank.JACK, suit: Suit.CLUB, faceUp: false },
+          { rank: Rank.QUEEN, suit: Suit.HEART, faceUp: false },
         ],
         [
-          { rank: Rank.FIVE, suit: Suit.SPADE },
-          { rank: Rank.NINE, suit: Suit.HEART },
-          { rank: Rank.JACK, suit: Suit.HEART },
-          { rank: Rank.QUEEN, suit: Suit.DIAMOND },
+          { rank: Rank.FIVE, suit: Suit.SPADE, faceUp: false },
+          { rank: Rank.NINE, suit: Suit.HEART, faceUp: false },
+          { rank: Rank.JACK, suit: Suit.HEART, faceUp: false },
+          { rank: Rank.QUEEN, suit: Suit.DIAMOND, faceUp: false },
         ],
       ]);
       expect(result.current.piles).toStrictEqual([[], [], []]);
@@ -229,31 +246,31 @@ describe("run through a round", () => {
 
       expect(result.current.starter).toBeNull;
       expect(result.current.crib).toStrictEqual([
-        { rank: Rank.FIVE, suit: Suit.DIAMOND },
-        { rank: Rank.SIX, suit: Suit.SPADE },
-        { rank: Rank.JACK, suit: Suit.DIAMOND },
+        { rank: Rank.FIVE, suit: Suit.DIAMOND, faceUp: false },
+        { rank: Rank.SIX, suit: Suit.SPADE, faceUp: false },
+        { rank: Rank.JACK, suit: Suit.DIAMOND, faceUp: false },
       ]);
       expect(
         result.current.hands.map((hand) => hand.sort(cardSorter))
       ).toStrictEqual([
         [
-          { rank: Rank.THREE, suit: Suit.HEART },
-          { rank: Rank.FIVE, suit: Suit.CLUB },
-          { rank: Rank.FIVE, suit: Suit.HEART },
-          { rank: Rank.KING, suit: Suit.CLUB },
+          { rank: Rank.THREE, suit: Suit.HEART, faceUp: true },
+          { rank: Rank.FIVE, suit: Suit.CLUB, faceUp: true },
+          { rank: Rank.FIVE, suit: Suit.HEART, faceUp: true },
+          { rank: Rank.KING, suit: Suit.CLUB, faceUp: true },
         ],
         [
-          { rank: Rank.ACE, suit: Suit.DIAMOND },
-          { rank: Rank.TWO, suit: Suit.HEART },
-          { rank: Rank.TEN, suit: Suit.SPADE },
-          { rank: Rank.JACK, suit: Suit.CLUB },
-          { rank: Rank.QUEEN, suit: Suit.HEART },
+          { rank: Rank.ACE, suit: Suit.DIAMOND, faceUp: false },
+          { rank: Rank.TWO, suit: Suit.HEART, faceUp: false },
+          { rank: Rank.TEN, suit: Suit.SPADE, faceUp: false },
+          { rank: Rank.JACK, suit: Suit.CLUB, faceUp: false },
+          { rank: Rank.QUEEN, suit: Suit.HEART, faceUp: false },
         ],
         [
-          { rank: Rank.FIVE, suit: Suit.SPADE },
-          { rank: Rank.NINE, suit: Suit.HEART },
-          { rank: Rank.JACK, suit: Suit.HEART },
-          { rank: Rank.QUEEN, suit: Suit.DIAMOND },
+          { rank: Rank.FIVE, suit: Suit.SPADE, faceUp: false },
+          { rank: Rank.NINE, suit: Suit.HEART, faceUp: false },
+          { rank: Rank.JACK, suit: Suit.HEART, faceUp: false },
+          { rank: Rank.QUEEN, suit: Suit.DIAMOND, faceUp: false },
         ],
       ]);
       expect(result.current.piles).toStrictEqual([[], [], []]);
@@ -275,31 +292,31 @@ describe("run through a round", () => {
 
       expect(result.current.starter).toBeNull;
       expect(result.current.crib).toStrictEqual([
-        { rank: Rank.FIVE, suit: Suit.DIAMOND },
-        { rank: Rank.SIX, suit: Suit.SPADE },
-        { rank: Rank.JACK, suit: Suit.DIAMOND },
-        { rank: Rank.QUEEN, suit: Suit.HEART },
+        { rank: Rank.FIVE, suit: Suit.DIAMOND, faceUp: false },
+        { rank: Rank.SIX, suit: Suit.SPADE, faceUp: false },
+        { rank: Rank.JACK, suit: Suit.DIAMOND, faceUp: false },
+        { rank: Rank.QUEEN, suit: Suit.HEART, faceUp: false },
       ]);
       expect(
         result.current.hands.map((hand) => hand.sort(cardSorter))
       ).toStrictEqual([
         [
-          { rank: Rank.THREE, suit: Suit.HEART },
-          { rank: Rank.FIVE, suit: Suit.CLUB },
-          { rank: Rank.FIVE, suit: Suit.HEART },
-          { rank: Rank.KING, suit: Suit.CLUB },
+          { rank: Rank.THREE, suit: Suit.HEART, faceUp: true },
+          { rank: Rank.FIVE, suit: Suit.CLUB, faceUp: true },
+          { rank: Rank.FIVE, suit: Suit.HEART, faceUp: true },
+          { rank: Rank.KING, suit: Suit.CLUB, faceUp: true },
         ],
         [
-          { rank: Rank.ACE, suit: Suit.DIAMOND },
-          { rank: Rank.TWO, suit: Suit.HEART },
-          { rank: Rank.TEN, suit: Suit.SPADE },
-          { rank: Rank.JACK, suit: Suit.CLUB },
+          { rank: Rank.ACE, suit: Suit.DIAMOND, faceUp: false },
+          { rank: Rank.TWO, suit: Suit.HEART, faceUp: false },
+          { rank: Rank.TEN, suit: Suit.SPADE, faceUp: false },
+          { rank: Rank.JACK, suit: Suit.CLUB, faceUp: false },
         ],
         [
-          { rank: Rank.FIVE, suit: Suit.SPADE },
-          { rank: Rank.NINE, suit: Suit.HEART },
-          { rank: Rank.JACK, suit: Suit.HEART },
-          { rank: Rank.QUEEN, suit: Suit.DIAMOND },
+          { rank: Rank.FIVE, suit: Suit.SPADE, faceUp: false },
+          { rank: Rank.NINE, suit: Suit.HEART, faceUp: false },
+          { rank: Rank.JACK, suit: Suit.HEART, faceUp: false },
+          { rank: Rank.QUEEN, suit: Suit.DIAMOND, faceUp: false },
         ],
       ]);
       expect(result.current.piles).toStrictEqual([[], [], []]);
@@ -325,31 +342,31 @@ describe("run through a round", () => {
 
       expect(result.current.starter).toBeNull;
       expect(result.current.crib).toStrictEqual([
-        { rank: Rank.FIVE, suit: Suit.DIAMOND },
-        { rank: Rank.SIX, suit: Suit.SPADE },
-        { rank: Rank.JACK, suit: Suit.DIAMOND },
-        { rank: Rank.QUEEN, suit: Suit.HEART },
+        { rank: Rank.FIVE, suit: Suit.DIAMOND, faceUp: false },
+        { rank: Rank.SIX, suit: Suit.SPADE, faceUp: false },
+        { rank: Rank.JACK, suit: Suit.DIAMOND, faceUp: false },
+        { rank: Rank.QUEEN, suit: Suit.HEART, faceUp: false },
       ]);
       expect(
         result.current.hands.map((hand) => hand.sort(cardSorter))
       ).toStrictEqual([
         [
-          { rank: Rank.THREE, suit: Suit.HEART },
-          { rank: Rank.FIVE, suit: Suit.CLUB },
-          { rank: Rank.FIVE, suit: Suit.HEART },
-          { rank: Rank.KING, suit: Suit.CLUB },
+          { rank: Rank.THREE, suit: Suit.HEART, faceUp: true },
+          { rank: Rank.FIVE, suit: Suit.CLUB, faceUp: true },
+          { rank: Rank.FIVE, suit: Suit.HEART, faceUp: true },
+          { rank: Rank.KING, suit: Suit.CLUB, faceUp: true },
         ],
         [
-          { rank: Rank.ACE, suit: Suit.DIAMOND },
-          { rank: Rank.TWO, suit: Suit.HEART },
-          { rank: Rank.TEN, suit: Suit.SPADE },
-          { rank: Rank.JACK, suit: Suit.CLUB },
+          { rank: Rank.ACE, suit: Suit.DIAMOND, faceUp: false },
+          { rank: Rank.TWO, suit: Suit.HEART, faceUp: false },
+          { rank: Rank.TEN, suit: Suit.SPADE, faceUp: false },
+          { rank: Rank.JACK, suit: Suit.CLUB, faceUp: false },
         ],
         [
-          { rank: Rank.FIVE, suit: Suit.SPADE },
-          { rank: Rank.NINE, suit: Suit.HEART },
-          { rank: Rank.JACK, suit: Suit.HEART },
-          { rank: Rank.QUEEN, suit: Suit.DIAMOND },
+          { rank: Rank.FIVE, suit: Suit.SPADE, faceUp: false },
+          { rank: Rank.NINE, suit: Suit.HEART, faceUp: false },
+          { rank: Rank.JACK, suit: Suit.HEART, faceUp: false },
+          { rank: Rank.QUEEN, suit: Suit.DIAMOND, faceUp: false },
         ],
       ]);
       expect(result.current.piles).toStrictEqual([[], [], []]);
@@ -376,31 +393,31 @@ describe("run through a round", () => {
 
       expect(result.current.starter).toStrictEqual(starter);
       expect(result.current.crib).toStrictEqual([
-        { rank: Rank.FIVE, suit: Suit.DIAMOND },
-        { rank: Rank.SIX, suit: Suit.SPADE },
-        { rank: Rank.JACK, suit: Suit.DIAMOND },
-        { rank: Rank.QUEEN, suit: Suit.HEART },
+        { rank: Rank.FIVE, suit: Suit.DIAMOND, faceUp: false },
+        { rank: Rank.SIX, suit: Suit.SPADE, faceUp: false },
+        { rank: Rank.JACK, suit: Suit.DIAMOND, faceUp: false },
+        { rank: Rank.QUEEN, suit: Suit.HEART, faceUp: false },
       ]);
       expect(
         result.current.hands.map((hand) => hand.sort(cardSorter))
       ).toStrictEqual([
         [
-          { rank: Rank.THREE, suit: Suit.HEART },
-          { rank: Rank.FIVE, suit: Suit.CLUB },
-          { rank: Rank.FIVE, suit: Suit.HEART },
-          { rank: Rank.KING, suit: Suit.CLUB },
+          { rank: Rank.THREE, suit: Suit.HEART, faceUp: true },
+          { rank: Rank.FIVE, suit: Suit.CLUB, faceUp: true },
+          { rank: Rank.FIVE, suit: Suit.HEART, faceUp: true },
+          { rank: Rank.KING, suit: Suit.CLUB, faceUp: true },
         ],
         [
-          { rank: Rank.ACE, suit: Suit.DIAMOND },
-          { rank: Rank.TWO, suit: Suit.HEART },
-          { rank: Rank.TEN, suit: Suit.SPADE },
-          { rank: Rank.JACK, suit: Suit.CLUB },
+          { rank: Rank.ACE, suit: Suit.DIAMOND, faceUp: false },
+          { rank: Rank.TWO, suit: Suit.HEART, faceUp: false },
+          { rank: Rank.TEN, suit: Suit.SPADE, faceUp: false },
+          { rank: Rank.JACK, suit: Suit.CLUB, faceUp: false },
         ],
         [
-          { rank: Rank.FIVE, suit: Suit.SPADE },
-          { rank: Rank.NINE, suit: Suit.HEART },
-          { rank: Rank.JACK, suit: Suit.HEART },
-          { rank: Rank.QUEEN, suit: Suit.DIAMOND },
+          { rank: Rank.FIVE, suit: Suit.SPADE, faceUp: false },
+          { rank: Rank.NINE, suit: Suit.HEART, faceUp: false },
+          { rank: Rank.JACK, suit: Suit.HEART, faceUp: false },
+          { rank: Rank.QUEEN, suit: Suit.DIAMOND, faceUp: false },
         ],
       ]);
       expect(result.current.piles).toStrictEqual([[], [], []]);
@@ -448,39 +465,39 @@ describe("run through a round", () => {
 
       expect(result.current.starter).toStrictEqual(starter);
       expect(result.current.crib).toStrictEqual([
-        { rank: Rank.FIVE, suit: Suit.DIAMOND },
-        { rank: Rank.SIX, suit: Suit.SPADE },
-        { rank: Rank.JACK, suit: Suit.DIAMOND },
-        { rank: Rank.QUEEN, suit: Suit.HEART },
+        { rank: Rank.FIVE, suit: Suit.DIAMOND, faceUp: false },
+        { rank: Rank.SIX, suit: Suit.SPADE, faceUp: false },
+        { rank: Rank.JACK, suit: Suit.DIAMOND, faceUp: false },
+        { rank: Rank.QUEEN, suit: Suit.HEART, faceUp: false },
       ]);
       expect(
         result.current.hands.map((hand) => hand.sort(cardSorter))
       ).toStrictEqual([
         [
-          { rank: Rank.THREE, suit: Suit.HEART },
-          { rank: Rank.FIVE, suit: Suit.CLUB },
-          { rank: Rank.KING, suit: Suit.CLUB },
+          { rank: Rank.THREE, suit: Suit.HEART, faceUp: true },
+          { rank: Rank.FIVE, suit: Suit.CLUB, faceUp: true },
+          { rank: Rank.KING, suit: Suit.CLUB, faceUp: true },
         ],
         [
-          { rank: Rank.ACE, suit: Suit.DIAMOND },
-          { rank: Rank.TWO, suit: Suit.HEART },
-          { rank: Rank.TEN, suit: Suit.SPADE },
-          { rank: Rank.JACK, suit: Suit.CLUB },
+          { rank: Rank.ACE, suit: Suit.DIAMOND, faceUp: false },
+          { rank: Rank.TWO, suit: Suit.HEART, faceUp: false },
+          { rank: Rank.TEN, suit: Suit.SPADE, faceUp: false },
+          { rank: Rank.JACK, suit: Suit.CLUB, faceUp: false },
         ],
         [
-          { rank: Rank.FIVE, suit: Suit.SPADE },
-          { rank: Rank.NINE, suit: Suit.HEART },
-          { rank: Rank.JACK, suit: Suit.HEART },
-          { rank: Rank.QUEEN, suit: Suit.DIAMOND },
+          { rank: Rank.FIVE, suit: Suit.SPADE, faceUp: false },
+          { rank: Rank.NINE, suit: Suit.HEART, faceUp: false },
+          { rank: Rank.JACK, suit: Suit.HEART, faceUp: false },
+          { rank: Rank.QUEEN, suit: Suit.DIAMOND, faceUp: false },
         ],
       ]);
       expect(result.current.piles).toStrictEqual([
-        [{ rank: Rank.FIVE, suit: Suit.HEART }],
+        [{ rank: Rank.FIVE, suit: Suit.HEART, faceUp: true }],
         [],
         [],
       ]);
       expect(result.current.sharedStack).toStrictEqual([
-        { rank: Rank.FIVE, suit: Suit.HEART },
+        { rank: Rank.FIVE, suit: Suit.HEART, faceUp: true },
       ]);
 
       expect(mockPreviousPlayerAction.previousPlayer).toBe(0);
@@ -524,39 +541,39 @@ describe("run through a round", () => {
 
       expect(result.current.starter).toStrictEqual(starter);
       expect(result.current.crib).toStrictEqual([
-        { rank: Rank.FIVE, suit: Suit.DIAMOND },
-        { rank: Rank.SIX, suit: Suit.SPADE },
-        { rank: Rank.JACK, suit: Suit.DIAMOND },
-        { rank: Rank.QUEEN, suit: Suit.HEART },
+        { rank: Rank.FIVE, suit: Suit.DIAMOND, faceUp: false },
+        { rank: Rank.SIX, suit: Suit.SPADE, faceUp: false },
+        { rank: Rank.JACK, suit: Suit.DIAMOND, faceUp: false },
+        { rank: Rank.QUEEN, suit: Suit.HEART, faceUp: false },
       ]);
       expect(
         result.current.hands.map((hand) => hand.sort(cardSorter))
       ).toStrictEqual([
         [
-          { rank: Rank.THREE, suit: Suit.HEART },
-          { rank: Rank.FIVE, suit: Suit.CLUB },
-          { rank: Rank.KING, suit: Suit.CLUB },
+          { rank: Rank.THREE, suit: Suit.HEART, faceUp: true },
+          { rank: Rank.FIVE, suit: Suit.CLUB, faceUp: true },
+          { rank: Rank.KING, suit: Suit.CLUB, faceUp: true },
         ],
         [
-          { rank: Rank.ACE, suit: Suit.DIAMOND },
-          { rank: Rank.TWO, suit: Suit.HEART },
-          { rank: Rank.TEN, suit: Suit.SPADE },
+          { rank: Rank.ACE, suit: Suit.DIAMOND, faceUp: false },
+          { rank: Rank.TWO, suit: Suit.HEART, faceUp: false },
+          { rank: Rank.TEN, suit: Suit.SPADE, faceUp: false },
         ],
         [
-          { rank: Rank.FIVE, suit: Suit.SPADE },
-          { rank: Rank.NINE, suit: Suit.HEART },
-          { rank: Rank.JACK, suit: Suit.HEART },
-          { rank: Rank.QUEEN, suit: Suit.DIAMOND },
+          { rank: Rank.FIVE, suit: Suit.SPADE, faceUp: false },
+          { rank: Rank.NINE, suit: Suit.HEART, faceUp: false },
+          { rank: Rank.JACK, suit: Suit.HEART, faceUp: false },
+          { rank: Rank.QUEEN, suit: Suit.DIAMOND, faceUp: false },
         ],
       ]);
       expect(result.current.piles).toStrictEqual([
-        [{ rank: Rank.FIVE, suit: Suit.HEART }],
-        [{ rank: Rank.JACK, suit: Suit.CLUB }],
+        [{ rank: Rank.FIVE, suit: Suit.HEART, faceUp: true }],
+        [{ rank: Rank.JACK, suit: Suit.CLUB, faceUp: true }],
         [],
       ]);
       expect(result.current.sharedStack).toStrictEqual([
-        { rank: Rank.FIVE, suit: Suit.HEART },
-        { rank: Rank.JACK, suit: Suit.CLUB },
+        { rank: Rank.FIVE, suit: Suit.HEART, faceUp: true },
+        { rank: Rank.JACK, suit: Suit.CLUB, faceUp: true },
       ]);
 
       expect(mockPreviousPlayerAction.previousPlayer).toBe(1);
@@ -602,39 +619,39 @@ describe("run through a round", () => {
 
       expect(result.current.starter).toStrictEqual(starter);
       expect(result.current.crib).toStrictEqual([
-        { rank: Rank.FIVE, suit: Suit.DIAMOND },
-        { rank: Rank.SIX, suit: Suit.SPADE },
-        { rank: Rank.JACK, suit: Suit.DIAMOND },
-        { rank: Rank.QUEEN, suit: Suit.HEART },
+        { rank: Rank.FIVE, suit: Suit.DIAMOND, faceUp: false },
+        { rank: Rank.SIX, suit: Suit.SPADE, faceUp: false },
+        { rank: Rank.JACK, suit: Suit.DIAMOND, faceUp: false },
+        { rank: Rank.QUEEN, suit: Suit.HEART, faceUp: false },
       ]);
       expect(
         result.current.hands.map((hand) => hand.sort(cardSorter))
       ).toStrictEqual([
         [
-          { rank: Rank.THREE, suit: Suit.HEART },
-          { rank: Rank.FIVE, suit: Suit.CLUB },
-          { rank: Rank.KING, suit: Suit.CLUB },
+          { rank: Rank.THREE, suit: Suit.HEART, faceUp: true },
+          { rank: Rank.FIVE, suit: Suit.CLUB, faceUp: true },
+          { rank: Rank.KING, suit: Suit.CLUB, faceUp: true },
         ],
         [
-          { rank: Rank.ACE, suit: Suit.DIAMOND },
-          { rank: Rank.TWO, suit: Suit.HEART },
-          { rank: Rank.TEN, suit: Suit.SPADE },
+          { rank: Rank.ACE, suit: Suit.DIAMOND, faceUp: false },
+          { rank: Rank.TWO, suit: Suit.HEART, faceUp: false },
+          { rank: Rank.TEN, suit: Suit.SPADE, faceUp: false },
         ],
         [
-          { rank: Rank.NINE, suit: Suit.HEART },
-          { rank: Rank.JACK, suit: Suit.HEART },
-          { rank: Rank.QUEEN, suit: Suit.DIAMOND },
+          { rank: Rank.NINE, suit: Suit.HEART, faceUp: false },
+          { rank: Rank.JACK, suit: Suit.HEART, faceUp: false },
+          { rank: Rank.QUEEN, suit: Suit.DIAMOND, faceUp: false },
         ],
       ]);
       expect(result.current.piles).toStrictEqual([
-        [{ rank: Rank.FIVE, suit: Suit.HEART }],
-        [{ rank: Rank.JACK, suit: Suit.CLUB }],
-        [{ rank: Rank.FIVE, suit: Suit.SPADE }],
+        [{ rank: Rank.FIVE, suit: Suit.HEART, faceUp: true }],
+        [{ rank: Rank.JACK, suit: Suit.CLUB, faceUp: true }],
+        [{ rank: Rank.FIVE, suit: Suit.SPADE, faceUp: true }],
       ]);
       expect(result.current.sharedStack).toStrictEqual([
-        { rank: Rank.FIVE, suit: Suit.HEART },
-        { rank: Rank.JACK, suit: Suit.CLUB },
-        { rank: Rank.FIVE, suit: Suit.SPADE },
+        { rank: Rank.FIVE, suit: Suit.HEART, faceUp: true },
+        { rank: Rank.JACK, suit: Suit.CLUB, faceUp: true },
+        { rank: Rank.FIVE, suit: Suit.SPADE, faceUp: true },
       ]);
 
       expect(mockPreviousPlayerAction.previousPlayer).toBe(2);
@@ -662,7 +679,7 @@ describe("run through a round", () => {
       expect(result.current.isValidPlay(3)).toBe(true);
       act(() => result.current.play(3));
       expect(result.current.sharedStack).toStrictEqual([
-        { rank: Rank.KING, suit: Suit.CLUB },
+        { rank: Rank.KING, suit: Suit.CLUB, faceUp: true },
       ]);
       expect(result.current.nextPlayers).toStrictEqual([false, true, false]);
       expect(result.current.nextAction).toBe(Action.PLAY_OR_GO);
@@ -672,8 +689,8 @@ describe("run through a round", () => {
       expect(result.current.isValidPlay(3)).toBe(true);
       act(() => result.current.play(3));
       expect(result.current.sharedStack).toStrictEqual([
-        { rank: Rank.KING, suit: Suit.CLUB },
-        { rank: Rank.JACK, suit: Suit.CLUB },
+        { rank: Rank.KING, suit: Suit.CLUB, faceUp: true },
+        { rank: Rank.JACK, suit: Suit.CLUB, faceUp: true },
       ]);
       expect(result.current.nextPlayers).toStrictEqual([false, false, true]);
       expect(result.current.nextAction).toBe(Action.PLAY_OR_GO);
@@ -683,9 +700,9 @@ describe("run through a round", () => {
       expect(result.current.isValidPlay(3)).toBe(true);
       act(() => result.current.play(3));
       expect(result.current.sharedStack).toStrictEqual([
-        { rank: Rank.KING, suit: Suit.CLUB },
-        { rank: Rank.JACK, suit: Suit.CLUB },
-        { rank: Rank.QUEEN, suit: Suit.DIAMOND },
+        { rank: Rank.KING, suit: Suit.CLUB, faceUp: true },
+        { rank: Rank.JACK, suit: Suit.CLUB, faceUp: true },
+        { rank: Rank.QUEEN, suit: Suit.DIAMOND, faceUp: true },
       ]);
       expect(mockPreviousPlayerAction.previousAction).toBe(Action.PLAY);
       expect(result.current.nextPlayers).toStrictEqual([true, false, false]);
@@ -700,9 +717,9 @@ describe("run through a round", () => {
       expect(result.current.isValidGo()).toBe(true);
       act(() => result.current.go());
       expect(result.current.sharedStack).toStrictEqual([
-        { rank: Rank.KING, suit: Suit.CLUB },
-        { rank: Rank.JACK, suit: Suit.CLUB },
-        { rank: Rank.QUEEN, suit: Suit.DIAMOND },
+        { rank: Rank.KING, suit: Suit.CLUB, faceUp: true },
+        { rank: Rank.JACK, suit: Suit.CLUB, faceUp: true },
+        { rank: Rank.QUEEN, suit: Suit.DIAMOND, faceUp: true },
       ]);
       expect(mockPreviousPlayerAction.previousAction).toBe(Action.GO);
       expect(result.current.nextPlayers).toStrictEqual([false, true, false]);
@@ -717,10 +734,10 @@ describe("run through a round", () => {
       expect(result.current.isValidGo()).toBe(false);
       act(() => result.current.play(0));
       expect(result.current.sharedStack).toStrictEqual([
-        { rank: Rank.KING, suit: Suit.CLUB },
-        { rank: Rank.JACK, suit: Suit.CLUB },
-        { rank: Rank.QUEEN, suit: Suit.DIAMOND },
-        { rank: Rank.ACE, suit: Suit.DIAMOND },
+        { rank: Rank.KING, suit: Suit.CLUB, faceUp: true },
+        { rank: Rank.JACK, suit: Suit.CLUB, faceUp: true },
+        { rank: Rank.QUEEN, suit: Suit.DIAMOND, faceUp: true },
+        { rank: Rank.ACE, suit: Suit.DIAMOND, faceUp: true },
       ]);
       expect(mockPreviousPlayerAction.previousAction).toBe(Action.PLAY);
       expect(result.current.nextPlayers).toStrictEqual([false, false, true]);
@@ -744,7 +761,7 @@ describe("run through a round", () => {
       expect(result.current.isValidPlay(2)).toBe(true);
       act(() => result.current.play(2));
       expect(result.current.sharedStack).toStrictEqual([
-        { rank: Rank.JACK, suit: Suit.HEART },
+        { rank: Rank.JACK, suit: Suit.HEART, faceUp: true },
       ]);
       expect(mockPreviousPlayerAction.previousAction).toBe(Action.PLAY);
       expect(result.current.nextPlayers).toStrictEqual([true, false, false]);
@@ -757,8 +774,8 @@ describe("run through a round", () => {
       expect(result.current.isValidPlay(1)).toBe(true);
       act(() => result.current.play(1));
       expect(result.current.sharedStack).toStrictEqual([
-        { rank: Rank.JACK, suit: Suit.HEART },
-        { rank: Rank.FIVE, suit: Suit.CLUB },
+        { rank: Rank.JACK, suit: Suit.HEART, faceUp: true },
+        { rank: Rank.FIVE, suit: Suit.CLUB, faceUp: true },
       ]);
       expect(mockPreviousPlayerAction.previousAction).toBe(Action.PLAY);
       expect(result.current.nextPlayers).toStrictEqual([false, true, false]);
@@ -888,31 +905,31 @@ describe("run through a round", () => {
 
       expect(result.current.starter).toStrictEqual(starter);
       expect(result.current.crib).toStrictEqual([
-        { rank: Rank.FIVE, suit: Suit.DIAMOND },
-        { rank: Rank.SIX, suit: Suit.SPADE },
-        { rank: Rank.JACK, suit: Suit.DIAMOND },
-        { rank: Rank.QUEEN, suit: Suit.HEART },
+        { rank: Rank.FIVE, suit: Suit.DIAMOND, faceUp: false },
+        { rank: Rank.SIX, suit: Suit.SPADE, faceUp: false },
+        { rank: Rank.JACK, suit: Suit.DIAMOND, faceUp: false },
+        { rank: Rank.QUEEN, suit: Suit.HEART, faceUp: false },
       ]);
       expect(
         result.current.hands.map((hand) => hand.sort(cardSorter))
       ).toStrictEqual([
         [
-          { rank: Rank.THREE, suit: Suit.HEART },
-          { rank: Rank.FIVE, suit: Suit.CLUB },
-          { rank: Rank.FIVE, suit: Suit.HEART },
-          { rank: Rank.KING, suit: Suit.CLUB },
+          { rank: Rank.THREE, suit: Suit.HEART, faceUp: true },
+          { rank: Rank.FIVE, suit: Suit.CLUB, faceUp: true },
+          { rank: Rank.FIVE, suit: Suit.HEART, faceUp: true },
+          { rank: Rank.KING, suit: Suit.CLUB, faceUp: true },
         ],
         [
-          { rank: Rank.ACE, suit: Suit.DIAMOND },
-          { rank: Rank.TWO, suit: Suit.HEART },
-          { rank: Rank.TEN, suit: Suit.SPADE },
-          { rank: Rank.JACK, suit: Suit.CLUB },
+          { rank: Rank.ACE, suit: Suit.DIAMOND, faceUp: false },
+          { rank: Rank.TWO, suit: Suit.HEART, faceUp: false },
+          { rank: Rank.TEN, suit: Suit.SPADE, faceUp: false },
+          { rank: Rank.JACK, suit: Suit.CLUB, faceUp: false },
         ],
         [
-          { rank: Rank.FIVE, suit: Suit.SPADE },
-          { rank: Rank.NINE, suit: Suit.HEART },
-          { rank: Rank.JACK, suit: Suit.HEART },
-          { rank: Rank.QUEEN, suit: Suit.DIAMOND },
+          { rank: Rank.FIVE, suit: Suit.SPADE, faceUp: false },
+          { rank: Rank.NINE, suit: Suit.HEART, faceUp: false },
+          { rank: Rank.JACK, suit: Suit.HEART, faceUp: false },
+          { rank: Rank.QUEEN, suit: Suit.DIAMOND, faceUp: false },
         ],
       ]);
       expect(result.current.piles).toStrictEqual([[], [], []]);
@@ -974,31 +991,31 @@ describe("run through a round", () => {
 
       expect(result.current.starter).toStrictEqual(starter);
       expect(result.current.crib).toStrictEqual([
-        { rank: Rank.FIVE, suit: Suit.DIAMOND },
-        { rank: Rank.SIX, suit: Suit.SPADE },
-        { rank: Rank.JACK, suit: Suit.DIAMOND },
-        { rank: Rank.QUEEN, suit: Suit.HEART },
+        { rank: Rank.FIVE, suit: Suit.DIAMOND, faceUp: false },
+        { rank: Rank.SIX, suit: Suit.SPADE, faceUp: false },
+        { rank: Rank.JACK, suit: Suit.DIAMOND, faceUp: false },
+        { rank: Rank.QUEEN, suit: Suit.HEART, faceUp: false },
       ]);
       expect(
         result.current.hands.map((hand) => hand.sort(cardSorter))
       ).toStrictEqual([
         [
-          { rank: Rank.THREE, suit: Suit.HEART },
-          { rank: Rank.FIVE, suit: Suit.CLUB },
-          { rank: Rank.FIVE, suit: Suit.HEART },
-          { rank: Rank.KING, suit: Suit.CLUB },
+          { rank: Rank.THREE, suit: Suit.HEART, faceUp: true },
+          { rank: Rank.FIVE, suit: Suit.CLUB, faceUp: true },
+          { rank: Rank.FIVE, suit: Suit.HEART, faceUp: true },
+          { rank: Rank.KING, suit: Suit.CLUB, faceUp: true },
         ],
         [
-          { rank: Rank.ACE, suit: Suit.DIAMOND },
-          { rank: Rank.TWO, suit: Suit.HEART },
-          { rank: Rank.TEN, suit: Suit.SPADE },
-          { rank: Rank.JACK, suit: Suit.CLUB },
+          { rank: Rank.ACE, suit: Suit.DIAMOND, faceUp: false },
+          { rank: Rank.TWO, suit: Suit.HEART, faceUp: false },
+          { rank: Rank.TEN, suit: Suit.SPADE, faceUp: false },
+          { rank: Rank.JACK, suit: Suit.CLUB, faceUp: false },
         ],
         [
-          { rank: Rank.FIVE, suit: Suit.SPADE },
-          { rank: Rank.NINE, suit: Suit.HEART },
-          { rank: Rank.JACK, suit: Suit.HEART },
-          { rank: Rank.QUEEN, suit: Suit.DIAMOND },
+          { rank: Rank.FIVE, suit: Suit.SPADE, faceUp: false },
+          { rank: Rank.NINE, suit: Suit.HEART, faceUp: false },
+          { rank: Rank.JACK, suit: Suit.HEART, faceUp: false },
+          { rank: Rank.QUEEN, suit: Suit.DIAMOND, faceUp: false },
         ],
       ]);
       expect(result.current.piles).toStrictEqual([[], [], []]);

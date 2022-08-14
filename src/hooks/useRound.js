@@ -1,4 +1,4 @@
-import { useEffect, useReducer, useState } from "react";
+import { useCallback, useEffect, useReducer, useState } from "react";
 import _ from "lodash";
 
 import Action from "./Action";
@@ -9,6 +9,7 @@ import {
   cardSorter,
   checkClaim,
   claimTypes,
+  flipCard,
   pointsForClaim,
   totalPoints,
 } from "../playing-cards/cardHelpers.js";
@@ -29,6 +30,8 @@ function initialStates(playerCount) {
 
 function reduceStates(states, action) {
   let playerCount = action.playerCount || states.hands.length;
+  let userPosition = action.userPosition;
+  let debugMode = action.debugMode;
 
   // if new game with new players, need to adjust player count
   if (action.type === "reset") return initialStates(playerCount);
@@ -49,16 +52,19 @@ function reduceStates(states, action) {
 
   switch (action.type) {
     case "deal-player":
+      flipCard(action.card, debugMode || action.player === userPosition);
       newStates.hands[action.player].push(action.card);
       newStates.hands[action.player].sort(cardSorter);
       break;
 
     case "deal-crib":
+      flipCard(action.card, debugMode);
       newStates.crib.push(action.card);
       break;
 
     case "discard":
       let card = newStates.hands[action.player].splice(action.index, 1)[0];
+      flipCard(card, debugMode);
       newStates.crib.push(card);
       newStates.crib.sort(cardSorter);
       break;
@@ -68,19 +74,36 @@ function reduceStates(states, action) {
         action.index,
         1
       )[0];
+      flipCard(playedCard, true);
       newStates.piles[action.player].push(playedCard);
       newStates.sharedStack.push(playedCard);
       break;
 
     case "re-hand":
       newStates.hands = newStates.piles;
+      newStates.hands.forEach((hand, index) =>
+        hand.forEach((card) =>
+          flipCard(card, debugMode || index === userPosition)
+        )
+      );
       newStates.hands.forEach((hand) => hand.sort(cardSorter));
       newStates.piles = [[], [], []].slice(0, playerCount);
       newStates.sharedStack = [];
       break;
 
-    case "reset-shared-stack":
+    case "end-play":
       newStates.sharedStack = [];
+      newStates.piles.forEach((pile) =>
+        pile.forEach((card) => flipCard(card, debugMode))
+      );
+      break;
+
+    case "reveal-hand":
+      newStates.hands[action.player].forEach((card) => flipCard(card, true));
+      break;
+
+    case "reveal-crib":
+      newStates.crib.forEach((card) => flipCard(card, true));
       break;
 
     default:
@@ -110,13 +133,25 @@ function reduceGoed(goed, action) {
 
 ////// Hook //////
 
-export function useRound(deck, playerCount, dealer, previousPlayerAction, peg) {
+export function useRound(
+  deck,
+  playerCount,
+  userPosition,
+  dealer,
+  previousPlayerAction,
+  peg,
+  debugMode = false
+) {
   //// States ////
 
-  const [{ crib, hands, piles, sharedStack }, dispatchStates] = useReducer(
+  const [{ crib, hands, piles, sharedStack }, _dispatchStates] = useReducer(
     reduceStates,
     playerCount,
     initialStates
+  );
+  const dispatchStates = useCallback(
+    (action) => _dispatchStates({ ...action, userPosition, debugMode }),
+    [userPosition, debugMode]
   );
 
   const [starter, setStarter] = useState(null);
@@ -304,7 +339,7 @@ export function useRound(deck, playerCount, dealer, previousPlayerAction, peg) {
 
   // reset if player count changes
   useEffect(() => {
-    dispatchStates({ type: "reset", playerCount });
+    _dispatchStates({ type: "reset", playerCount });
     dispatchGoed({ type: "reset", playerCount });
   }, [playerCount]);
 
@@ -321,7 +356,13 @@ export function useRound(deck, playerCount, dealer, previousPlayerAction, peg) {
       dispatchStates({ type: "deal-player", player: nextToDealCardTo, card });
       setPreviousPlayerAction(nextPlayer, Action.CONTINUE_DEALING);
     }
-  }, [nextToDealCardTo, nextPlayer, setPreviousPlayerAction, deck]);
+  }, [
+    dispatchStates,
+    nextToDealCardTo,
+    nextPlayer,
+    setPreviousPlayerAction,
+    deck,
+  ]);
 
   //// Checks ////
 
@@ -423,6 +464,7 @@ export function useRound(deck, playerCount, dealer, previousPlayerAction, peg) {
 
   function flip() {
     let card = deck.draw(1)[0];
+    flipCard(card, true);
     setStarter(card);
     scoreFlip(card);
     deck.uncut();
@@ -445,7 +487,7 @@ export function useRound(deck, playerCount, dealer, previousPlayerAction, peg) {
 
   function endPlay() {
     setPreviousCardPlayedBy(null);
-    dispatchStates({ type: "reset-shared-stack" });
+    dispatchStates({ type: "end-play" });
     dispatchGoed({ type: "reset" });
     setPreviousPlayerAction(nextPlayer, Action.FLIP_PLAYED_CARDS);
   }
@@ -459,11 +501,13 @@ export function useRound(deck, playerCount, dealer, previousPlayerAction, peg) {
 
   function scoreHand() {
     scoreHandOrCrib(false);
+    dispatchStates({ type: "reveal-hand", player: nextPlayer });
     setPreviousPlayerAction(nextPlayer, Action.SCORE_HAND);
   }
 
   function scoreCrib() {
     scoreHandOrCrib(true);
+    dispatchStates({ type: "reveal-crib" });
     setPreviousPlayerAction(nextPlayer, Action.SCORE_CRIB);
   }
 

@@ -27,33 +27,32 @@ for (let rank of [
   Rank.KING,
 ]) {
   for (let suit of [Suit.CLUB, Suit.DIAMOND, Suit.SPADE, Suit.HEART]) {
-    allCards.push({ rank, suit, faceUp: true }); // ~ face up
-    // !!! face-up-ness of cards (allowing for easy debug mode with everything face up)
+    allCards.push({ rank, suit, faceUp: false });
   }
 }
 
 // these cards will appear on the top of the deck
 const manuallyOrderedCards = [
   // used in cut for dealer, and for hands
-  { rank: Rank.ACE, suit: Suit.CLUB, faceUp: true },
-  { rank: Rank.TWO, suit: Suit.CLUB, faceUp: true },
-  { rank: Rank.THREE, suit: Suit.CLUB, faceUp: true },
+  { rank: Rank.ACE, suit: Suit.CLUB },
+  { rank: Rank.TWO, suit: Suit.CLUB },
+  { rank: Rank.THREE, suit: Suit.CLUB },
 
-  { rank: Rank.TEN, suit: Suit.DIAMOND, faceUp: true },
-  { rank: Rank.NINE, suit: Suit.SPADE, faceUp: true },
-  { rank: Rank.TEN, suit: Suit.CLUB, faceUp: true },
+  { rank: Rank.TEN, suit: Suit.DIAMOND },
+  { rank: Rank.NINE, suit: Suit.SPADE },
+  { rank: Rank.TEN, suit: Suit.CLUB },
 
-  { rank: Rank.ACE, suit: Suit.DIAMOND, faceUp: true },
-  { rank: Rank.NINE, suit: Suit.DIAMOND, faceUp: true },
-  { rank: Rank.SEVEN, suit: Suit.HEART, faceUp: true },
+  { rank: Rank.ACE, suit: Suit.DIAMOND },
+  { rank: Rank.NINE, suit: Suit.DIAMOND },
+  { rank: Rank.SEVEN, suit: Suit.HEART },
 
-  { rank: Rank.ACE, suit: Suit.HEART, faceUp: true },
-  { rank: Rank.SIX, suit: Suit.DIAMOND, faceUp: true },
-  { rank: Rank.FOUR, suit: Suit.CLUB, faceUp: true },
+  { rank: Rank.ACE, suit: Suit.HEART },
+  { rank: Rank.SIX, suit: Suit.DIAMOND },
+  { rank: Rank.FOUR, suit: Suit.CLUB },
 
-  { rank: Rank.FIVE, suit: Suit.HEART, faceUp: true },
-  { rank: Rank.KING, suit: Suit.CLUB, faceUp: true },
-  { rank: Rank.KING, suit: Suit.SPADE, faceUp: true },
+  { rank: Rank.FIVE, suit: Suit.HEART },
+  { rank: Rank.KING, suit: Suit.CLUB },
+  { rank: Rank.KING, suit: Suit.SPADE },
   // end of hands (for 3 players)
 ];
 
@@ -100,11 +99,21 @@ function cardSorter(card1, card2) {
 /**
  * Count the sum of the ranks of the cards (face cards count as ten, Ace as one).
  *
- * @param {Array<Object} cards The cards to count.
+ * @param {Array<Object>} cards The cards to count.
  * @returns
  */
 function totalPoints(cards) {
   return cards.reduce((partialSum, { rank }) => partialSum + rank.points, 0);
+}
+
+/**
+ * Flip a card to a specific orientation, or regardless of orientation.
+ *
+ * @param {Object} card The card to flip.
+ * @param {Boolean} faceUp Specify which way to face the cards, or null to flip regardless.
+ */
+export function flipCard(card, faceUp) {
+  card.faceUp = faceUp ?? !card.faceUp;
 }
 
 //// Scoring Functions ////

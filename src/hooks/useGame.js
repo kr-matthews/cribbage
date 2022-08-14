@@ -7,7 +7,13 @@ import { useScores } from "./useScores.js";
 
 ////// Hook //////
 
-export function useGame(deck, playerCount, previousPlayerAction) {
+export function useGame(
+  deck,
+  playerCount,
+  userPosition,
+  previousPlayerAction,
+  debugMode = false
+) {
   //// States ////
 
   // previous player and action
@@ -23,9 +29,11 @@ export function useGame(deck, playerCount, previousPlayerAction) {
   const round = useRound(
     deck,
     playerCount,
+    userPosition,
     dealer,
     previousPlayerAction,
-    scores.peg
+    scores.peg,
+    debugMode
   );
 
   //// Next Action ////

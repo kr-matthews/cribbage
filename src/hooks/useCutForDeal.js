@@ -2,6 +2,7 @@ import { useEffect, useReducer } from "react";
 
 import _ from "lodash";
 import Action from "./Action";
+import { flipCard } from "../playing-cards/cardHelpers";
 
 //// Reducers ////
 
@@ -13,6 +14,7 @@ function reduceCuts(cuts, action) {
       break;
 
     case "add":
+      flipCard(action.card, true);
       newCuts[action.player] = action.card;
       break;
 
