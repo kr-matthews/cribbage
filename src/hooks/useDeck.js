@@ -4,18 +4,18 @@ import _ from "lodash";
 
 import { allCards, riggedDeck, shuffle } from "../playing-cards/cardHelpers.js";
 
-// change to false for deployment
-const TESTING = false;
-
 //// Reducers ////
 
 function cardsReducer(cards, action) {
+  let useRiggedDeck = action.useRiggedDeck;
+
   let newCards = [...cards];
+
   switch (action.type) {
     case "reset":
+      if (useRiggedDeck) return riggedDeck;
       newCards = [...allCards];
       shuffle(newCards);
-      if (TESTING) return riggedDeck;
       break;
 
     case "custom":
@@ -44,7 +44,7 @@ function cardsReducer(cards, action) {
  * is provided, in which case shuffle a sorted deck.
  * (Except cutCount, which is for visual purposes only.)
  */
-export function useDeck(initialCards = TESTING ? riggedDeck : null) {
+export function useDeck(initialCards, useRiggedDeck = false) {
   //// Constants and States ////
 
   // the deck, stored in an array in shuffled order
@@ -79,9 +79,9 @@ export function useDeck(initialCards = TESTING ? riggedDeck : null) {
    */
   function reset(cards) {
     if (cards) {
-      dispatchCards({ type: "custom", cards });
+      dispatchCards({ type: "custom", cards, useRiggedDeck });
     } else {
-      dispatchCards({ type: "reset" });
+      dispatchCards({ type: "reset", useRiggedDeck });
     }
     setCutCounts([]);
   }

@@ -12,7 +12,7 @@ export function useGame(
   playerCount,
   userPosition,
   previousPlayerAction,
-  debugMode = false
+  makeAllFaceUp = false
 ) {
   //// States ////
 
@@ -33,7 +33,7 @@ export function useGame(
     dealer,
     previousPlayerAction,
     scores.peg,
-    debugMode
+    makeAllFaceUp
   );
 
   //// Next Action ////

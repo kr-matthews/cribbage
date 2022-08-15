@@ -23,20 +23,28 @@ import Links from "./links/Links.js";
 import "./game-components/gameComponents.css";
 import "./playing-cards/playingCards.css";
 
-//// Flags ////
+//// Debug Flags ////
 
-// make all cards face-up for debugging
-const DEBUG_MODE = false;
-// always use four columns
+// make all cards face-up
+const MAKE_ALL_FACE_UP = true;
+// let user control computer player actions
+const CONTROL_ALL_PLAYERS = true;
+// use a rigged deck (defined via `manuallyOrderedCards` in cardHelpers.js), instead of randomly shuffling
+const USE_RIGGED_DECK = false;
+
+//// UI Flags ////
+
+// always use four columns in UI, even if fewer than 3 players
 const HIDE_EMPTY_COLUMNS = true;
 
 //// Constants ////
+
 // hand of size up to 6, plus starter card on the end
 const HAND_ALL_UNSELECTED = Array(7).fill(false);
 // longest allowed name
 const USER_NAME_MAX_LENGTH = 12;
 // colours on the board (don't use middle track when 2 players)
-var COLOURS = ["DarkRed", "DarkGreen", "DarkBlue"];
+const COLOURS = ["DarkRed", "DarkGreen", "DarkBlue"];
 
 //// Reducers ////
 
@@ -210,7 +218,7 @@ export default function App() {
   const isLocked = ![null, Action.RESET_ALL].includes(previousAction);
 
   // the deck (used pre-game, to cut for deal); pass in card stack on reset
-  const deck = useDeck();
+  const deck = useDeck(null, USE_RIGGED_DECK);
 
   // a single iteration of the game, which can be restarted
   const game = useGame(
@@ -218,7 +226,7 @@ export default function App() {
     playerCount,
     userPosition,
     previousPlayerAction,
-    DEBUG_MODE
+    MAKE_ALL_FACE_UP
   );
 
   // to decide who goes first in the first game
@@ -409,7 +417,9 @@ export default function App() {
       break;
 
     case Action.DISCARD:
-      actions = [() => discard(nextPlayer)]; // ~ nextPlayer -> position
+      actions = [
+        () => discard(CONTROL_ALL_PLAYERS ? nextPlayer : userPosition),
+      ];
       enabled = [selectedCount === 4 - playerCount];
       clickCardHandler = (index) => {
         dispatchSelected({ type: "click", index });
@@ -552,9 +562,11 @@ export default function App() {
         hideEmptyColumns={HIDE_EMPTY_COLUMNS}
         crib={game.crib}
         hands={game.hands}
-        activePosition={nextPlayer} // ~ nextPlayer -> position
+        activePosition={CONTROL_ALL_PLAYERS ? nextPlayer : userPosition}
         selectedCards={selected}
-        clickCardHandler={clickCardHandler} // ~ clickCardHandler -> nextPlayers[position] && clickCardHandler
+        clickCardHandler={
+          (CONTROL_ALL_PLAYERS || nextPlayers[userPosition]) && clickCardHandler
+        }
         maxSize={game.crib.length === 4 ? 4 : 8 - playerCount}
       />
       <PlayArea
@@ -585,6 +597,7 @@ export default function App() {
         labels={labels}
         actions={actions}
         enabled={enabled}
+        controlAllPlayers={CONTROL_ALL_PLAYERS}
       />
       <MatchLogs messages={matchLogs.messages} />
       <Links

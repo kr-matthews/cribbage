@@ -31,7 +31,7 @@ function initialStates(playerCount) {
 function reduceStates(states, action) {
   let playerCount = action.playerCount || states.hands.length;
   let userPosition = action.userPosition;
-  let debugMode = action.debugMode;
+  let makeAllFaceUp = action.makeAllFaceUp;
 
   // if new game with new players, need to adjust player count
   if (action.type === "reset") return initialStates(playerCount);
@@ -52,19 +52,19 @@ function reduceStates(states, action) {
 
   switch (action.type) {
     case "deal-player":
-      flipCard(action.card, debugMode || action.player === userPosition);
+      flipCard(action.card, makeAllFaceUp || action.player === userPosition);
       newStates.hands[action.player].push(action.card);
       newStates.hands[action.player].sort(cardSorter);
       break;
 
     case "deal-crib":
-      flipCard(action.card, debugMode);
+      flipCard(action.card, makeAllFaceUp);
       newStates.crib.push(action.card);
       break;
 
     case "discard":
       let card = newStates.hands[action.player].splice(action.index, 1)[0];
-      flipCard(card, debugMode);
+      flipCard(card, makeAllFaceUp);
       newStates.crib.push(card);
       newStates.crib.sort(cardSorter);
       break;
@@ -83,7 +83,7 @@ function reduceStates(states, action) {
       newStates.hands = newStates.piles;
       newStates.hands.forEach((hand, index) =>
         hand.forEach((card) =>
-          flipCard(card, debugMode || index === userPosition)
+          flipCard(card, makeAllFaceUp || index === userPosition)
         )
       );
       newStates.hands.forEach((hand) => hand.sort(cardSorter));
@@ -94,7 +94,7 @@ function reduceStates(states, action) {
     case "end-play":
       newStates.sharedStack = [];
       newStates.piles.forEach((pile) =>
-        pile.forEach((card) => flipCard(card, debugMode))
+        pile.forEach((card) => flipCard(card, makeAllFaceUp))
       );
       break;
 
@@ -140,7 +140,7 @@ export function useRound(
   dealer,
   previousPlayerAction,
   peg,
-  debugMode = false
+  makeAllFaceUp = false
 ) {
   //// States ////
 
@@ -150,8 +150,8 @@ export function useRound(
     initialStates
   );
   const dispatchStates = useCallback(
-    (action) => _dispatchStates({ ...action, userPosition, debugMode }),
-    [userPosition, debugMode]
+    (action) => _dispatchStates({ ...action, userPosition, makeAllFaceUp }),
+    [userPosition, makeAllFaceUp]
   );
 
   const [starter, setStarter] = useState(null);

@@ -5,6 +5,7 @@ export default function Actions({
   labels = [],
   actions = [],
   enabled = [],
+  controlAllPlayers = false,
 }) {
   let buttons = [];
   for (var i = 0; i < labels.length; i++) {
@@ -18,12 +19,15 @@ export default function Actions({
     );
   }
   const waitingMessage = "Waiting for " + nextToAct + " to " + nextAction + ".";
-  // ~ should just be 1 div with {waiting ? waitingMessage : buttons}
-  return (
+  return controlAllPlayers ? (
     <>
       <div className="game-component actions">{waitingMessage}</div>
       <div className="game-component actions">{buttons}</div>
     </>
+  ) : (
+    <div className="game-component actions">
+      {waiting ? waitingMessage : buttons}
+    </div>
   );
 }
 
