@@ -146,7 +146,7 @@ export default function App() {
   const [userPosition, setUserPosition] = useState(0);
   const isOwner = userPosition === 0;
 
-  // amount of players present (note: user is always present)
+  // amount of players present (note: user should always present)
   const playerCount = players.length;
   const computerCount = players.filter((player) => player.isComputer).length;
 
@@ -504,10 +504,12 @@ export default function App() {
 
   // add player and message on creation
   useEffect(() => {
-    dispatchPlayers({ type: "add", isComputer: false, name: "You" });
-    matchLogs.postUpdate("Welcome to Cribbage.");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (playerCount === 0) {
+      dispatchPlayers({ type: "add", isComputer: false, name: "You" });
+      setUserPosition(0);
+      matchLogs.postUpdate("Welcome to Cribbage.");
+    }
+  }, [playerCount, matchLogs]);
 
   //// Return ////
 
