@@ -132,7 +132,7 @@ export default function App() {
     // can't set to empty
     const newName = input.trim().slice(0, USER_NAME_MAX_LENGTH).trim();
     if (newName.length === 0) {
-      alert("You can't have an empty name.");
+      alert("You can't have a blank name.");
       return;
     }
     setUserName(newName);
@@ -166,13 +166,15 @@ export default function App() {
         isComputer: true,
         name,
       });
+      network.sendMessage({ type: "player-add", name, isComputer: true });
       matchLogs.postUpdate(`Added computer player ${name}.`);
     }
   }
 
-  function removePlayer(player) {
+  function removePlayer(player, isUserInitiated = true) {
     if (!isLocked && player > 0 && players[player]) {
       dispatchPlayers({ type: "remove", player });
+      isUserInitiated && network.sendMessage({ type: "player-remove", player });
       matchLogs.postUpdate(
         `${players[player].isComputer && "Computer player "}${
           players[player].name
@@ -279,7 +281,7 @@ export default function App() {
   //// Actions ////
 
   // lock in players to start (note: make sure to cut for deal before starting the first game)
-  function setUpCutForDeal() {
+  function setUpCutForDeal(isUserInitiated = true) {
     if (network.mode === "remote" && computerCount === playerCount - 1) {
       // have to leave remote play if they want to start
       if (
@@ -297,80 +299,109 @@ export default function App() {
 
     // start the game (possibly after leaving remote play)
     cutForDeal.reset();
+    isUserInitiated && network.sendMessage({ type: "setUpCutForDeal" });
     deck.reset();
+    // !!! need to send deck somehow; as effect when size changes to 52?
     setPreviousPlayerAction(nextPlayer, Action.SET_UP_CUT_FOR_DEAL);
   }
 
-  function cutForDealFunction() {
+  function cutForDealFunction(isUserInitiated = true) {
     cutForDeal.cut();
+    isUserInitiated && network.sendMessage({ type: "cutForDeal" });
   }
 
-  function setUpCutForDealRetry() {
+  function setUpCutForDealRetry(isUserInitiated = true) {
     cutForDeal.reset();
+    isUserInitiated && network.sendMessage({ type: "setUpCutForDealRetry" });
     deck.reset();
+    // !!! send deck
     setPreviousPlayerAction(nextPlayer, Action.SET_UP_CUT_FOR_DEAL_RETRY);
   }
 
-  function startFirstGame() {
+  function startFirstGame(isUserInitiated = true) {
     game.reset(cutForDeal.firstDealer);
+    isUserInitiated &&
+      network.sendMessage({
+        type: "startFirstGame",
+        deaker: cutForDeal.firstDealer,
+      });
     cutForDeal.reset();
     deck.reset();
+    // !!! send deck
     setPreviousPlayerAction(nextPlayer, Action.START_FIRST_GAME);
   }
 
-  function discard(player) {
-    game.discardToCrib(player, selectedIndices);
-    dispatchSelected({ type: "reset" });
+  function deal(isUserInitiated = true) {
+    game.deal();
+    isUserInitiated && network.sendMessage({ type: "deal" });
   }
 
-  function cutForStarter() {
+  function discard(player, indices, isUserInitiated = true) {
+    game.discardToCrib(player, indices);
+    isUserInitiated &&
+      network.sendMessage({ type: "discardToCrib", player, indices });
+  }
+
+  function cutForStarter(isUserInitiated = true) {
     game.cut();
+    isUserInitiated && network.sendMessage({ type: "cutForStarter" });
   }
 
-  function flipStarter() {
+  function flipStarter(isUserInitiated = true) {
     game.flip();
+    isUserInitiated && network.sendMessage({ type: "flipStarter" });
   }
 
-  function play() {
-    game.play(selectedIndices[0]);
-    dispatchSelected({ type: "reset" });
+  function play(index, isUserInitiated = true) {
+    game.play(index);
+    isUserInitiated && network.sendMessage({ type: "play", index });
   }
 
-  function go() {
+  function go(isUserInitiated = true) {
     game.go();
-    dispatchSelected({ type: "reset" });
+    isUserInitiated && network.sendMessage({ type: "go" });
   }
 
-  function flipPlayedCards() {
+  function flipPlayedCards(isUserInitiated = true) {
     game.endPlay();
+    isUserInitiated && network.sendMessage({ type: "flipPlayedCards" });
   }
 
-  function returnCardsToHands() {
+  function returnCardsToHands(isUserInitiated = true) {
     game.returnToHand();
+    isUserInitiated && network.sendMessage({ type: "returnCardsToHands" });
   }
 
-  function scoreHand() {
+  function scoreHand(isUserInitiated = true) {
     game.scoreHand();
+    isUserInitiated && network.sendMessage({ type: "scoreHand" });
   }
 
-  function scoreCrib() {
+  function scoreCrib(isUserInitiated = true) {
     game.scoreCrib();
+    isUserInitiated && network.sendMessage({ type: "scoreCrib" });
   }
 
-  function startNewRound() {
+  function startNewRound(isUserInitiated = true) {
     game.startNextRound();
+    isUserInitiated && network.sendMessage({ type: "startNewRound" });
     deck.reset();
+    // !!! send deck
   }
 
-  function startNewGame() {
-    game.reset((game.winner + 1) % playerCount);
+  function startNewGame(isUserInitiated = true) {
+    const nextDealer = (game.winner + 1) % playerCount;
+    game.reset(nextDealer);
+    isUserInitiated &&
+      network.sendMessage({ type: "startNewGame", nextDealer });
     setPreviousPlayerAction(nextPlayer, Action.START_NEW_GAME);
   }
 
   // reset everything -- except game history, which will persist(?)
-  function reset() {
+  function reset(isUserInitiated = true) {
     game.reset();
     gamePoints.reset();
+    isUserInitiated && network.sendMessage({ type: "reset" });
     setPreviousPlayerAction(nextPlayer, Action.RESET_ALL);
   }
 
@@ -406,7 +437,7 @@ export default function App() {
       break;
 
     case Action.START_DEALING:
-      actions = [game.deal];
+      actions = [() => deal()];
       clickDeckHandler = actions[0];
       break;
 
@@ -418,7 +449,13 @@ export default function App() {
 
     case Action.DISCARD:
       actions = [
-        () => discard(CONTROL_ALL_PLAYERS ? nextPlayer : userPosition),
+        () => {
+          discard(
+            CONTROL_ALL_PLAYERS ? nextPlayer : userPosition,
+            selectedIndices
+          );
+          dispatchSelected({ type: "reset" });
+        },
       ];
       enabled = [selectedCount === 4 - playerCount];
       clickCardHandler = (index) => {
@@ -438,7 +475,16 @@ export default function App() {
 
     case Action.PLAY_OR_GO: // todo SCORING: add option for claiming various types of points (?)
       labels = ["Play", "Go"];
-      actions = [play, go];
+      actions = [
+        () => {
+          play(selectedIndices[0]);
+          dispatchSelected({ type: "reset" });
+        },
+        () => {
+          go();
+          dispatchSelected({ type: "reset" });
+        },
+      ];
       enabled = [
         selectedCount === 1 && game.isValidPlay(selectedIndices[0]),
         game.isValidGo(),
@@ -502,7 +548,7 @@ export default function App() {
 
   //// Effects ////
 
-  // add player and message on creation
+  // add player (and post message) on creation
   useEffect(() => {
     if (playerCount === 0) {
       dispatchPlayers({ type: "add", isComputer: false, name: "You" });
