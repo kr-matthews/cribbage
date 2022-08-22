@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 
 import { useLocalStorage } from "./useLocalStorage.js";
 
@@ -176,22 +176,25 @@ export function useNetwork({ capacityPerCode = 2, playerCount }) {
   }
 
   // send the message
-  function sendMessage(message) {
-    if (code === null) {
-      // throw Error("Can't send message because not playing remotely.");
-      console.debug("Would have sent message", message); // ~
-      return;
-    }
-    try {
-      pubnub.publish({ message: { ...message, uuid }, channel: code });
-      console.debug("Sent message", message); // ~
-    } catch (e) {
-      console.log(e);
-      alert(
-        `Failed to notify opponent of latest changes - are you still connected to the internet?\nThe game may be out of sync, unfortunately.`
-      );
-    }
-  }
+  const sendMessage = useCallback(
+    (message) => {
+      if (code === null) {
+        // throw Error("Can't send message because not playing remotely.");
+        console.debug("Would have sent message", message); // ~
+        return;
+      }
+      try {
+        pubnub.publish({ message: { ...message, uuid }, channel: code });
+        console.debug("Sent message", message); // ~
+      } catch (e) {
+        console.log(e);
+        alert(
+          `Failed to notify opponent of latest changes - are you still connected to the internet?\nThe game may be out of sync, unfortunately.`
+        );
+      }
+    },
+    [pubnub, code, uuid]
+  );
 
   //// Return ////
 

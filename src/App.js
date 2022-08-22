@@ -301,7 +301,6 @@ export default function App() {
     cutForDeal.reset();
     isUserInitiated && network.sendMessage({ type: "setUpCutForDeal" });
     deck.reset();
-    // !!! need to send deck somehow; as effect when size changes to 52?
     setPreviousPlayerAction(nextPlayer, Action.SET_UP_CUT_FOR_DEAL);
   }
 
@@ -314,7 +313,6 @@ export default function App() {
     cutForDeal.reset();
     isUserInitiated && network.sendMessage({ type: "setUpCutForDealRetry" });
     deck.reset();
-    // !!! send deck
     setPreviousPlayerAction(nextPlayer, Action.SET_UP_CUT_FOR_DEAL_RETRY);
   }
 
@@ -327,7 +325,6 @@ export default function App() {
       });
     cutForDeal.reset();
     deck.reset();
-    // !!! send deck
     setPreviousPlayerAction(nextPlayer, Action.START_FIRST_GAME);
   }
 
@@ -386,7 +383,6 @@ export default function App() {
     game.startNextRound();
     isUserInitiated && network.sendMessage({ type: "startNewRound" });
     deck.reset();
-    // !!! send deck
   }
 
   function startNewGame(isUserInitiated = true) {
@@ -556,6 +552,13 @@ export default function App() {
       matchLogs.postUpdate("Welcome to Cribbage.");
     }
   }, [playerCount, matchLogs]);
+
+  // when the deck is reset, send it to other players (if user is the owner)
+  useEffect(() => {
+    if (isOwner && deck.size === 52) {
+      network.sendMessage({ type: "deck", cards: deck.cards });
+    }
+  }, [isOwner, network.sendMessage, deck.size, deck.cards]);
 
   //// Return ////
 

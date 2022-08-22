@@ -132,6 +132,7 @@ export function useDeck(initialCards, useRiggedDeck = false) {
   //// Return ////
 
   return {
+    cards,
     size,
     isEmpty,
     draw,
