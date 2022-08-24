@@ -149,30 +149,43 @@ export default function App() {
   // amount of players present (note: user should always present)
   const playerCount = players.length;
   const computerCount = players.filter((player) => player.isComputer).length;
-
   // ! add basic computer player playing logic
-  function addComputerPlayer() {
-    if (!isLocked && playerCount < 3) {
-      let existingNames = players.map((player) => player.name);
-      let name;
 
-      // get a name which isn't already in use
-      do {
-        name = getRandomName();
-      } while (existingNames.includes(name));
+  // !!! fix up adding/updating logic
+  function addPlayer(isComputer, name, isUserInitiated = true) {
+    if (isUserInitiated) {
+      // user is adding a computer player
+      if (!isLocked && playerCount < 3) {
+        let existingNames = players.map((player) => player.name);
+        let name;
 
-      dispatchPlayers({
-        type: "add",
-        isComputer: true,
-        name,
-      });
-      network.sendMessage({ type: "player-add", name, isComputer: true });
-      matchLogs.postUpdate(`Added computer player ${name}.`);
+        // get a name which isn't already in use
+        do {
+          name = getRandomName();
+        } while (existingNames.includes(name));
+
+        dispatchPlayers({
+          type: "add",
+          isComputer: true,
+          name,
+        });
+        network.adjustCapacity(-1); // computer has no presence, so adjust
+        network.sendMessage({ type: "player-add", name, isComputer: true });
+        matchLogs.postUpdate(`Added computer player ${name}.`);
+      } else {
+        // someone else (the owner) added a player
+        dispatchPlayers({
+          type: "add",
+          isComputer,
+          name,
+        });
+      }
     }
   }
 
   function removePlayer(player, isUserInitiated = true) {
     if (!isLocked && player > 0 && players[player]) {
+      players[player].isComputer && network.adjustCapacity(1); // computer has no presence, so adjust
       dispatchPlayers({ type: "remove", player });
       isUserInitiated && network.sendMessage({ type: "player-remove", player });
       matchLogs.postUpdate(
@@ -198,7 +211,7 @@ export default function App() {
   //// Network/Remote ////
 
   // handle network connection, for remote play (can still play locally if there's no connection)
-  const network = useNetwork({ capacityPerCode: 3, playerCount });
+  const network = useNetwork({ initialCapacity: 3, playerCount });
 
   function nameChangeWarning() {
     return window.confirm(
@@ -208,11 +221,114 @@ export default function App() {
 
   function join(code) {
     if (nameChangeWarning()) network.join(code);
+    // !!! accept incoming players, sit down in correct spot
   }
 
   function create() {
     if (nameChangeWarning()) network.create();
   }
+
+  const messageHandler = ({
+    type,
+    isComputer,
+    name,
+    player,
+    indices,
+    index,
+    cards,
+  }) => {
+    switch (type) {
+      case "player-add":
+        addPlayer(isComputer, name, false);
+        break;
+
+      case "player-remove":
+        removePlayer(play, false);
+        break;
+
+      case "setUpCutForDeal":
+        setUpCutForDeal(false);
+        break;
+
+      case "cutForDeal":
+        cutForDeal(false);
+        break;
+
+      case "setUpCutForDealRetry":
+        setUpCutForDealRetry(false);
+        break;
+
+      case "startFirstGame":
+        startFirstGame(false);
+        break;
+
+      case "deal":
+        deal(false);
+        break;
+
+      case "discardToCrib":
+        discard(player, indices, false);
+        break;
+
+      case "cutForStarter":
+        cutForStarter(false);
+        break;
+
+      case "flipStarter":
+        flipStarter(false);
+        break;
+
+      case "play":
+        play(index, false);
+        break;
+
+      case "go":
+        go(false);
+        break;
+
+      case "flipPlayedCards":
+        flipPlayedCards(false);
+        break;
+
+      case "returnCardsToHands":
+        returnCardsToHands(false);
+        break;
+
+      case "scoreHand":
+        scoreHand(false);
+        break;
+
+      case "scoreCrib":
+        scoreCrib(false);
+        break;
+
+      case "startNewRound":
+        startNewRound(false);
+        break;
+
+      case "startNewGame":
+        startNewGame(false);
+        break;
+
+      case "reset":
+        reset(false);
+        break;
+
+      case "deck":
+        deck.reset(cards);
+        break;
+
+      case "player":
+        addPlayer(); // !!! fix add/update player
+        break;
+
+      default:
+        break;
+    }
+  };
+
+  // !! issues passing in
+  // network.setMessageHandler(() => messageHandler);
 
   //// Cards and Play ////
 
@@ -280,6 +396,8 @@ export default function App() {
 
   //// Actions ////
 
+  // ! reset match when joining/leaving code
+
   // lock in players to start (note: make sure to cut for deal before starting the first game)
   function setUpCutForDeal(isUserInitiated = true) {
     if (network.mode === "remote" && computerCount === playerCount - 1) {
@@ -289,18 +407,20 @@ export default function App() {
           "You are starting a remote game with only yourself and computer players, and will therefore automatically be switched back to local play now."
         )
       ) {
-        // they agree; leave remote play
-        network.leave();
+        // they agree; leave remote play (exception for debug mode)
+        if (!CONTROL_ALL_PLAYERS) network.leave();
       } else {
         // they cancelled the start
         return;
       }
     }
 
+    // ! use unlock somewhere, on reset
     // start the game (possibly after leaving remote play)
+    network.lock();
     cutForDeal.reset();
     isUserInitiated && network.sendMessage({ type: "setUpCutForDeal" });
-    deck.reset();
+    isUserInitiated && deck.reset();
     setPreviousPlayerAction(nextPlayer, Action.SET_UP_CUT_FOR_DEAL);
   }
 
@@ -312,19 +432,15 @@ export default function App() {
   function setUpCutForDealRetry(isUserInitiated = true) {
     cutForDeal.reset();
     isUserInitiated && network.sendMessage({ type: "setUpCutForDealRetry" });
-    deck.reset();
+    isUserInitiated && deck.reset();
     setPreviousPlayerAction(nextPlayer, Action.SET_UP_CUT_FOR_DEAL_RETRY);
   }
 
   function startFirstGame(isUserInitiated = true) {
     game.reset(cutForDeal.firstDealer);
-    isUserInitiated &&
-      network.sendMessage({
-        type: "startFirstGame",
-        deaker: cutForDeal.firstDealer,
-      });
+    isUserInitiated && network.sendMessage({ type: "startFirstGame" });
     cutForDeal.reset();
-    deck.reset();
+    isUserInitiated && deck.reset();
     setPreviousPlayerAction(nextPlayer, Action.START_FIRST_GAME);
   }
 
@@ -382,14 +498,13 @@ export default function App() {
   function startNewRound(isUserInitiated = true) {
     game.startNextRound();
     isUserInitiated && network.sendMessage({ type: "startNewRound" });
-    deck.reset();
+    isUserInitiated && deck.reset();
   }
 
   function startNewGame(isUserInitiated = true) {
     const nextDealer = (game.winner + 1) % playerCount;
     game.reset(nextDealer);
-    isUserInitiated &&
-      network.sendMessage({ type: "startNewGame", nextDealer });
+    isUserInitiated && network.sendMessage({ type: "startNewGame" });
     setPreviousPlayerAction(nextPlayer, Action.START_NEW_GAME);
   }
 
@@ -560,6 +675,12 @@ export default function App() {
     }
   }, [isOwner, network.sendMessage, deck.size, deck.cards]);
 
+  // !!! no, this should only happen once
+  // send player info when code is set
+  useEffect(() => {
+    network.sendMessage({ type: "player", ...players[userPosition] });
+  }, [network.sendMessage, network.code, playerCount, players, userPosition]);
+
   //// Return ////
 
   return (
@@ -590,7 +711,7 @@ export default function App() {
           nextAction === Action.SET_UP_CUT_FOR_DEAL &&
           playerCount < 3
         }
-        addPlayer={addComputerPlayer}
+        addPlayer={() => addPlayer(true)}
         players={players}
         nextPlayers={nextPlayers}
         scores={

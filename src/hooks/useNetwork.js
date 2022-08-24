@@ -44,7 +44,8 @@ function isValidCode(code) {
   );
 }
 
-export function useNetwork({ capacityPerCode = 2, playerCount }) {
+// !! replace presence with playerCount? it doesn't work properly anyway, since user won't be removed when presence is missing
+export function useNetwork({ initialCapacity = 2, playerCount }) {
   //// States & Constants ////
 
   // universally unique ID (don't need setter -- won't ever change)
@@ -52,8 +53,22 @@ export function useNetwork({ capacityPerCode = 2, playerCount }) {
   // code currently in use (can only use one at a time)
   const [code, setCode] = useState(null);
   const mode = code ? "remote" : "local";
+  // still waiting for confirmation that can join this code?
+  const [isWaitingForConfirmation, setIsWaitingForConfirmation] =
+    useState(false);
   // function to handle incoming messages
-  const [messageHandler, setMessageHandler] = useState(null);
+  const [externalMessageHandler, setExternalMessageHandler] = useState(
+    () => () => {}
+  );
+
+  // only applicable when code is non-null:
+
+  // did the user create the room, and should therefore be able to lock/unlock
+  const [didCreate, setDidCreate] = useState(null);
+  // may new users join the room
+  const [isLocked, setIsLocked] = useState(null);
+  // amount of users who can join
+  const [capacity, setCapacity] = useState(initialCapacity);
 
   //// PubNub ////
 
@@ -68,15 +83,21 @@ export function useNetwork({ capacityPerCode = 2, playerCount }) {
 
   // listen for incoming messages
   useEffect(() => {
-    if (messageHandler) {
-      const listener = { message: messageHandler };
-      pubnub.addListener(listener);
+    const listener = { message: messageHandler };
+    pubnub.addListener(listener);
 
-      return function cleanupListener() {
-        pubnub.removeListener(listener);
-      };
+    return function cleanupListener() {
+      pubnub.removeListener(listener);
+    };
+  });
+
+  // !! is this appropriate?
+  // when waiting for confirmation, ask for it
+  useEffect(() => {
+    if (isWaitingForConfirmation) {
+      sendMessage({ type: "join" });
     }
-  }, [messageHandler, pubnub]);
+  });
 
   //// Helpers ////
 
@@ -92,13 +113,60 @@ export function useNetwork({ capacityPerCode = 2, playerCount }) {
     }
   }
 
+  async function canNewUserStay() {
+    try {
+      const presence = await checkPresence(code);
+      return !isLocked && presence <= capacity;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // !!! send player info here
+  async function messageHandler({ message }) {
+    // ignore messages from self
+    if (message.uuid === uuid) return;
+    console.debug("incoming message", message); // ~
+
+    switch (message.type) {
+      case "join":
+        try {
+          if (didCreate) {
+            // accept or reject new user
+            const canStay = await canNewUserStay();
+            sendMessage({ type: canStay ? "accept" : "reject" });
+          }
+        } catch (error) {
+          throw error;
+        }
+        break;
+
+      case "accept":
+        setIsWaitingForConfirmation(false);
+        break;
+
+      case "reject":
+        if (isWaitingForConfirmation) {
+          setIsWaitingForConfirmation(false);
+          leave();
+        }
+        break;
+
+      default:
+        externalMessageHandler(message);
+        break;
+    }
+  }
+
   // randomly generate codes until an unused one is found
-  function getUnusedCode() {
+  async function getUnusedCode() {
     try {
       let newCode;
+      let presence;
       do {
         newCode = getRandomCode();
-      } while (checkPresence(newCode) > 0);
+        presence = await checkPresence(newCode);
+      } while (presence > 0);
       return newCode;
     } catch (e) {
       console.error(e);
@@ -120,11 +188,12 @@ export function useNetwork({ capacityPerCode = 2, playerCount }) {
   //// Return functions ////
 
   // generate an unused code and setup incoming/outoing messages
-  function create() {
+  async function create() {
     try {
-      const newCode = getUnusedCode();
+      const newCode = await getUnusedCode();
       subscribeTo(newCode);
       setCode(newCode);
+      setDidCreate(true);
       alert(
         `Success: Playing remotely with remote code ${newCode} - share it.`
       );
@@ -135,28 +204,25 @@ export function useNetwork({ capacityPerCode = 2, playerCount }) {
   }
 
   // if allowed, setup incoming/outgoing messages
-  function join(codeInput) {
+  async function join(codeInput) {
     const newCode = codeInput.toUpperCase();
     if (!isValidCode(newCode)) {
       alert(`Failed to play remotely: Invalid remote code.`);
       return;
     }
     try {
-      const presenceCount = checkPresence(newCode);
+      const presenceCount = await checkPresence(newCode);
       if (presenceCount === 0) {
         alert(
           `Failed to play remotely: There's nobody using that remote code.`
         );
         return;
-      } else if (presenceCount === 3) {
-        alert(`Failed to play remotely: That remote code is full.`);
-        return;
       }
-      // !! NETWORK: joining - what if 2 players already started a game?
       subscribeTo(newCode);
+      setIsWaitingForConfirmation(true);
+      setDidCreate(false);
       setCode(newCode);
-      alert(`Success: Playing remotely.`);
-      // !! NETWORK: send player info (or is that elsewhere?)
+      alert(`Success: Playing remotely.`); // !! move
     } catch (e) {
       console.error(e);
       alert(`Failed to play remotely: ${e.message} `);
@@ -166,13 +232,28 @@ export function useNetwork({ capacityPerCode = 2, playerCount }) {
   // clean exit from room, closing incoming/outgoing messages; notify others
   function leave() {
     try {
+      if (!isWaitingForConfirmation) {
+        // !! NETWORK: send leaving message
+      }
       unsubscribeFrom(code);
-      // !! NETWORK: send leaving message (or is that elsewhere?)
     } catch (e) {
       console.error(e);
     } finally {
       setCode(null);
+      setDidCreate(null);
     }
+  }
+
+  function lock() {
+    if (didCreate) setIsLocked(true);
+  }
+
+  function unlock() {
+    if (didCreate) setIsLocked(false);
+  }
+
+  function adjustCapacity(delta) {
+    if (didCreate) setCapacity((capacity) => Math.max(1, capacity + delta));
   }
 
   // send the message
@@ -200,11 +281,14 @@ export function useNetwork({ capacityPerCode = 2, playerCount }) {
 
   return {
     mode,
-    code,
+    code: isWaitingForConfirmation ? null : code,
     create,
     join,
     leave,
+    lock,
+    unlock,
+    adjustCapacity,
     sendMessage,
-    setMessageHandler, // ? maybe pass in via object which never changes?
+    setMessageHandler: setExternalMessageHandler, // ? maybe pass in via object which never changes?
   };
 }
