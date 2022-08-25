@@ -1,4 +1,4 @@
-import { useState, useReducer, useEffect } from "react";
+import { useReducer, useEffect } from "react";
 
 import { useLocalStorage } from "./hooks/useLocalStorage.js";
 import { usePreviousPlayerAction } from "./hooks/usePreviousPlayerAction.js";
@@ -57,10 +57,16 @@ function playersReducer(players, action) {
     // intentional fall-through
     // eslint-disable-next-line
     case "update":
-      const ind = action.player || newPlayers.length - 1;
-      const isComputer = action.isComputer || newPlayers[ind].isComputer;
+      const ind =
+        action.player || (action.player === 0 ? 0 : newPlayers.length - 1); // silly 0 being falsy
+      const isComputer =
+        action.isComputer ||
+        (action.isComputer === false ? false : newPlayers[ind].isComputer);
       const name = action.name || newPlayers[ind].name;
-      newPlayers[ind] = { isComputer, name };
+      const isUser =
+        action.isUser ||
+        (action.isUser === false ? false : newPlayers[ind].isUser);
+      newPlayers[ind] = { name, isComputer, isUser };
       break;
 
     case "remove":
@@ -136,50 +142,51 @@ export default function App() {
       return;
     }
     setUserName(newName);
-    matchLogs.postUpdate(`You changed your name to ${newName}.`);
+    matchLogs.postUpdate(`You changed your username to ${newName}.`);
   }
 
   // list of up to 3 players
   const [players, dispatchPlayers] = useReducer(playersReducer, []);
 
   // what spot the user is 'sitting' in (can't be 'standing')
-  const [userPosition, setUserPosition] = useState(0);
+  const isUserIndex = players.map((player) => player.isUser).indexOf(true);
+  const userPosition = isUserIndex === -1 ? null : isUserIndex;
   const isOwner = userPosition === 0;
 
   // amount of players present (note: user should always present)
   const playerCount = players.length;
   const computerCount = players.filter((player) => player.isComputer).length;
+
+  function addNewPlayer(name, isComputer, isUserInitiated = true) {
+    if (!isLocked && playerCount < 3) {
+      dispatchPlayers({
+        type: "add",
+        name,
+        isComputer,
+        isUser: false,
+      });
+      isUserInitiated &&
+        network.sendMessage({ type: "player-add", name, isComputer: true });
+      matchLogs.postUpdate(
+        `${isComputer ? "Computer player" : "Player"} ${name} has joined.`
+      );
+    }
+  }
+
   // ! add basic computer player playing logic
 
-  // !!! fix up adding/updating logic
-  function addPlayer(isComputer, name, isUserInitiated = true) {
-    if (isUserInitiated) {
-      // user is adding a computer player
-      if (!isLocked && playerCount < 3) {
-        let existingNames = players.map((player) => player.name);
-        let name;
+  function addComputerPlayer() {
+    if (!isLocked && playerCount < 3) {
+      let existingNames = players.map((player) => player.name);
+      let name;
 
-        // get a name which isn't already in use
-        do {
-          name = getRandomName();
-        } while (existingNames.includes(name));
+      // get a name which isn't already in use
+      do {
+        name = getRandomName();
+      } while (existingNames.includes(name));
 
-        dispatchPlayers({
-          type: "add",
-          isComputer: true,
-          name,
-        });
-        network.adjustCapacity(-1); // computer has no presence, so adjust
-        network.sendMessage({ type: "player-add", name, isComputer: true });
-        matchLogs.postUpdate(`Added computer player ${name}.`);
-      } else {
-        // someone else (the owner) added a player
-        dispatchPlayers({
-          type: "add",
-          isComputer,
-          name,
-        });
-      }
+      network.adjustCapacity(-1); // computer has no presence, so adjust
+      addNewPlayer(name, true);
     }
   }
 
@@ -189,7 +196,7 @@ export default function App() {
       dispatchPlayers({ type: "remove", player });
       isUserInitiated && network.sendMessage({ type: "player-remove", player });
       matchLogs.postUpdate(
-        `${players[player].isComputer && "Computer player "}${
+        `${players[player].isComputer ? "Computer player " : "Player "}${
           players[player].name
         } has left.`
       );
@@ -239,7 +246,7 @@ export default function App() {
   }) => {
     switch (type) {
       case "player-add":
-        addPlayer(isComputer, name, false);
+        addNewPlayer(name, isComputer, false);
         break;
 
       case "player-remove":
@@ -319,7 +326,7 @@ export default function App() {
         break;
 
       case "player":
-        addPlayer(); // !!! fix add/update player
+        addNewPlayer(); // !!! fix this
         break;
 
       default:
@@ -661,12 +668,30 @@ export default function App() {
 
   // add player (and post message) on creation
   useEffect(() => {
-    if (playerCount === 0) {
-      dispatchPlayers({ type: "add", isComputer: false, name: "You" });
-      setUserPosition(0);
+    if (playerCount === 0 && network.mode === "local") {
+      dispatchPlayers({
+        type: "add",
+        name: userName,
+        isComputer: false,
+        isUser: true,
+      });
       matchLogs.postUpdate("Welcome to Cribbage.");
     }
-  }, [playerCount, matchLogs]);
+  }, [playerCount, network.mode, matchLogs, userName]);
+
+  // update player name in player list when it changes
+  console.debug(isUserIndex, userPosition); // ~
+  useEffect(() => {
+    if (userPosition !== null) {
+      dispatchPlayers({
+        type: "update",
+        player: userPosition,
+        name: userName,
+        isComputer: false,
+        isUser: true,
+      });
+    }
+  }, [userName, userPosition]);
 
   // when the deck is reset, send it to other players (if user is the owner)
   useEffect(() => {
@@ -697,7 +722,6 @@ export default function App() {
         hideEmptyColumns={HIDE_EMPTY_COLUMNS}
         userName={userName}
         updateUserName={trySetUserName}
-        userPosition={userPosition}
         dealerPosition={game.dealer}
         mode={network.mode}
         isSoundOn={soundEffects.isOn}
@@ -711,7 +735,7 @@ export default function App() {
           nextAction === Action.SET_UP_CUT_FOR_DEAL &&
           playerCount < 3
         }
-        addPlayer={() => addPlayer(true)}
+        addComputerPlayer={() => addComputerPlayer(true)}
         players={players}
         nextPlayers={nextPlayers}
         scores={

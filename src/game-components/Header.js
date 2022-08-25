@@ -6,7 +6,6 @@ export default function Header({
   hideEmptyColumns = true,
   userName,
   updateUserName,
-  userPosition,
   dealerPosition,
   mode = "local",
   isSoundOn = false,
@@ -16,7 +15,7 @@ export default function Header({
   join,
   leave,
   canAddPlayer,
-  addPlayer,
+  addComputerPlayer,
   players = [],
   nextPlayers = [false, false, false],
   scores = [null, null, null],
@@ -41,12 +40,12 @@ export default function Header({
         join={join}
         leave={leave}
       />
-      {players.map(({ name, isComputer, colour }, index) => {
+      {players.map(({ name, isComputer, isUser, colour }, index) => {
         return (
           <InfoBox
             key={index}
             exists={true}
-            isUser={index === userPosition}
+            isUser={isUser}
             isDealer={index === dealerPosition}
             isNextPlayer={nextPlayers[index]}
             clickableType={removeable && removeable[index] && "removeable"}
@@ -64,7 +63,7 @@ export default function Header({
         <InfoBox
           exists={true}
           clickableType={"addable"}
-          onClick={addPlayer}
+          onClick={addComputerPlayer}
           tooltip={"Click to add a computer player"}
           colour={"DarkGrey"}
         />
@@ -114,9 +113,7 @@ function InfoBox({
             {isDealer && (
               <img src={dealerIcon} alt="Dealer" className="dealer-icon" />
             )}
-            <div className="headerbox-info">
-              {isUser ? <em>{name}</em> : name}
-            </div>
+            <div className="headerbox-info">{isUser ? <em>You</em> : name}</div>
             <div className="headerbox-info">{type}</div>
             <div className="headerbox-info">
               Game Points: {gamePoints !== null ? gamePoints : "--"}
