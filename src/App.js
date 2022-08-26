@@ -185,14 +185,12 @@ export default function App() {
         name = getRandomName();
       } while (existingNames.includes(name));
 
-      network.adjustCapacity(-1); // computer has no presence, so adjust
       addNewPlayer(name, true);
     }
   }
 
   function removePlayer(player, isUserInitiated = true) {
     if (!isLocked && player > 0 && players[player]) {
-      players[player].isComputer && network.adjustCapacity(1); // computer has no presence, so adjust
       dispatchPlayers({ type: "remove", player });
       isUserInitiated && network.sendMessage({ type: "player-remove", player });
       matchLogs.postUpdate(
@@ -218,7 +216,7 @@ export default function App() {
   //// Network/Remote ////
 
   // handle network connection, for remote play (can still play locally if there's no connection)
-  const network = useNetwork({ initialCapacity: 3, playerCount });
+  const network = useNetwork(3, computerCount);
 
   function nameChangeWarning() {
     return window.confirm(
@@ -680,7 +678,6 @@ export default function App() {
   }, [playerCount, network.mode, matchLogs, userName]);
 
   // update player name in player list when it changes
-  console.debug(isUserIndex, userPosition); // ~
   useEffect(() => {
     if (userPosition !== null) {
       dispatchPlayers({

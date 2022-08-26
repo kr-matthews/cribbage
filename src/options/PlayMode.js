@@ -21,13 +21,15 @@ export default function PlayMode({
       <div className="headerbox-info">
         {mode === "local" ? (
           <>
-            Playing: Locally{" "}
+            Playing Locally{" "}
             <Edit
               type="prompt"
               text="Enter a valid remote code to join it, or leave blank to create your own:"
               fun={playRemoteHandler}
             />
           </>
+        ) : mode === "loading" ? (
+          <>Loading Remote Play...</>
         ) : (
           <>
             Remote Code:{" "}

@@ -44,18 +44,17 @@ function isValidCode(code) {
   );
 }
 
-// !! replace presence with playerCount? it doesn't work properly anyway, since user won't be removed when presence is missing
-export function useNetwork({ initialCapacity = 2, playerCount }) {
+export function useNetwork(capacity = 2, computerCount = 0) {
   //// States & Constants ////
 
   // universally unique ID (don't need setter -- won't ever change)
   const [uuid] = useLocalStorage("uuid", createUuid());
   // code currently in use (can only use one at a time)
   const [code, setCode] = useState(null);
-  const mode = code ? "remote" : "local";
   // still waiting for confirmation that can join this code?
   const [isWaitingForConfirmation, setIsWaitingForConfirmation] =
     useState(false);
+  const mode = isWaitingForConfirmation ? "loading" : code ? "remote" : "local";
   // function to handle incoming messages
   const [externalMessageHandler, setExternalMessageHandler] = useState(
     () => () => {}
@@ -67,8 +66,6 @@ export function useNetwork({ initialCapacity = 2, playerCount }) {
   const [didCreate, setDidCreate] = useState(null);
   // may new users join the room
   const [isLocked, setIsLocked] = useState(null);
-  // amount of users who can join
-  const [capacity, setCapacity] = useState(initialCapacity);
 
   //// PubNub ////
 
@@ -116,7 +113,7 @@ export function useNetwork({ initialCapacity = 2, playerCount }) {
   async function canNewUserStay() {
     try {
       const presence = await checkPresence(code);
-      return !isLocked && presence <= capacity;
+      return !isLocked && presence + computerCount <= capacity;
     } catch (error) {
       throw error;
     }
@@ -252,10 +249,6 @@ export function useNetwork({ initialCapacity = 2, playerCount }) {
     if (didCreate) setIsLocked(false);
   }
 
-  function adjustCapacity(delta) {
-    if (didCreate) setCapacity((capacity) => Math.max(1, capacity + delta));
-  }
-
   // send the message
   const sendMessage = useCallback(
     (message) => {
@@ -281,14 +274,13 @@ export function useNetwork({ initialCapacity = 2, playerCount }) {
 
   return {
     mode,
-    code: isWaitingForConfirmation ? null : code,
+    code: isWaitingForConfirmation ? null : code, // todo: CLEAN-UP: mode/code/loading
     create,
     join,
     leave,
     lock,
     unlock,
-    adjustCapacity,
     sendMessage,
-    setMessageHandler: setExternalMessageHandler, // ? maybe pass in via object which never changes?
+    setMessageHandler: setExternalMessageHandler,
   };
 }
