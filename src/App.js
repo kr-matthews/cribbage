@@ -52,6 +52,9 @@ function playersReducer(players, action) {
   const newPlayers = [...players];
 
   switch (action.type) {
+    case "override":
+      return action.players;
+
     case "add":
       newPlayers.push({});
     // intentional fall-through
@@ -166,7 +169,7 @@ export default function App() {
         isUser: false,
       });
       isUserInitiated &&
-        network.sendMessage({ type: "player-add", name, isComputer: true });
+        network.sendMessage({ type: "player-add", name, isComputer });
       matchLogs.postUpdate(
         `${isComputer ? "Computer player" : "Player"} ${name} has joined.`
       );
@@ -215,22 +218,19 @@ export default function App() {
 
   //// Network/Remote ////
 
-  // handle network connection, for remote play (can still play locally if there's no connection)
-  const network = useNetwork(3, computerCount);
-
-  function nameChangeWarning() {
-    return window.confirm(
-      "Note that you won't be able to change your name once you join."
-    );
+  function handleAcceptMessageData(newPlayers) {
+    dispatchPlayers({
+      type: "override",
+      players: [
+        ...newPlayers,
+        { name: userName, isComputer: false, isUser: true },
+      ],
+    });
   }
 
-  function join(code) {
-    if (nameChangeWarning()) network.join(code);
-    // !!! accept incoming players, sit down in correct spot
-  }
-
-  function create() {
-    if (nameChangeWarning()) network.create();
+  function handleLeaveMessageData(player) {
+    alert(`${players[player]} has left; the game cannot continue.`);
+    // !!! on leaving, remove player and/or reset game, unlock network
   }
 
   const messageHandler = ({
@@ -323,22 +323,45 @@ export default function App() {
         deck.reset(cards);
         break;
 
-      case "player":
-        addNewPlayer(); // !!! fix this
-        break;
-
       default:
         break;
     }
   };
 
-  // !! issues passing in
-  // network.setMessageHandler(() => messageHandler);
+  // handle network connection, for remote play (can still play locally if there's no connection)
+  const network = useNetwork({
+    capcity: 3,
+    computerCount,
+    messageHandler,
+    acceptMessageData: players,
+    handleAcceptMessageData,
+    leaveMessageData: userPosition,
+    handleLeaveMessageData,
+  });
+
+  function nameChangeWarning() {
+    return window.confirm(
+      "Note that you won't be able to change your name once you join."
+    );
+  }
+
+  // !! prevent joining/creating when game in progress
+  function join(code) {
+    if (nameChangeWarning()) {
+      dispatchPlayers({ type: "override", players: [] });
+      network.join(code);
+    }
+  }
+
+  function create() {
+    if (nameChangeWarning()) network.create();
+  }
 
   //// Cards and Play ////
 
   // is the game locked in, or can new players join
   const isLocked = ![null, Action.RESET_ALL].includes(previousAction);
+  // !! duplicated lock (and isOwner) from network
 
   // the deck (used pre-game, to cut for deal); pass in card stack on reset
   const deck = useDeck(null, USE_RIGGED_DECK);
@@ -401,8 +424,6 @@ export default function App() {
 
   //// Actions ////
 
-  // ! reset match when joining/leaving code
-
   // lock in players to start (note: make sure to cut for deal before starting the first game)
   function setUpCutForDeal(isUserInitiated = true) {
     if (network.mode === "remote" && computerCount === playerCount - 1) {
@@ -420,7 +441,6 @@ export default function App() {
       }
     }
 
-    // ! use unlock somewhere, on reset
     // start the game (possibly after leaving remote play)
     network.lock();
     cutForDeal.reset();
@@ -664,6 +684,7 @@ export default function App() {
 
   //// Effects ////
 
+  // !!! revisit how seating works
   // add player (and post message) on creation
   useEffect(() => {
     if (playerCount === 0 && network.mode === "local") {
@@ -673,9 +694,13 @@ export default function App() {
         isComputer: false,
         isUser: true,
       });
-      matchLogs.postUpdate("Welcome to Cribbage.");
     }
   }, [playerCount, network.mode, matchLogs, userName]);
+
+  // welcome message
+  useEffect(() => {
+    matchLogs.postUpdate("Welcome to Cribbage.");
+  }, []);
 
   // update player name in player list when it changes
   useEffect(() => {
@@ -692,16 +717,10 @@ export default function App() {
 
   // when the deck is reset, send it to other players (if user is the owner)
   useEffect(() => {
-    if (isOwner && deck.size === 52) {
+    if (network.didCreate && deck.size === 52) {
       network.sendMessage({ type: "deck", cards: deck.cards });
     }
-  }, [isOwner, network.sendMessage, deck.size, deck.cards]);
-
-  // !!! no, this should only happen once
-  // send player info when code is set
-  useEffect(() => {
-    network.sendMessage({ type: "player", ...players[userPosition] });
-  }, [network.sendMessage, network.code, playerCount, players, userPosition]);
+  }, [network.didCreate, network.sendMessage, deck.size, deck.cards]);
 
   //// Return ////
 

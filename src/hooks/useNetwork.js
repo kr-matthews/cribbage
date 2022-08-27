@@ -44,7 +44,17 @@ function isValidCode(code) {
   );
 }
 
-export function useNetwork(capacity = 2, computerCount = 0) {
+export function useNetwork({
+  capacity = 2,
+  computerCount = 0,
+  messageHandler,
+  acceptMessageData,
+  handleAcceptMessageData = () => {},
+  rejectMessageData,
+  handleRejectMessageData = () => {},
+  leaveMessageData,
+  handleLeaveMessageData = () => {},
+}) {
   //// States & Constants ////
 
   // universally unique ID (don't need setter -- won't ever change)
@@ -56,11 +66,8 @@ export function useNetwork(capacity = 2, computerCount = 0) {
     useState(false);
   const mode = isWaitingForConfirmation ? "loading" : code ? "remote" : "local";
   // function to handle incoming messages
-  const [externalMessageHandler, setExternalMessageHandler] = useState(
-    () => () => {}
-  );
 
-  // only applicable when code is non-null:
+  // only applicable/booleans when code is non-null:
 
   // did the user create the room, and should therefore be able to lock/unlock
   const [didCreate, setDidCreate] = useState(null);
@@ -75,26 +82,6 @@ export function useNetwork(capacity = 2, computerCount = 0) {
     () => new PubNub({ publishKey, subscribeKey, uuid }),
     [uuid]
   );
-
-  //// Effects ////
-
-  // listen for incoming messages
-  useEffect(() => {
-    const listener = { message: messageHandler };
-    pubnub.addListener(listener);
-
-    return function cleanupListener() {
-      pubnub.removeListener(listener);
-    };
-  });
-
-  // !! is this appropriate?
-  // when waiting for confirmation, ask for it
-  useEffect(() => {
-    if (isWaitingForConfirmation) {
-      sendMessage({ type: "join" });
-    }
-  });
 
   //// Helpers ////
 
@@ -113,16 +100,17 @@ export function useNetwork(capacity = 2, computerCount = 0) {
   async function canNewUserStay() {
     try {
       const presence = await checkPresence(code);
-      return !isLocked && presence + computerCount <= capacity;
+      // new user doesn't seem to contribute to presence yet
+      return !isLocked && presence + computerCount < capacity;
     } catch (error) {
       throw error;
     }
   }
 
-  // !!! send player info here
-  async function messageHandler({ message }) {
+  async function internalMessageHandler({ message }) {
     // ignore messages from self
     if (message.uuid === uuid) return;
+
     console.debug("incoming message", message); // ~
 
     switch (message.type) {
@@ -131,7 +119,9 @@ export function useNetwork(capacity = 2, computerCount = 0) {
           if (didCreate) {
             // accept or reject new user
             const canStay = await canNewUserStay();
-            sendMessage({ type: canStay ? "accept" : "reject" });
+            canStay
+              ? sendMessage({ type: "accept", acceptMessageData })
+              : sendMessage({ type: "reject", rejectMessageData });
           }
         } catch (error) {
           throw error;
@@ -139,18 +129,26 @@ export function useNetwork(capacity = 2, computerCount = 0) {
         break;
 
       case "accept":
-        setIsWaitingForConfirmation(false);
+        if (isWaitingForConfirmation) {
+          setIsWaitingForConfirmation(false);
+          handleAcceptMessageData(message.acceptMessageData);
+        }
         break;
 
       case "reject":
         if (isWaitingForConfirmation) {
           setIsWaitingForConfirmation(false);
+          handleRejectMessageData(message.rejectMessageData);
           leave();
         }
         break;
 
+      case "leave":
+        handleLeaveMessageData(message.leaveMessageData);
+        break;
+
       default:
-        externalMessageHandler(message);
+        messageHandler(message);
         break;
     }
   }
@@ -191,6 +189,7 @@ export function useNetwork(capacity = 2, computerCount = 0) {
       subscribeTo(newCode);
       setCode(newCode);
       setDidCreate(true);
+      setIsLocked(false);
       alert(
         `Success: Playing remotely with remote code ${newCode} - share it.`
       );
@@ -230,7 +229,7 @@ export function useNetwork(capacity = 2, computerCount = 0) {
   function leave() {
     try {
       if (!isWaitingForConfirmation) {
-        // !! NETWORK: send leaving message
+        sendMessage({ type: "leave", leaveMessageData });
       }
       unsubscribeFrom(code);
     } catch (e) {
@@ -238,6 +237,7 @@ export function useNetwork(capacity = 2, computerCount = 0) {
     } finally {
       setCode(null);
       setDidCreate(null);
+      setIsLocked(null);
     }
   }
 
@@ -253,8 +253,7 @@ export function useNetwork(capacity = 2, computerCount = 0) {
   const sendMessage = useCallback(
     (message) => {
       if (code === null) {
-        // throw Error("Can't send message because not playing remotely.");
-        console.debug("Would have sent message", message); // ~
+        console.debug("Didn't send", message); // ~
         return;
       }
       try {
@@ -270,17 +269,36 @@ export function useNetwork(capacity = 2, computerCount = 0) {
     [pubnub, code, uuid]
   );
 
+  //// Effects ////
+
+  // listen for incoming messages
+  useEffect(() => {
+    const listener = { message: internalMessageHandler };
+    pubnub.addListener(listener);
+
+    return function cleanupListener() {
+      pubnub.removeListener(listener);
+    };
+  });
+
+  // when waiting for confirmation, ask for it
+  useEffect(() => {
+    if (isWaitingForConfirmation) {
+      sendMessage({ type: "join" });
+    }
+  }, [isWaitingForConfirmation, sendMessage]);
+
   //// Return ////
 
   return {
     mode,
     code: isWaitingForConfirmation ? null : code, // todo: CLEAN-UP: mode/code/loading
+    didCreate,
     create,
     join,
     leave,
     lock,
     unlock,
     sendMessage,
-    setMessageHandler: setExternalMessageHandler,
   };
 }

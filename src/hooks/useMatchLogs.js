@@ -69,7 +69,7 @@ export function useMatchLogs(
       let message = {
         type: "auto",
         colour: players[player].colour,
-        text: `${players[player].name} `,
+        text: `${players[player].name} `, // !! is no longer "You"
         timestamp: Date.now(),
       };
       const s = player === userPosition ? "" : "s";
