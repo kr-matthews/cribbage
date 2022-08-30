@@ -28,8 +28,8 @@ export default function PlayMode({
               fun={playRemoteHandler}
             />
           </>
-        ) : mode === "loading" ? (
-          <>Loading Remote Play...</>
+        ) : mode === "waiting" ? (
+          <>Connecting...</>
         ) : (
           <>
             Remote Code:{" "}

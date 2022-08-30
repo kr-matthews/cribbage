@@ -64,7 +64,7 @@ export function useNetwork({
   // still waiting for confirmation that can join this code?
   const [isWaitingForConfirmation, setIsWaitingForConfirmation] =
     useState(false);
-  const mode = isWaitingForConfirmation ? "loading" : code ? "remote" : "local";
+  const mode = isWaitingForConfirmation ? "waiting" : code ? "remote" : "local";
   // function to handle incoming messages
 
   // only applicable/booleans when code is non-null:
@@ -218,7 +218,7 @@ export function useNetwork({
       setIsWaitingForConfirmation(true);
       setDidCreate(false);
       setCode(newCode);
-      alert(`Success: Playing remotely.`); // !! move
+      alert(`Success: Playing remotely.`); // !!! move
     } catch (e) {
       console.error(e);
       alert(`Failed to play remotely: ${e.message} `);
@@ -292,7 +292,7 @@ export function useNetwork({
 
   return {
     mode,
-    code: isWaitingForConfirmation ? null : code, // todo: CLEAN-UP: mode/code/loading
+    code,
     didCreate,
     create,
     join,

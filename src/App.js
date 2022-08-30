@@ -134,7 +134,7 @@ export default function App() {
   const [userName, setUserName] = useLocalStorage("userName", "Undecided");
   function trySetUserName(input) {
     // can't change while playing remotely
-    if (network.mode === "remote") {
+    if (network.mode !== "local") {
       alert("You can't change your name while playing remotely.");
       return;
     }
@@ -221,15 +221,17 @@ export default function App() {
     dispatchPlayers({
       type: "override",
       players: [
-        ...newPlayers,
+        // old isUser properties were for the sender
+        ...newPlayers.map((player) => ({ ...player, isUser: false })),
         { name: userName, isComputer: false, isUser: true },
       ],
     });
+    // !!! send own player info
   }
 
   function handleLeaveMessageData(player) {
     alert(`${players[player]} has left; the game cannot continue.`);
-    // !!! on leaving, remove player and/or reset game, unlock network
+    // !! on someone else leaving, remove player and/or reset game, unlock network
   }
 
   const messageHandler = ({
@@ -329,7 +331,7 @@ export default function App() {
 
   // handle network connection, for remote play (can still play locally if there's no connection)
   const network = useNetwork({
-    capcity: 3,
+    capacity: 3,
     computerCount,
     messageHandler,
     acceptMessageData: players,
@@ -338,22 +340,28 @@ export default function App() {
     handleLeaveMessageData,
   });
 
-  function nameChangeWarning() {
-    return window.confirm(
-      "Note that you won't be able to change your name once you join."
-    );
-  }
-
-  // !! prevent joining/creating when game in progress
   function join(code) {
-    if (nameChangeWarning()) {
-      dispatchPlayers({ type: "override", players: [] });
+    if (
+      window.confirm(
+        `All existing players, game state, and game history will be lost when you try to join this code.
+        \nYou also won't be able to change your name while playing remotely.`
+      )
+    ) {
+      reset();
       network.join(code);
     }
   }
 
   function create() {
-    if (nameChangeWarning()) network.create();
+    if (
+      window.confirm(
+        `All existing game state and history will be lost when you try to create a code.
+        \nYou also won't be able to change your name while playing remotely.`
+      )
+    ) {
+      reset();
+      network.create();
+    }
   }
 
   //// Cards and Play ////
@@ -430,7 +438,7 @@ export default function App() {
       if (
         window.confirm(
           "You are starting a remote game with only yourself and computer players, and will therefore automatically be switched back to local play now."
-        )
+        ) // ! prevent having 2 computer players?
       ) {
         // they agree; leave remote play (exception for debug mode)
         if (!CONTROL_ALL_PLAYERS) network.leave();
@@ -537,7 +545,7 @@ export default function App() {
     game.reset();
     gamePoints.reset();
     isUserInitiated && network.sendMessage({ type: "reset" });
-    setPreviousPlayerAction(nextPlayer, Action.RESET_ALL);
+    setPreviousPlayerAction(0, Action.RESET_ALL); // !!! match log issues
   }
 
   //// Next Action UI parameters ////
@@ -683,10 +691,9 @@ export default function App() {
 
   //// Effects ////
 
-  // !!! revisit how seating works
-  // add player (and post message) on creation
+  // add player when nobody is there
   useEffect(() => {
-    if (playerCount === 0 && network.mode === "local") {
+    if (playerCount === 0) {
       dispatchPlayers({
         type: "add",
         name: userName,
@@ -694,7 +701,7 @@ export default function App() {
         isUser: true,
       });
     }
-  }, [playerCount, network.mode, matchLogs, userName]);
+  }, [playerCount, userName]);
 
   // welcome message
   useEffect(() => {
@@ -747,6 +754,7 @@ export default function App() {
         leave={network.leave}
         canAddPlayer={
           isOwner &&
+          network.mode !== "loading" &&
           nextAction === Action.SET_UP_CUT_FOR_DEAL &&
           playerCount < 3
         }
