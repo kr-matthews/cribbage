@@ -152,8 +152,7 @@ export default function App() {
   const [players, dispatchPlayers] = useReducer(playersReducer, []);
 
   // what spot the user is 'sitting' in (can't be 'standing')
-  const isUserIndex = players.map((player) => player.isUser).indexOf(true);
-  const userPosition = isUserIndex === -1 ? null : isUserIndex;
+  const userPosition = players.map((player) => player.isUser).indexOf(true);
   const isOwner = userPosition === 0;
 
   // amount of players present (note: user should always present)
@@ -704,7 +703,7 @@ export default function App() {
 
   // update player name in player list when it changes
   useEffect(() => {
-    if (userPosition !== null) {
+    if (userPosition !== -1) {
       dispatchPlayers({
         type: "update",
         player: userPosition,
