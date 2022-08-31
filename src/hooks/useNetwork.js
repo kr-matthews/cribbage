@@ -132,6 +132,7 @@ export function useNetwork({
         if (isWaitingForConfirmation) {
           setIsWaitingForConfirmation(false);
           handleAcceptMessageData(message.acceptMessageData);
+          alert(`Successfully joined.`);
         }
         break;
 
@@ -218,7 +219,6 @@ export function useNetwork({
       setIsWaitingForConfirmation(true);
       setDidCreate(false);
       setCode(newCode);
-      alert(`Success: Playing remotely.`); // !!! move
     } catch (e) {
       console.error(e);
       alert(`Failed to play remotely: ${e.message} `);

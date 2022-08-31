@@ -251,13 +251,13 @@ export function useRound(
   ].includes(previousAction)
     ? playerCount === 2
       ? // 2 players
-        hands[0].length + hands[1].length === 12
+        hands[0].length + hands[1].length === 12 || crib.length > 0
         ? null
         : hands[0].length > hands[1].length
         ? 1
         : 0
       : // 3 players
-      crib.length === 1
+      crib.length >= 1
       ? null
       : hands[0].length + hands[1].length + hands[2].length === 15
       ? -1

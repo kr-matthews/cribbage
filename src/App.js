@@ -26,9 +26,9 @@ import "./playing-cards/playingCards.css";
 //// Debug Flags ////
 
 // make all cards face-up
-const MAKE_ALL_FACE_UP = true;
+const MAKE_ALL_FACE_UP = false;
 // let user control computer player actions
-const CONTROL_ALL_PLAYERS = true;
+const CONTROL_ALL_PLAYERS = false;
 // use a rigged deck (defined via `manuallyOrderedCards` in cardHelpers.js), instead of randomly shuffling
 const USE_RIGGED_DECK = false;
 
@@ -226,7 +226,11 @@ export default function App() {
         { name: userName, isComputer: false, isUser: true },
       ],
     });
-    // !!! send own player info
+    network.sendMessage({
+      type: "player-add",
+      name: userName,
+      isComputer: false,
+    });
   }
 
   function handleLeaveMessageData(player) {
@@ -249,7 +253,7 @@ export default function App() {
         break;
 
       case "player-remove":
-        removePlayer(play, false);
+        removePlayer(player, false);
         break;
 
       case "setUpCutForDeal":
@@ -257,7 +261,7 @@ export default function App() {
         break;
 
       case "cutForDeal":
-        cutForDeal(false);
+        cutForDealFunction(false);
         break;
 
       case "setUpCutForDealRetry":
@@ -281,7 +285,7 @@ export default function App() {
         break;
 
       case "flipStarter":
-        flipStarter(false);
+        flipStarter(false); // !!! crashes (haven't tried to reproduce yet)
         break;
 
       case "play":
