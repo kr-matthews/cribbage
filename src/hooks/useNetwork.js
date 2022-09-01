@@ -263,7 +263,6 @@ export function useNetwork({
   const sendMessage = useCallback(
     (message) => {
       if (code === null) {
-        console.debug("Didn't send", message); // ~
         return;
       }
       try {

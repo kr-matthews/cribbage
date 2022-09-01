@@ -234,7 +234,7 @@ export default function App() {
   }
 
   function handleLeaveMessageData(player) {
-    alert(`${players[player]} has left; the game cannot continue.`);
+    alert(`${players[player].name} has left; the game cannot continue.`);
     // !! on someone else leaving, remove player and/or reset game, unlock network
   }
 
@@ -725,12 +725,16 @@ export default function App() {
     }
   }, [userName, userPosition]);
 
-  // when the deck is reset, send it to other players (if user is the owner)
+  // the dealer is in charge, or default to the owner if dealer not currently assigned
+  const isResponsibleForDeck =
+    (network.didCreate && game.dealer === null) || game.dealer === userPosition;
+
+  // when the deck is reset, send it to other players, if you're responsible for it
   useEffect(() => {
-    if (network.didCreate && deck.size === 52) {
+    if (deck.size === 52 && isResponsibleForDeck) {
       network.sendMessage({ type: "deck", cards: deck.cards });
     }
-  }, [network.didCreate, network.sendMessage, deck.size, deck.cards]);
+  }, [isResponsibleForDeck, network.sendMessage, deck.size, deck.cards]);
 
   //// Return ////
 
