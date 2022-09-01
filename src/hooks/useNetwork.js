@@ -74,6 +74,9 @@ export function useNetwork({
   // may new users join the room
   const [isLocked, setIsLocked] = useState(null);
 
+  // store incoming message
+  const [message, setMessage] = useState(null);
+
   //// PubNub ////
 
   // useMemo to avoid recalculating every rerender due to uuid dependency
@@ -107,7 +110,14 @@ export function useNetwork({
     }
   }
 
-  async function internalMessageHandler({ message }) {
+  // need to store messages and then immediately process them via an effect below
+  // to ensure the whole message handler function is applied without any rerenders
+  // in the middle, which will happen if used directly in the listener
+  function messageReceiver({ message }) {
+    setMessage(message);
+  }
+
+  async function internalMessageHandler(message) {
     // ignore messages from self
     if (message.uuid === uuid) return;
 
@@ -273,7 +283,7 @@ export function useNetwork({
 
   // listen for incoming messages
   useEffect(() => {
-    const listener = { message: internalMessageHandler };
+    const listener = { message: messageReceiver };
     pubnub.addListener(listener);
 
     return function cleanupListener() {
@@ -287,6 +297,14 @@ export function useNetwork({
       sendMessage({ type: "join" });
     }
   }, [isWaitingForConfirmation, sendMessage]);
+
+  // handle incoming message - see note above [messageReceiver]
+  useEffect(() => {
+    if (message) {
+      setMessage(null);
+      internalMessageHandler(message);
+    }
+  });
 
   //// Return ////
 

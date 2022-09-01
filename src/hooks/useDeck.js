@@ -114,11 +114,7 @@ export function useDeck(initialCards, useRiggedDeck = false) {
     let toCut =
       Math.floor(Math.random() * (unCutCount - bottomBuffer - topBuffer)) +
       topBuffer;
-    setCutCounts((cutCounts) => {
-      let newCounts = [...cutCounts];
-      newCounts.push(toCut);
-      return newCounts;
-    });
+    setCutCounts((cutCounts) => [...cutCounts, toCut]);
   }
 
   /**
