@@ -268,8 +268,7 @@ function longestSuchClaim(orderedCards, claimType) {
 }
 
 function scoreHandFor15s(hand, starter) {
-  let unorderedCards = [...hand];
-  unorderedCards.push(starter);
+  let unorderedCards = [...hand, starter];
   let points = 0;
   // iterate over all subsets, via binary codes (could be more efficient)
   for (let code = 0; code < 2 ** 5; code++) {
@@ -285,8 +284,7 @@ function scoreHandFor15s(hand, starter) {
 }
 
 function scoreHandForKinds(hand, starter) {
-  let unorderedCards = [...hand];
-  unorderedCards.push(starter);
+  let unorderedCards = [...hand, starter];
   let points = 0;
   // find the ranks
   let ranks = unorderedCards.map((card) => card.rank.index);
@@ -302,8 +300,7 @@ function scoreHandForKinds(hand, starter) {
 }
 
 function scoreHandForRuns(hand, starter) {
-  let unorderedCards = [...hand];
-  unorderedCards.push(starter);
+  let unorderedCards = [...hand, starter];
   // if there are runs, they are all the same length, so go by length, stopping at the first non-zero
   for (let len = 5; len >= 3; len--) {
     let points = 0;

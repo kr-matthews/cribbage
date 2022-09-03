@@ -62,6 +62,7 @@ export function useMatchLogs(
 
   // todo CLEAN-UP: ideally, make the messages formatable strings which accept arguments
 
+  // !!! "You reset the match and all history" appearing twice
   // colour-coded, starting with player name
   const postAction = useCallback(
     (player, action, cuts, starter, piles, stackTotal, delta, scorer) => {

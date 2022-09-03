@@ -285,7 +285,7 @@ export default function App() {
         break;
 
       case "flipStarter":
-        flipStarter(false); // !!! crashes (haven't tried to reproduce yet)
+        flipStarter(false);
         break;
 
       case "play":
@@ -549,7 +549,7 @@ export default function App() {
     game.reset();
     gamePoints.reset();
     isUserInitiated && network.sendMessage({ type: "reset" });
-    setPreviousPlayerAction(0, Action.RESET_ALL); // !!! match log issues
+    setPreviousPlayerAction(0, Action.RESET_ALL);
   }
 
   //// Next Action UI parameters ////

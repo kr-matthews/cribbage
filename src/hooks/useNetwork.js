@@ -195,6 +195,7 @@ export function useNetwork({
 
   // generate an unused code and setup incoming/outoing messages
   async function create() {
+    // !!! add loading state for create
     try {
       const newCode = await getUnusedCode();
       subscribeTo(newCode);
