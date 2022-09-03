@@ -64,7 +64,13 @@ export function useNetwork({
   // still waiting for confirmation that can join this code?
   const [isWaitingForConfirmation, setIsWaitingForConfirmation] =
     useState(false);
-  const mode = isWaitingForConfirmation ? "waiting" : code ? "remote" : "local";
+  const [isLoading, setIsLoading] = useState(false);
+  const mode =
+    isWaitingForConfirmation || isLoading
+      ? "waiting"
+      : code
+      ? "remote"
+      : "local";
   // function to handle incoming messages
 
   // only applicable/booleans when code is non-null:
@@ -195,8 +201,8 @@ export function useNetwork({
 
   // generate an unused code and setup incoming/outoing messages
   async function create() {
-    // !!! add loading state for create
     try {
+      setIsLoading(true);
       const newCode = await getUnusedCode();
       subscribeTo(newCode);
       setCode(newCode);
@@ -208,6 +214,8 @@ export function useNetwork({
     } catch (e) {
       console.error(e);
       alert(`Failed to play remotely: ${e.message}`);
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -219,6 +227,7 @@ export function useNetwork({
       return;
     }
     try {
+      setIsLoading(true);
       const presenceCount = await checkPresence(newCode);
       if (presenceCount === 0) {
         alert(
@@ -233,6 +242,8 @@ export function useNetwork({
     } catch (e) {
       console.error(e);
       alert(`Failed to play remotely: ${e.message} `);
+    } finally {
+      setIsLoading(false);
     }
   }
 
