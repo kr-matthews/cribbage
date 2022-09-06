@@ -13,9 +13,6 @@ const UUID_LENGTH = 64;
 const VALID_CODE_CHARS = "2346789QWERTYUPASDFGHJKLZXCVBNM";
 const CODE_LENGTH = 4;
 
-const PRESENCE_CHECK_FAIL_MESSAGE =
-  "Could not successfully check that code.\nYou may not be connected to the internet.";
-
 //// Helpers ////
 
 // should make sure it is unique, but just assume it is
@@ -48,12 +45,12 @@ export function useNetwork({
   capacity = 2,
   computerCount = 0,
   messageHandler,
+  onCreateSuccess = () => {},
   acceptMessageData,
   handleAcceptMessageData = () => {},
-  rejectMessageData,
-  handleRejectMessageData = () => {},
   leaveMessageData,
   handleLeaveMessageData = () => {},
+  onFailure = (e) => console.error(e),
 }) {
   //// States & Constants ////
 
@@ -99,10 +96,10 @@ export function useNetwork({
     try {
       const channel = await pubnub.hereNow({ channels: [code] });
       return channel.totalOccupancy;
-    } catch (error) {
-      alert(PRESENCE_CHECK_FAIL_MESSAGE);
-      console.error("Couldn't get room occupancy.", error);
-      throw error;
+    } catch (e) {
+      throw {
+        message: `Could not successfully check code '${code}'. You may not be connected to the internet.`,
+      };
     }
   }
 
@@ -110,7 +107,17 @@ export function useNetwork({
     try {
       const presence = await checkPresence(code);
       // new user doesn't seem to contribute to presence yet
-      return !isLocked && presence + computerCount < capacity;
+      if (isLocked) {
+        return {
+          message: `Could not join code '${code}': A match is already in progress.`,
+        };
+      } else if (presence + computerCount >= capacity) {
+        return {
+          message: `Could not join code '${code}': The code has already reached player capacity.`,
+        };
+      } else {
+        return true;
+      }
     } catch (error) {
       throw error;
     }
@@ -135,9 +142,9 @@ export function useNetwork({
           if (didCreate) {
             // accept or reject new user
             const canStay = await canNewUserStay();
-            canStay
+            canStay === true
               ? sendMessage({ type: "accept", acceptMessageData })
-              : sendMessage({ type: "reject", rejectMessageData });
+              : sendMessage({ type: "reject", e: canStay });
           }
         } catch (error) {
           throw error;
@@ -148,14 +155,13 @@ export function useNetwork({
         if (isWaitingForConfirmation) {
           setIsWaitingForConfirmation(false);
           handleAcceptMessageData(message.acceptMessageData);
-          alert(`Successfully joined.`);
         }
         break;
 
       case "reject":
         if (isWaitingForConfirmation) {
           setIsWaitingForConfirmation(false);
-          handleRejectMessageData(message.rejectMessageData);
+          onFailure(message.e);
           leave();
         }
         break;
@@ -181,8 +187,9 @@ export function useNetwork({
       } while (presence > 0);
       return newCode;
     } catch (e) {
-      console.error(e);
-      throw Error("Error generating unused remote code.");
+      throw Error(
+        "Error generating unused remote code. Are you connected to the internet?"
+      );
     }
   }
 
@@ -208,12 +215,9 @@ export function useNetwork({
       setCode(newCode);
       setDidCreate(true);
       setIsLocked(false);
-      alert(
-        `Success: Playing remotely with remote code ${newCode} - share it.`
-      );
+      onCreateSuccess(newCode);
     } catch (e) {
-      console.error(e);
-      alert(`Failed to play remotely: ${e.message}`);
+      onFailure(e);
     } finally {
       setIsLoading(false);
     }
@@ -221,17 +225,22 @@ export function useNetwork({
 
   // if allowed, setup incoming/outgoing messages
   async function join(codeInput) {
-    const newCode = codeInput.toUpperCase();
-    if (!isValidCode(newCode)) {
-      alert(`Failed to play remotely: Invalid remote code.`);
-      return;
-    }
     try {
       setIsLoading(true);
+      const newCode = codeInput.toUpperCase();
+      if (!isValidCode(newCode)) {
+        onFailure({
+          message: `Failed to join code '${newCode}': Invalid code.`,
+        });
+        return;
+      }
       const presenceCount = await checkPresence(newCode);
       if (presenceCount === 0) {
-        alert(
-          `Failed to play remotely: There's nobody using that remote code.`
+        onFailure(
+          {
+            message: `Failed to join code '${newCode}': Nobody is currently using it.`,
+          },
+          newCode
         );
         return;
       }
@@ -240,8 +249,7 @@ export function useNetwork({
       setDidCreate(false);
       setCode(newCode);
     } catch (e) {
-      console.error(e);
-      alert(`Failed to play remotely: ${e.message} `);
+      onFailure(e);
     } finally {
       setIsLoading(false);
     }
@@ -281,9 +289,11 @@ export function useNetwork({
         pubnub.publish({ message: { ...message, uuid }, channel: code });
         console.debug("Sent message", message); // ~
       } catch (e) {
-        console.log(e);
-        alert(
-          `Failed to notify opponent of latest changes - are you still connected to the internet?\nThe game may be out of sync, unfortunately.`
+        onFailure(
+          {
+            message: `Failed to notify opponent of latest changes - are you still connected to the internet? The match may be out of sync, unfortunately, and cannot continue.`,
+          },
+          code
         );
       }
     },

@@ -62,7 +62,6 @@ export function useMatchLogs(
 
   // todo CLEAN-UP: ideally, make the messages formatable strings which accept arguments
 
-  // !!! "You reset the match and all history" appearing twice
   // colour-coded, starting with player name
   const postAction = useCallback(
     (player, action, cuts, starter, piles, stackTotal, delta, scorer) => {
@@ -85,11 +84,8 @@ export function useMatchLogs(
       // add details to text
       switch (action) {
         case null:
-          return;
-
         case Action.RESET_ALL:
-          message.text += `reset${s} the match and all history.`;
-          break;
+          return;
 
         case Action.SET_UP_CUT_FOR_DEAL:
           message.text += `confirm${s} current players and shuffle${s} the deck.`;

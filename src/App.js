@@ -231,11 +231,21 @@ export default function App() {
       name: userName,
       isComputer: false,
     });
+    matchLogs.postUpdate(`Joined game with existing players.`);
   }
 
   function handleLeaveMessageData(player) {
     alert(`${players[player].name} has left; the game cannot continue.`);
     // !! on someone else leaving, remove player and/or reset game, unlock network
+  }
+
+  function onCreateSuccess(code) {
+    matchLogs.postUpdate(`Created code ${code} - share it.`);
+  }
+
+  function onFailure(e) {
+    console.error(e);
+    e && e.message && matchLogs.postUpdate(e.message);
   }
 
   const messageHandler = ({
@@ -338,10 +348,12 @@ export default function App() {
     capacity: 3,
     computerCount,
     messageHandler,
+    onCreateSuccess,
     acceptMessageData: players,
     handleAcceptMessageData,
     leaveMessageData: userPosition,
     handleLeaveMessageData,
+    onFailure,
   });
 
   function join(code) {
@@ -544,12 +556,13 @@ export default function App() {
     setPreviousPlayerAction(nextPlayer, Action.START_NEW_GAME);
   }
 
-  // reset everything -- except game history, which will persist(?)
+  // reset everything
   function reset(isUserInitiated = true) {
     game.reset();
     gamePoints.reset();
     isUserInitiated && network.sendMessage({ type: "reset" });
     setPreviousPlayerAction(0, Action.RESET_ALL);
+    matchLogs.postUpdate("The game and all match history has been reset.");
   }
 
   //// Next Action UI parameters ////
