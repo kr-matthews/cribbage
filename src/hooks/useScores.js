@@ -2,10 +2,15 @@ import { useReducer, useEffect } from "react";
 
 //// Constants ////
 
-const WIN_LINE = 120; // 20; // 120;
-const SKUNK_LINE = 90; // 15; // 90;
-const DOUBLE_SKUNK_LINE = 60; // 10; // 60;
-const TRIPLE_SKUNK_LINE = 30; // 5; // 30;
+const WIN_LINE = 120;
+const SKUNK_LINE = 90;
+const DOUBLE_SKUNK_LINE = 60;
+const TRIPLE_SKUNK_LINE = 30;
+// for testing purposes (maybe add a flag for this later)
+// const WIN_LINE = 20;
+// const SKUNK_LINE = 15;
+// const DOUBLE_SKUNK_LINE = 10;
+// const TRIPLE_SKUNK_LINE = 5;
 
 //// Helpers ////
 

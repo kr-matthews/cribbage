@@ -381,7 +381,7 @@ export function useRound(
   // NOTE: always peg, even if it's 0, to ensure scores.delta updates
 
   function scoreFlip(card) {
-    peg(nextPlayer, card.rank === Rank.JACK ? 2 : 0);
+    peg(nextPlayer, card.rank.index === 10 ? 2 : 0);
   }
 
   function scorePlay(index) {
@@ -426,7 +426,7 @@ export function useRound(
 
     // his nobs: score jack with same colour as starter
     if (
-      hand.some((card) => card.rank === Rank.JACK && card.suit === starter.suit)
+      hand.some((card) => card.rank.index === 10 && card.suit === starter.suit)
     ) {
       points += 1;
     }

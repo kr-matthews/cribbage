@@ -33,27 +33,53 @@ for (let rank of [
 
 // these cards will appear on the top of the deck
 const manuallyOrderedCards = [
-  // used in cut for dealer, and for hands
+  // // for 3 players
+
+  // { rank: Rank.ACE, suit: Suit.CLUB },
+  // { rank: Rank.TWO, suit: Suit.CLUB },
+  // { rank: Rank.THREE, suit: Suit.CLUB },
+
+  // { rank: Rank.TEN, suit: Suit.DIAMOND },
+  // { rank: Rank.NINE, suit: Suit.SPADE },
+  // { rank: Rank.TEN, suit: Suit.CLUB },
+
+  // { rank: Rank.ACE, suit: Suit.DIAMOND },
+  // { rank: Rank.NINE, suit: Suit.DIAMOND },
+  // { rank: Rank.SEVEN, suit: Suit.HEART },
+
+  // { rank: Rank.ACE, suit: Suit.HEART },
+  // { rank: Rank.SIX, suit: Suit.DIAMOND },
+  // { rank: Rank.FOUR, suit: Suit.CLUB },
+
+  // { rank: Rank.FIVE, suit: Suit.HEART },
+  // { rank: Rank.KING, suit: Suit.CLUB },
+  // { rank: Rank.KING, suit: Suit.SPADE },
+
+  // starter
+  // { rank: Rank.JACK, suit: Suit.SPADE },
+
+  // // for 2 players
+
   { rank: Rank.ACE, suit: Suit.CLUB },
   { rank: Rank.TWO, suit: Suit.CLUB },
-  { rank: Rank.THREE, suit: Suit.CLUB },
 
   { rank: Rank.TEN, suit: Suit.DIAMOND },
   { rank: Rank.NINE, suit: Suit.SPADE },
-  { rank: Rank.TEN, suit: Suit.CLUB },
 
   { rank: Rank.ACE, suit: Suit.DIAMOND },
   { rank: Rank.NINE, suit: Suit.DIAMOND },
-  { rank: Rank.SEVEN, suit: Suit.HEART },
 
   { rank: Rank.ACE, suit: Suit.HEART },
   { rank: Rank.SIX, suit: Suit.DIAMOND },
-  { rank: Rank.FOUR, suit: Suit.CLUB },
 
   { rank: Rank.FIVE, suit: Suit.HEART },
   { rank: Rank.KING, suit: Suit.CLUB },
+
   { rank: Rank.KING, suit: Suit.SPADE },
-  // end of hands (for 3 players)
+  { rank: Rank.SEVEN, suit: Suit.SPADE },
+
+  // starter
+  { rank: Rank.JACK, suit: Suit.SPADE },
 ];
 
 // pad the deck up to 52
