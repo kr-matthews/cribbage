@@ -178,17 +178,24 @@ export default function App() {
   // ! add basic computer player playing logic
 
   function addComputerPlayer() {
-    if (!isLocked && playerCount < 3) {
-      let existingNames = players.map((player) => player.name);
-      let name;
-
-      // get a name which isn't already in use
-      do {
-        name = getRandomName();
-      } while (existingNames.includes(name));
-
-      addNewPlayer(name, true);
+    if (isLocked || playerCount >= 3) return;
+    if (network.mode !== "local" && playerCount === 2 && computerCount === 1) {
+      // keep room for a second real user
+      alert(
+        `You must be playing locally to have only computer opponents. Leave remote play to add another computer players.`
+      );
+      return;
     }
+
+    let existingNames = players.map((player) => player.name);
+    let name;
+
+    // get a name which isn't already in use
+    do {
+      name = getRandomName();
+    } while (existingNames.includes(name));
+
+    addNewPlayer(name, true);
   }
 
   function removePlayer(player, isUserInitiated = true) {
@@ -480,7 +487,7 @@ export default function App() {
       if (
         window.confirm(
           "You are starting a remote game with only yourself and computer players, and will therefore automatically be switched back to local play now."
-        ) // ! prevent having 2 computer players?
+        )
       ) {
         // they agree; leave remote play (exception for debug mode)
         if (!CONTROL_ALL_PLAYERS) network.leave();
@@ -787,7 +794,8 @@ export default function App() {
         priorScores={game.previousScores}
       /> */}
       Warning: This Cribbage project is a work-in-progress. Proper functionality
-      is not guaranteed.
+      is not guaranteed, though it is mostly working correctly at this point.
+      Note that computer players don't do anything yet.
       <Header
         hideEmptyColumns={HIDE_EMPTY_COLUMNS}
         userName={userName}
