@@ -65,6 +65,7 @@ export function useMatchLogs(
   // colour-coded, starting with player name
   const postAction = useCallback(
     (player, action, cuts, starter, piles, stackTotal, delta, scorer) => {
+      if (!players[player]) return;
       // base message
       let message = {
         type: "auto",

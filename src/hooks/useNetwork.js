@@ -58,26 +58,26 @@ export function useNetwork({
   const [uuid] = useLocalStorage("uuid", createUuid());
   // code currently in use (can only use one at a time)
   const [code, setCode] = useState(null);
-  // still waiting for confirmation that can join this code?
+
+  // waiting for response from pubnub?
+  const [isConnecting, setIsConnecting] = useState(false);
+  // waiting for accept/reject response from code owner?
   const [isWaitingForConfirmation, setIsWaitingForConfirmation] =
     useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const mode =
-    isWaitingForConfirmation || isLoading
-      ? "waiting"
+    isConnecting || isWaitingForConfirmation
+      ? "connecting"
       : code
       ? "remote"
       : "local";
-  // function to handle incoming messages
-
-  // only applicable/booleans when code is non-null:
 
   // did the user create the room, and should therefore be able to lock/unlock
-  const [didCreate, setDidCreate] = useState(null);
+  const [isCodeOwner, setIsCodeOwner] = useState(null);
   // may new users join the room
   const [isLocked, setIsLocked] = useState(null);
 
-  // store incoming message
+  // store unhandled incoming message
+  // problem: if 2 messages come in at once, one will be lost - very unlikely though
   const [message, setMessage] = useState(null);
 
   //// PubNub ////
@@ -134,12 +134,14 @@ export function useNetwork({
     // ignore messages from self
     if (message.uuid === uuid) return;
 
-    console.debug("incoming message", message); // ~
+    console.debug("incoming message", message.type); // ~
 
+    // first few cases are all internal to useNetwork,
+    // default case is from the App
     switch (message.type) {
       case "join":
         try {
-          if (didCreate) {
+          if (isCodeOwner) {
             // accept or reject new user
             const canStay = await canNewUserStay();
             canStay === true
@@ -209,24 +211,23 @@ export function useNetwork({
   // generate an unused code and setup incoming/outoing messages
   async function create() {
     try {
-      setIsLoading(true);
+      setIsConnecting(true);
       const newCode = await getUnusedCode();
       subscribeTo(newCode);
       setCode(newCode);
-      setDidCreate(true);
-      setIsLocked(false);
+      setIsCodeOwner(true);
       onCreateSuccess(newCode);
     } catch (e) {
       onFailure(e);
     } finally {
-      setIsLoading(false);
+      setIsConnecting(false);
     }
   }
 
   // if allowed, setup incoming/outgoing messages
   async function join(codeInput) {
     try {
-      setIsLoading(true);
+      setIsConnecting(true);
       const newCode = codeInput.toUpperCase();
       if (!isValidCode(newCode)) {
         onFailure({
@@ -236,29 +237,26 @@ export function useNetwork({
       }
       const presenceCount = await checkPresence(newCode);
       if (presenceCount === 0) {
-        onFailure(
-          {
-            message: `Failed to join code '${newCode}': Nobody is currently using it.`,
-          },
-          newCode
-        );
+        onFailure({
+          message: `Failed to join code '${newCode}': Nobody is currently using it.`,
+        });
         return;
       }
       subscribeTo(newCode);
       setIsWaitingForConfirmation(true);
-      setDidCreate(false);
+      setIsCodeOwner(false);
       setCode(newCode);
     } catch (e) {
       onFailure(e);
     } finally {
-      setIsLoading(false);
+      setIsConnecting(false);
     }
   }
 
   // clean exit from room, closing incoming/outgoing messages; notify others
-  function leave() {
+  function leave(silently = false) {
     try {
-      if (!isWaitingForConfirmation) {
+      if (mode === "remote" && !silently) {
         sendMessage({ type: "leave", leaveMessageData });
       }
       unsubscribeFrom(code);
@@ -266,17 +264,17 @@ export function useNetwork({
       console.error(e);
     } finally {
       setCode(null);
-      setDidCreate(null);
+      setIsCodeOwner(null);
       setIsLocked(null);
     }
   }
 
   function lock() {
-    if (didCreate) setIsLocked(true);
+    if (isCodeOwner) setIsLocked(true);
   }
 
   function unlock() {
-    if (didCreate) setIsLocked(false);
+    if (isCodeOwner) setIsLocked(false);
   }
 
   // send the message
@@ -287,14 +285,11 @@ export function useNetwork({
       }
       try {
         pubnub.publish({ message: { ...message, uuid }, channel: code });
-        console.debug("Sent message", message); // ~
+        console.debug("Sent message", message.type); // ~
       } catch (e) {
-        onFailure(
-          {
-            message: `Failed to notify opponent of latest changes - are you still connected to the internet? The match may be out of sync, unfortunately, and cannot continue.`,
-          },
-          code
-        );
+        onFailure({
+          message: `Failed to notify opponent of latest changes - are you still connected to the internet? The match may be out of sync, unfortunately, and cannot continue.`,
+        });
       }
     },
     [pubnub, code, uuid]
@@ -332,7 +327,7 @@ export function useNetwork({
   return {
     mode,
     code,
-    didCreate,
+    isCodeOwner,
     create,
     join,
     leave,

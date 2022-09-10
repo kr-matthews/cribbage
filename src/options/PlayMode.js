@@ -28,7 +28,7 @@ export default function PlayMode({
               fun={playRemoteHandler}
             />
           </>
-        ) : mode === "waiting" ? (
+        ) : mode === "connecting" ? (
           <>Connecting...</>
         ) : (
           <>
@@ -38,7 +38,7 @@ export default function PlayMode({
             </button>{" "}
             <Edit
               type="confirm"
-              text="Are you sure you want to leave this remote game? The game state may be lost."
+              text="Are you sure you want to leave this remote game? Any match history and game state will be lost for everyone."
               fun={leave}
             />
           </>

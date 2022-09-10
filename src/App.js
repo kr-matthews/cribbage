@@ -192,15 +192,21 @@ export default function App() {
   }
 
   function removePlayer(player, isUserInitiated = true) {
-    if (!isLocked && player > 0 && players[player]) {
+    // can't remove yourself or non-existant players
+    if (player !== userPosition && players[player]) {
       dispatchPlayers({ type: "remove", player });
+      isLocked && reset();
       isUserInitiated && network.sendMessage({ type: "player-remove", player });
       matchLogs.postUpdate(
         `${players[player].isComputer ? "Computer player " : "Player "}${
           players[player].name
-        } has left.`
+        } has left.${isLocked ? " The match cannot continue." : ""}`
       );
     }
+  }
+
+  function removeAllPlayers() {
+    dispatchPlayers({ type: "override", players: [] }); // effect will auto-add self back as 1st player
   }
 
   //// Previous Action ////
@@ -234,9 +240,16 @@ export default function App() {
     matchLogs.postUpdate(`Joined game with existing players.`);
   }
 
+  // someone decided to leave
   function handleLeaveMessageData(player) {
-    alert(`${players[player].name} has left; the game cannot continue.`);
-    // !! on someone else leaving, remove player and/or reset game, unlock network
+    reset();
+    if (player === 0) {
+      network.leave(true);
+      removeAllPlayers();
+    } else {
+      removePlayer(player, false);
+    }
+    network.unlock();
   }
 
   function onCreateSuccess(code) {
@@ -263,7 +276,11 @@ export default function App() {
         break;
 
       case "player-remove":
-        removePlayer(player, false);
+        if (player === userPosition) {
+          leave(false);
+        } else {
+          removePlayer(player, false);
+        }
         break;
 
       case "setUpCutForDeal":
@@ -330,10 +347,6 @@ export default function App() {
         startNewGame(false);
         break;
 
-      case "reset":
-        reset(false);
-        break;
-
       case "deck":
         deck.reset(cards);
         break;
@@ -356,28 +369,41 @@ export default function App() {
     onFailure,
   });
 
-  function join(code) {
+  function create() {
     if (
       window.confirm(
-        `All existing players, game state, and game history will be lost when you try to join this code.
+        `All existing game state and match history will be lost when you try to create a code.
         \nYou also won't be able to change your name while playing remotely.`
       )
     ) {
       reset();
+      matchLogs.postUpdate(`Game state and match history reset.`);
+      network.create();
+    }
+  }
+
+  function join(code) {
+    if (
+      window.confirm(
+        `All existing game state and match history will be lost when you try to join this code, and existing computer players will be removed if you're successful.
+        \nYou also won't be able to change your name while playing remotely.`
+      )
+    ) {
+      reset();
+      matchLogs.postUpdate(`Game state and match history reset.`);
       network.join(code);
     }
   }
 
-  function create() {
-    if (
-      window.confirm(
-        `All existing game state and history will be lost when you try to create a code.
-        \nYou also won't be able to change your name while playing remotely.`
-      )
-    ) {
-      reset();
-      network.create();
-    }
+  function leave(isUserInitiated = true) {
+    network.leave(!isUserInitiated);
+    reset();
+    removeAllPlayers();
+    matchLogs.postUpdate(
+      isUserInitiated
+        ? `You left the remote match. Game state and match history reset.`
+        : `You were removed from the remote match. Game state and match history reset.`
+    );
   }
 
   //// Cards and Play ////
@@ -557,12 +583,12 @@ export default function App() {
   }
 
   // reset everything
-  function reset(isUserInitiated = true) {
+  function reset() {
     game.reset();
     gamePoints.reset();
-    isUserInitiated && network.sendMessage({ type: "reset" });
+    deck.reset();
+    cutForDeal.reset();
     setPreviousPlayerAction(0, Action.RESET_ALL);
-    matchLogs.postUpdate("The game and all match history has been reset.");
   }
 
   //// Next Action UI parameters ////
@@ -740,7 +766,8 @@ export default function App() {
 
   // the dealer is in charge, or default to the owner if dealer not currently assigned
   const isResponsibleForDeck =
-    (network.didCreate && game.dealer === null) || game.dealer === userPosition;
+    (game.dealer === null && network.isCodeOwner) ||
+    game.dealer === userPosition;
 
   // when the deck is reset, send it to other players, if you're responsible for it
   useEffect(() => {
@@ -772,7 +799,7 @@ export default function App() {
         code={network.code}
         create={create}
         join={join}
-        leave={network.leave}
+        leave={leave}
         canAddPlayer={
           isOwner &&
           network.mode !== "loading" &&
