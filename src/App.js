@@ -151,16 +151,16 @@ export default function App() {
   // list of up to 3 players
   const [players, dispatchPlayers] = useReducer(playersReducer, []);
 
-  // what spot the user is 'sitting' in (can't be 'standing')
+  // what spot the user is 'sitting' in (note: should always be in some position)
   const userPosition = players.map((player) => player.isUser).indexOf(true);
-  const isOwner = userPosition === 0;
+  const isInCharge = userPosition === 0; // problem: somewhat overlaps with network.isCodeOwner
 
-  // amount of players present (note: user should always present)
+  // amount of players present (note: user should always present, as noted above)
   const playerCount = players.length;
   const computerCount = players.filter((player) => player.isComputer).length;
 
   function addNewPlayer(name, isComputer, isUserInitiated = true) {
-    if (!isLocked && playerCount < 3) {
+    if (!isMatchInProgress && playerCount < 3) {
       dispatchPlayers({
         type: "add",
         name,
@@ -178,7 +178,7 @@ export default function App() {
   // ! add basic computer player playing logic
 
   function addComputerPlayer() {
-    if (isLocked || playerCount >= 3) return;
+    if (isMatchInProgress || playerCount >= 3) return;
     if (network.mode !== "local" && playerCount === 2 && computerCount === 1) {
       // keep room for a second real user
       alert(
@@ -202,12 +202,13 @@ export default function App() {
     // can't remove yourself or non-existant players
     if (player !== userPosition && players[player]) {
       dispatchPlayers({ type: "remove", player });
-      isLocked && reset();
+      // someone leaving mid-match resets everything
+      isMatchInProgress && reset();
       isUserInitiated && network.sendMessage({ type: "player-remove", player });
       matchLogs.postUpdate(
         `${players[player].isComputer ? "Computer player " : "Player "}${
           players[player].name
-        } has left.${isLocked ? " The match cannot continue." : ""}`
+        } has left.${isMatchInProgress ? " The match cannot continue." : ""}`
       );
     }
   }
@@ -377,6 +378,12 @@ export default function App() {
   });
 
   function create() {
+    if (computerCount === 2) {
+      alert(
+        `You must have space for other players to join in order to play remotely. Remove a computer player then try again.`
+      );
+      return;
+    }
     if (
       window.confirm(
         `All existing game state and match history will be lost when you try to create a code.
@@ -415,9 +422,8 @@ export default function App() {
 
   //// Cards and Play ////
 
-  // is the game locked in, or can new players join
-  const isLocked = ![null, Action.RESET_ALL].includes(previousAction);
-  // !! duplicated lock (and isOwner) from network
+  // are the players locked in, or can new ones join
+  const isMatchInProgress = ![null, Action.RESET_ALL].includes(previousAction); // problem: somewhat overlaps with network.isLocked
 
   // the deck (used pre-game, to cut for deal); pass in card stack on reset
   const deck = useDeck(null, USE_RIGGED_DECK);
@@ -457,7 +463,7 @@ export default function App() {
   //// Next Action ////
 
   const [nextPlayers, nextAction] = (() => {
-    if (!isLocked) {
+    if (!isMatchInProgress) {
       // haven't started anything yet
       return [makePlayerArray(0), Action.SET_UP_CUT_FOR_DEAL];
     } else if (game.dealer === null) {
@@ -611,7 +617,7 @@ export default function App() {
     case Action.SET_UP_CUT_FOR_DEAL:
       labels = [nextAction.label];
       actions = [() => setUpCutForDeal()];
-      enabled = [isOwner && [2, 3].includes(playerCount)];
+      enabled = [isInCharge && [2, 3].includes(playerCount)];
       break;
 
     case Action.CUT_FOR_DEAL:
@@ -809,7 +815,7 @@ export default function App() {
         join={join}
         leave={leave}
         canAddPlayer={
-          isOwner &&
+          isInCharge &&
           network.mode !== "loading" &&
           nextAction === Action.SET_UP_CUT_FOR_DEAL &&
           playerCount < 3
@@ -828,7 +834,7 @@ export default function App() {
             : gamePoints.points
         }
         removeable={
-          isOwner &&
+          isInCharge &&
           nextAction === Action.SET_UP_CUT_FOR_DEAL && [false, true, true]
         }
         removePlayer={removePlayer}
