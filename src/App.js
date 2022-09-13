@@ -153,7 +153,7 @@ export default function App() {
 
   // what spot the user is 'sitting' in (note: should always be in some position)
   const userPosition = players.map((player) => player.isUser).indexOf(true);
-  const isInCharge = userPosition === 0; // problem: somewhat overlaps with network.isCodeOwner
+  const isInCharge = userPosition === 0; // ? somewhat overlaps with network.isCodeOwner
 
   // amount of players present (note: user should always present, as noted above)
   const playerCount = players.length;
@@ -175,7 +175,7 @@ export default function App() {
     }
   }
 
-  // ! add basic computer player playing logic
+  // !!! add basic computer player playing logic
 
   function addComputerPlayer() {
     if (isMatchInProgress || playerCount >= 3) return;
@@ -423,7 +423,7 @@ export default function App() {
   //// Cards and Play ////
 
   // are the players locked in, or can new ones join
-  const isMatchInProgress = ![null, Action.RESET_ALL].includes(previousAction); // problem: somewhat overlaps with network.isLocked
+  const isMatchInProgress = ![null, Action.RESET_ALL].includes(previousAction); // ? somewhat overlaps with network.isLocked
 
   // the deck (used pre-game, to cut for deal); pass in card stack on reset
   const deck = useDeck(null, USE_RIGGED_DECK);
@@ -867,7 +867,9 @@ export default function App() {
         waiting={!nextPlayers[userPosition]}
         nextToAct={
           nextPlayers.reduce((count, curr) => count + (curr ? 1 : 0), 0) === 1
-            ? players[nextPlayer].name
+            ? nextPlayer === userPosition
+              ? "you"
+              : players[nextPlayer].name
             : "everyone else"
         }
         nextAction={

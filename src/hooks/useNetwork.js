@@ -77,7 +77,7 @@ export function useNetwork({
   const [isLocked, setIsLocked] = useState(null);
 
   // store unhandled incoming message
-  // problem: if 2 messages come in at once, one will be lost - very unlikely though
+  // ? if 2 messages come in at once, one will be lost - very unlikely though
   const [message, setMessage] = useState(null);
 
   //// PubNub ////
