@@ -747,6 +747,8 @@ export default function App() {
 
   //// Effects ////
 
+  // ? missing dependency issues with network and matchLogs
+
   // add player when nobody is there
   useEffect(() => {
     if (playerCount === 0) {

@@ -97,9 +97,9 @@ export function useNetwork({
       const channel = await pubnub.hereNow({ channels: [code] });
       return channel.totalOccupancy;
     } catch (e) {
-      throw {
-        message: `Could not successfully check code '${code}'. You may not be connected to the internet.`,
-      };
+      throw Error(
+        `Could not successfully check code '${code}'. You may not be connected to the internet.`
+      );
     }
   }
 
@@ -287,6 +287,7 @@ export function useNetwork({
         pubnub.publish({ message: { ...message, uuid }, channel: code });
         console.debug("Sent message", message.type); // ~
       } catch (e) {
+        // ? missing dependency issue
         onFailure({
           message: `Failed to notify opponent of latest changes - are you still connected to the internet? The match may be out of sync, unfortunately, and cannot continue.`,
         });
