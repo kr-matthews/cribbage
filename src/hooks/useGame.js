@@ -83,6 +83,7 @@ export function useGame(
     dealer,
 
     // more data
+    sharedStack: round.sharedStack,
     stackTotal: totalPoints(round.sharedStack),
 
     // scores

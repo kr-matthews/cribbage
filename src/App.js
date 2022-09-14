@@ -9,6 +9,7 @@ import { useGamePoints } from "./hooks/useGamePoints.js";
 import { useSoundEffects } from "./hooks/useSoundEffects.js";
 import { useNetwork } from "./hooks/useNetwork.js";
 import { useMatchLogs } from "./hooks/useMatchLogs.js";
+import useComputerPlayer from "./hooks/useComputerPlayer.js";
 
 import Action from "./hooks/Action.js";
 
@@ -174,8 +175,6 @@ export default function App() {
       );
     }
   }
-
-  // !!! add basic computer player playing logic
 
   function addComputerPlayer() {
     if (isMatchInProgress || playerCount >= 3) return;
@@ -604,6 +603,26 @@ export default function App() {
     setPreviousPlayerAction(0, Action.RESET_ALL);
   }
 
+  const allActions = {
+    setUpCutForDeal,
+    cutForDealFunction,
+    setUpCutForDealRetry,
+    startFirstGame,
+    deal,
+    discard,
+    cutForStarter,
+    flipStarter,
+    play,
+    go,
+    flipPlayedCards,
+    returnCardsToHands,
+    scoreHand,
+    scoreCrib,
+    startNewRound,
+    startNewGame,
+    reset,
+  };
+
   //// Next Action UI parameters ////
 
   // defaults, to override when necessary in the switch statement below
@@ -729,6 +748,32 @@ export default function App() {
       break;
   }
 
+  //// Computer Player ////
+
+  // todo: refactor hook to handle arbitrary number of computer players in 1 instantiation?
+  useComputerPlayer(
+    playerCount,
+    1,
+    players[1] && players[1].isComputer,
+    nextPlayers[1] && nextAction !== Action.CONTINUE_DEALING,
+    allActions,
+    nextAction,
+    game.hands[1],
+    game.sharedStack,
+    game.stackTotal
+  );
+  useComputerPlayer(
+    playerCount,
+    2,
+    players[2] && players[2].isComputer,
+    nextPlayers[2] && nextAction !== Action.CONTINUE_DEALING,
+    allActions,
+    nextAction,
+    game.hands[2],
+    game.sharedStack,
+    game.stackTotal
+  );
+
   //// Game History ////
 
   const matchLogs = useMatchLogs(
@@ -803,7 +848,7 @@ export default function App() {
       /> */}
       Warning: This Cribbage project is a work-in-progress. Proper functionality
       is not guaranteed, though it is mostly working correctly at this point.
-      Note that computer players don't do anything yet.
+      Note that computer players aren't very smart.
       <Header
         hideEmptyColumns={HIDE_EMPTY_COLUMNS}
         userName={userName}

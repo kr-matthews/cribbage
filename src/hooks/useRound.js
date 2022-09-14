@@ -13,7 +13,6 @@ import {
   pointsForClaim,
   totalPoints,
 } from "../playing-cards/cardHelpers.js";
-import Rank from "../playing-cards/Rank";
 
 //// Helpers ////
 
