@@ -754,7 +754,10 @@ export default function App() {
   useComputerPlayer(
     playerCount,
     1,
-    players[1] && players[1].isComputer,
+    players[1] &&
+      players[1].isComputer &&
+      (network.mode === "local" ||
+        (network.mode === "remote" && network.isCodeOwner)),
     nextPlayers[1] && nextAction !== Action.CONTINUE_DEALING,
     allActions,
     nextAction,
@@ -765,7 +768,10 @@ export default function App() {
   useComputerPlayer(
     playerCount,
     2,
-    players[2] && players[2].isComputer,
+    players[2] &&
+      players[2].isComputer &&
+      (network.mode === "local" ||
+        (network.mode === "remote" && network.isCodeOwner)),
     nextPlayers[2] && nextAction !== Action.CONTINUE_DEALING,
     allActions,
     nextAction,
@@ -825,9 +831,13 @@ export default function App() {
   }, [userName, userPosition]);
 
   // the dealer is in charge, or default to the owner if dealer not currently assigned
+  // but also, need to step in for computer dealers
   const isResponsibleForDeck =
     (game.dealer === null && network.isCodeOwner) ||
-    game.dealer === userPosition;
+    game.dealer === userPosition ||
+    (network.isCodeOwner &&
+      game.dealer !== null &&
+      players[game.dealer].isComputer);
 
   // when the deck is reset, send it to other players, if you're responsible for it
   useEffect(() => {

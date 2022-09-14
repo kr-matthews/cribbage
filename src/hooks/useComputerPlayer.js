@@ -4,7 +4,7 @@ import Action from "./Action";
 export default function useComputerPlayer(
   playerCount,
   playerIndex,
-  isComputer,
+  needsControlling,
   needsToAct,
   actions,
   nextAction,
@@ -90,14 +90,14 @@ export default function useComputerPlayer(
       return 1750 + Math.random() * 750;
     }
 
-    if (isComputer && needsToAct) {
+    if (needsControlling && needsToAct) {
       console.debug(playerIndex, nextAction.label, "timeout"); // ~
       setTimeout(() => {
         // use of flag to avoid re-renders mid-execution of `act` function
         setToActFlag(true);
       }, getRandomTimeoutDuration());
     }
-  }, [isComputer, needsToAct, nextAction, playerIndex]); // ~ playerIndex for log
+  }, [needsControlling, needsToAct, nextAction, playerIndex]); // ~ playerIndex for log
 
   useEffect(() => {
     if (toActFlag) {
