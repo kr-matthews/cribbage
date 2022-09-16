@@ -24,8 +24,15 @@ export default function useComputerPlayer(
   const canPlay =
     hand && hand.some((card) => stackTotal + card.rank.points <= 31);
 
-  // !!! actually pick which card to play first
-  const bestFirstPlay = 0;
+  const rankedFirstPlays =
+    hand &&
+    hand.map((card) =>
+      // prioritize A-4s and 6-9s
+      [5, 10].includes(card.rank.points) ? 0 : 1
+    );
+  const bestFirstPlay =
+    // note use of lastIndexOf to get highest card which isn't 5 or 10 pts; then a 10, then a 5
+    hand && rankedFirstPlays.lastIndexOf(Math.max(...rankedFirstPlays));
 
   function pointsForPlayingIndex(ind) {
     if (stackTotal + hand[ind].rank.points > 31) return -1;
@@ -46,7 +53,8 @@ export default function useComputerPlayer(
   const indexToPlay = hand
     ? sharedStack.length === 0
       ? bestFirstPlay
-      : pointsForPlaying.indexOf(Math.max(...pointsForPlaying))
+      : // get rid of a higher card if possible; more likely to play last now and in future (hand is sorted)
+        pointsForPlaying.lastIndexOf(Math.max(...pointsForPlaying))
     : null;
 
   //// act ////

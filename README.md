@@ -13,6 +13,7 @@ On GitHub Pages at [https://kr-matthews.github.io/cribbage](https://kr-matthews.
 ### Current
 
 - Game-play for 2 or 3 players.
+- Computer players which make reasonalbe but imperfect decisions.
 - Local or remote play.
 - Automatic scoring of all plays, hands, etc. (no option for manually claiming points at this time).
 - A match log which records all actions taken in the match.
@@ -21,7 +22,6 @@ On GitHub Pages at [https://kr-matthews.github.io/cribbage](https://kr-matthews.
 
 See [enhancements](https://github.com/kr-matthews/cribbage/issues?q=is%3Aissue+is%3Aopen+label%3Aenhancement) on GitHub.
 
-- Computer player functionality (currently they don't do anything and the game can't be played with them present).
 - Simple sound effects.
 - Allow sending of short (possibly predefined) messages, in addition to the automatic match logs.
 
