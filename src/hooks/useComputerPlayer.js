@@ -1,4 +1,8 @@
 import { useEffect, useState } from "react";
+import {
+  autoScoreStackForClaimType,
+  claimTypes,
+} from "../playing-cards/cardHelpers";
 import Action from "./Action";
 
 export default function useComputerPlayer(
@@ -19,8 +23,33 @@ export default function useComputerPlayer(
 
   const canPlay =
     hand && hand.some((card) => stackTotal + card.rank.points <= 31);
-  // !!! actually pick which card to play
-  const indexToPlay = 0;
+
+  // !!! actually pick which card to play first
+  const bestFirstPlay = 0;
+
+  function pointsForPlayingIndex(ind) {
+    if (stackTotal + hand[ind].rank.points > 31) return -1;
+    let newStack = [...sharedStack, hand[ind]];
+    let points = 0;
+
+    for (let claimType of claimTypes) {
+      if (claimType === "flush") continue; // skip flush
+      points += autoScoreStackForClaimType(newStack, claimType);
+    }
+
+    return points;
+  }
+
+  const pointsForPlaying =
+    hand && hand.map((_, ind) => pointsForPlayingIndex(ind));
+
+  const indexToPlay = hand
+    ? sharedStack.length === 0
+      ? bestFirstPlay
+      : pointsForPlaying.indexOf(Math.max(...pointsForPlaying))
+    : null;
+
+  //// act ////
 
   function act() {
     switch (nextAction) {
@@ -91,7 +120,6 @@ export default function useComputerPlayer(
     }
 
     if (needsControlling && needsToAct) {
-      console.debug(playerIndex, nextAction.label, "timeout"); // ~
       setTimeout(() => {
         // use of flag to avoid re-renders mid-execution of `act` function
         setToActFlag(true);
