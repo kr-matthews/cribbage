@@ -425,7 +425,10 @@ export function useRound(
 
     // his nobs: score jack with same colour as starter
     if (
-      hand.some((card) => card.rank.index === 10 && card.suit === starter.suit)
+      hand.some(
+        (card) =>
+          card.rank.index === 10 && card.suit.index === starter.suit.index
+      )
     ) {
       points += 1;
     }
