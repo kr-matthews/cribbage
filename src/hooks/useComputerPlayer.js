@@ -18,6 +18,9 @@ export default function useComputerPlayer(
 ) {
   const [toActFlag, setToActFlag] = useState(false);
 
+  const handSize = hand ? hand.length : 0;
+  const stackSize = sharedStack ? sharedStack.length : 0;
+
   // !!! actually pick which cards to discard
   const indicesToDiscard = hand && (playerCount === 2 ? [1, 5] : [2]);
 
@@ -122,9 +125,46 @@ export default function useComputerPlayer(
 
   useEffect(() => {
     function getRandomTimeoutDuration() {
-      // between 1 and 2.5 seconds
-      // !! make timeout dependent on next action
-      return 1750 + Math.random() * 750;
+      let delay = 1000;
+
+      switch (nextAction) {
+        case Action.CUT_FOR_DEAL:
+        case Action.START_DEALING:
+        case Action.CUT_FOR_STARTER:
+        case Action.FLIP_STARTER:
+          // thoughtless - very quick
+          delay = 700 + Math.random() * 400;
+          break;
+
+        case Action.START_FIRST_GAME:
+        case Action.START_NEW_GAME:
+        case Action.START_NEW_ROUND:
+        case Action.FLIP_PLAYED_CARDS:
+        case Action.RETURN_CARDS_TO_HANDS:
+        case Action.SCORE_HAND:
+        case Action.SCORE_CRIB:
+          // easy, but allow user to observe for some time
+          delay = 4500 + Math.random() * 1500;
+          break;
+
+        case Action.DISCARD:
+          // significant thought required
+          delay = 5000 + Math.random() * 3500;
+          break;
+
+        case Action.PLAY_OR_GO:
+          // special case
+          delay =
+            canPlay && handSize > 1 && stackSize > 0
+              ? 1500 + Math.random() * 3000
+              : 700 + Math.random() * 400;
+          break;
+
+        default:
+          break;
+      }
+
+      return delay;
     }
 
     if (needsControlling && needsToAct) {
@@ -133,8 +173,7 @@ export default function useComputerPlayer(
         setToActFlag(true);
       }, getRandomTimeoutDuration());
     }
-  }, [needsControlling, needsToAct, nextAction, playerIndex]); // ~ playerIndex for log
-
+  }, [needsControlling, needsToAct, nextAction, canPlay, handSize, stackSize]);
   useEffect(() => {
     if (toActFlag) {
       act();
