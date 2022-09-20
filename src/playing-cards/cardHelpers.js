@@ -294,13 +294,14 @@ function longestSuchClaim(orderedCards, claimType) {
 }
 
 function scoreHandFor15s(hand, starter) {
-  let unorderedCards = [...hand, starter];
+  let unorderedCards = starter ? [...hand, starter] : [...hand];
+  let cardCount = unorderedCards.length;
   let points = 0;
   // iterate over all subsets, via binary codes (could be more efficient)
-  for (let code = 0; code < 2 ** 5; code++) {
+  for (let code = 0; code < 2 ** cardCount; code++) {
     let cards = [];
     // create the subset corresponding to the code
-    for (let ind = 0; ind < 5; ind++) {
+    for (let ind = 0; ind < cardCount; ind++) {
       if (getBit(code, ind)) cards.push(unorderedCards[ind]);
     }
     // check the subset
@@ -310,7 +311,7 @@ function scoreHandFor15s(hand, starter) {
 }
 
 function scoreHandForKinds(hand, starter) {
-  let unorderedCards = [...hand, starter];
+  let unorderedCards = starter ? [...hand, starter] : [...hand];
   let points = 0;
   // find the ranks
   let ranks = unorderedCards.map((card) => card.rank.index);
@@ -326,19 +327,20 @@ function scoreHandForKinds(hand, starter) {
 }
 
 function scoreHandForRuns(hand, starter) {
-  let unorderedCards = [...hand, starter];
+  let unorderedCards = starter ? [...hand, starter] : [...hand];
+  let cardCount = unorderedCards.length;
   // if there are runs, they are all the same length, so go by length, stopping at the first non-zero
-  for (let len = 5; len >= 3; len--) {
+  for (let len = Math.min(5, cardCount); len >= 3; len--) {
     let points = 0;
 
     // iterate over all subsets of size len, via binary codes (could be more efficient)
-    for (let code = 0; code < 2 ** 5; code++) {
+    for (let code = 0; code < 2 ** cardCount; code++) {
       // skip wrong sizes
-      if (bitCount(code, 5) !== len) continue;
+      if (bitCount(code, cardCount) !== len) continue;
 
       let cards = [];
       // create the subset corresponding to the code
-      for (let ind = 0; ind < 5; ind++) {
+      for (let ind = 0; ind < cardCount; ind++) {
         if (getBit(code, ind)) cards.push(unorderedCards[ind]);
       }
       // check the subset
@@ -356,7 +358,14 @@ function scoreHandForRuns(hand, starter) {
 
 function scoreHandForFlushes(hand, starter, isCrib = false) {
   let handSuits = hand.map((card) => card.suit.index);
+
+  // theoretical score, any hand size, no starter yet
+  if (starter === null) return _.uniq(handSuits).length === 1 ? hand.length : 0;
+
+  // real score for actual hand/crib
+
   let starterSuit = starter.suit.index;
+
   // if all 5 are the same suit
   if (_.uniq(handSuits).length === 1 && handSuits[0] === starterSuit) return 5;
 
