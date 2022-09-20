@@ -763,7 +763,8 @@ export default function App() {
     nextAction,
     game.hands[1],
     game.sharedStack,
-    game.stackTotal
+    game.stackTotal,
+    game.dealer === 1
   );
   useComputerPlayer(
     playerCount,
@@ -777,7 +778,8 @@ export default function App() {
     nextAction,
     game.hands[2],
     game.sharedStack,
-    game.stackTotal
+    game.stackTotal,
+    game.dealer === 2
   );
 
   //// Game History ////

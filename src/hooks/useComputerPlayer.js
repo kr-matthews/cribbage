@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import {
   autoScoreStackForClaimType,
   claimTypes,
+  scorePotentialHand,
 } from "../playing-cards/cardHelpers";
 import Action from "./Action";
 
@@ -14,15 +15,51 @@ export default function useComputerPlayer(
   nextAction,
   hand,
   sharedStack,
-  stackTotal
+  stackTotal,
+  isPlayersCrib
 ) {
   const [toActFlag, setToActFlag] = useState(false);
 
   const handSize = hand ? hand.length : 0;
   const stackSize = sharedStack ? sharedStack.length : 0;
 
-  // !!! actually pick which cards to discard
-  const indicesToDiscard = hand && (playerCount === 2 ? [1, 5] : [2]);
+  // array (when discarding 1) or matrix (when discarding 2) of potential scores per dicard possibility
+  const potentialHandScores =
+    hand &&
+    (playerCount === 2
+      ? // 2 players: discard i and j, with j < i to avoid offset errors; score hand and pair being discarded
+        hand.length === 6 &&
+        [1, 2, 3, 4, 5].map((i) =>
+          [0, 1, 2, 3, 4].slice(0, i).map((j) => {
+            let potentialHand = hand.slice();
+            potentialHand.splice(i, 1);
+            potentialHand.splice(j, 1);
+            let discardCards = [hand[i], hand[j]];
+            return (
+              scorePotentialHand(potentialHand) +
+              (isPlayersCrib ? 1 : -1) * scorePotentialHand(discardCards)
+            );
+          })
+        )
+      : // 3 players: discard ind; score hand and ignore card being discarded
+        hand.length === 5 &&
+        hand.map((_, ind) => {
+          let potentialHand = hand.slice();
+          potentialHand.splice(ind, 1);
+          return scorePotentialHand(potentialHand);
+        }));
+
+  // based on array or matrix returned above, find the ("last") occurence of the max
+  const indicesToDiscard =
+    hand &&
+    (playerCount === 2
+      ? hand.length === 6 &&
+        lastIndicesOfMax(potentialHandScores).map(
+          (elt, ind) => (ind === 0 ? elt + 1 : elt) // adjust indices back to original i,j of hand
+        )
+      : hand.length === 5 && [
+          potentialHandScores.lastIndexOf(Math.max(...potentialHandScores)),
+        ]);
 
   const canPlay =
     hand && hand.some((card) => stackTotal + card.rank.points <= 31);
@@ -180,4 +217,22 @@ export default function useComputerPlayer(
       setToActFlag(false);
     }
   });
+}
+
+//// helper ////
+
+function lastIndicesOfMax(arrayArray) {
+  let [iBest, jBest] = [0, 0];
+  let best = arrayArray[iBest][jBest];
+  for (let i = 0; i < arrayArray.length; i++) {
+    for (let j = 0; j < arrayArray[i].length; j++) {
+      if (arrayArray[i][j] >= best) {
+        best = arrayArray[i][j];
+        iBest = i;
+        jBest = j;
+      }
+    }
+  }
+
+  return [iBest, jBest];
 }

@@ -193,6 +193,14 @@ function autoScoreHandForClaimType(hand, starter, claimType, isCrib = false) {
   }
 }
 
+function scorePotentialHand(cards) {
+  let points = 0;
+  for (let claimType of claimTypes) {
+    points += autoScoreHandForClaimType(cards, null, claimType, null);
+  }
+  return points;
+}
+
 //// Scoring Helpers ////
 
 /**
@@ -359,8 +367,9 @@ function scoreHandForRuns(hand, starter) {
 function scoreHandForFlushes(hand, starter, isCrib = false) {
   let handSuits = hand.map((card) => card.suit.index);
 
-  // theoretical score, any hand size, no starter yet
-  if (starter === null) return _.uniq(handSuits).length === 1 ? hand.length : 0;
+  // theoretical score, any hand size, no starter yet (tie-break with 1/2 point for pair of same suit)
+  if (starter === null)
+    return _.uniq(handSuits).length === 1 ? (hand.length === 4 ? 4 : 0.5) : 0;
 
   // real score for actual hand/crib
 
@@ -439,6 +448,7 @@ export {
   // scoring functions
   checkClaim,
   pointsForClaim,
+  scorePotentialHand,
   autoScoreHandForClaimType,
   autoScoreStackForClaimType,
 };
