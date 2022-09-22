@@ -174,19 +174,27 @@ export default function useComputerPlayer(
           break;
 
         case Action.START_FIRST_GAME:
-        case Action.START_NEW_GAME:
-        case Action.START_NEW_ROUND:
         case Action.FLIP_PLAYED_CARDS:
         case Action.RETURN_CARDS_TO_HANDS:
+          // easy, but allow user to observe for short time
+          delay = 1500 + Math.random() * 200;
+          break;
+
         case Action.SCORE_HAND:
         case Action.SCORE_CRIB:
-          // easy, but allow user to observe for some time
-          delay = 4500 + Math.random() * 1500;
+          // easy, but allow user to observe for medium time
+          delay = 2500 + Math.random() * 1000;
+          break;
+
+        case Action.START_NEW_GAME:
+        case Action.START_NEW_ROUND:
+          // easy, but allow user to observe for longer time
+          delay = 6000 + Math.random() * 1000;
           break;
 
         case Action.DISCARD:
           // significant thought required
-          delay = 5000 + Math.random() * 3500;
+          delay = 4000 + Math.random() * 4000;
           break;
 
         case Action.PLAY_OR_GO:

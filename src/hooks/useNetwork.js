@@ -134,7 +134,7 @@ export function useNetwork({
     // ignore messages from self
     if (message.uuid === uuid) return;
 
-    console.debug("incoming message", message.type); // ~
+    console.debug("Message in:", message.type); // ~
 
     // first few cases are all internal to useNetwork,
     // default case is from the App
@@ -285,7 +285,7 @@ export function useNetwork({
       }
       try {
         pubnub.publish({ message: { ...message, uuid }, channel: code });
-        console.debug("Sent message", message.type); // ~
+        console.debug("Message out:", message.type); // ~
       } catch (e) {
         // ? missing dependency issue
         onFailure({

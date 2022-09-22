@@ -851,16 +851,13 @@ export default function App() {
   //// Return ////
 
   return (
-    // ~ WIP warning just below, and missing scoreboard
+    // ~  missing scoreboard
     <div className="app">
       {/* <ScoreBoard
         gamePoints={gamePoints.points}
         currentScores={game.currentScores}
         priorScores={game.previousScores}
       /> */}
-      Warning: This Cribbage project is a work-in-progress. Proper functionality
-      is not guaranteed, though it is mostly working correctly at this point.
-      Note that computer players aren't very smart.
       <Header
         hideEmptyColumns={HIDE_EMPTY_COLUMNS}
         userName={userName}
