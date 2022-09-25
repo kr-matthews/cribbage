@@ -111,7 +111,7 @@ export function useSoundEffects(
       // note: 0 is falsy!
       total && sounds.push(intToSoundFile(total));
       sayFor && sounds.push(intToSoundFile(4)); // hack: use "4" for "for"
-      score && sounds.push(intToSoundFile(score));
+      score !== false && sounds.push(intToSoundFile(score));
 
       playSounds(sounds);
     },
@@ -120,9 +120,8 @@ export function useSoundEffects(
 
   //// effects ////
 
-  // !!! "0" not said for hand/crib
   // !!! only say for non-user players
-  // !! says previous sound when turning sound on
+  // note: when turning sound on, this will run, making sound for the previous action
   useEffect(() => {
     switch (previousAction) {
       case null:
@@ -133,7 +132,8 @@ export function useSoundEffects(
         break;
 
       case Action.PLAY:
-        sayTotalForScore(stackTotal, delta > 0, delta);
+        // don't say 0s
+        sayTotalForScore(stackTotal, delta > 0, delta > 0 && delta);
         break;
 
       case Action.GO:
@@ -142,6 +142,7 @@ export function useSoundEffects(
 
       case Action.SCORE_HAND:
       case Action.SCORE_CRIB:
+        // say 0s
         sayTotalForScore(false, false, delta);
         break;
 
@@ -154,5 +155,5 @@ export function useSoundEffects(
   // !! sound for "go"
   // ! other sound effects? - starting, joining, winning, etc.
 
-  return { isOn, toggle, sayTotalForScore };
+  return { isOn, toggle };
 }
