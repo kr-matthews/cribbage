@@ -83,6 +83,7 @@ function intToSoundFile(int) {
 export function useSoundEffects(
   previousAction,
   previousPlayer,
+  userPosition,
   stackTotal,
   delta
 ) {
@@ -120,9 +121,11 @@ export function useSoundEffects(
 
   //// effects ////
 
-  // !!! only say for non-user players
   // note: when turning sound on, this will run, making sound for the previous action
   useEffect(() => {
+    // only opponents should speak
+    if (previousPlayer === userPosition) return;
+
     switch (previousAction) {
       case null:
         break;
@@ -149,8 +152,15 @@ export function useSoundEffects(
       default:
         break;
     }
-    // consecutive identical scores in hands only have previousPlayer change
-  }, [previousAction, previousPlayer, stackTotal, delta, sayTotalForScore]);
+    // note: consecutive identical scores in hands only have previousPlayer change
+  }, [
+    previousAction,
+    previousPlayer,
+    userPosition,
+    stackTotal,
+    delta,
+    sayTotalForScore,
+  ]);
 
   // !! sound for "go"
   // ! other sound effects? - starting, joining, winning, etc.

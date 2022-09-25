@@ -460,6 +460,7 @@ export default function App() {
   const soundEffects = useSoundEffects(
     previousAction,
     previousPlayerAction.previousPlayer,
+    userPosition,
     game.stackTotal,
     game.scoreDelta
   );
