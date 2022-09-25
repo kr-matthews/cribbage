@@ -1,4 +1,9 @@
+import { useCallback, useEffect } from "react";
+
 import { useLocalStorage } from "./useLocalStorage";
+
+import Action from "./Action";
+
 import zero from "./../spoken-numbers/0.wav";
 import one from "./../spoken-numbers/1.wav";
 import two from "./../spoken-numbers/2.wav";
@@ -29,6 +34,8 @@ import twentySix from "./../spoken-numbers/26.wav";
 import twentySeven from "./../spoken-numbers/27.wav";
 import twentyEight from "./../spoken-numbers/28.wav";
 import twentyNine from "./../spoken-numbers/29.wav";
+import thirty from "./../spoken-numbers/30.wav";
+import thirtyOne from "./../spoken-numbers/31.wav";
 
 //// constants and helpers ////
 
@@ -63,6 +70,8 @@ const INT_SOUND_FILES = [
   twentySeven,
   twentyEight,
   twentyNine,
+  thirty,
+  thirtyOne,
 ];
 
 function intToSoundFile(int) {
@@ -71,33 +80,77 @@ function intToSoundFile(int) {
 
 //// hook ////
 
-export function useSoundEffects() {
+export function useSoundEffects(
+  previousAction,
+  previousPlayer,
+  stackTotal,
+  delta
+) {
   const [isOn, setIsOn] = useLocalStorage("sound", false);
 
   function toggle() {
     setIsOn(!isOn);
   }
 
-  function playSounds(urls) {
-    if (!isOn || urls.length === 0) return;
+  const playSounds = useCallback(
+    (urls) => {
+      if (!isOn || urls.length === 0) return;
 
-    const audio = new Audio(urls[0]);
-    urls.shift();
-    audio.onended = playSounds(urls);
-    audio.play();
-  }
+      const audio = new Audio(urls[0]);
+      urls.shift();
+      audio.onended = () => playSounds(urls);
+      audio.play();
+    },
+    [isOn]
+  );
 
-  function sayTotalForScore(total, sayFor, score) {
-    const sounds = [];
+  const sayTotalForScore = useCallback(
+    (total, sayFor, score) => {
+      const sounds = [];
 
-    total && sounds.push(intToSoundFile(total));
-    sayFor && sounds.push(intToSoundFile(4)); // hack: use "4" for "for"
-    score && sounds.push(intToSoundFile(score));
+      // note: 0 is falsy!
+      total && sounds.push(intToSoundFile(total));
+      sayFor && sounds.push(intToSoundFile(4)); // hack: use "4" for "for"
+      score && sounds.push(intToSoundFile(score));
 
-    playSounds(sounds);
-  }
+      playSounds(sounds);
+    },
+    [playSounds]
+  );
 
-  // !!! flipping a Jack: "for 2"; playing (and pegging), 1 on other go: "for 1"; scoring hand/crib
+  //// effects ////
+
+  // !!! "0" not said for hand/crib
+  // !!! only say for non-user players
+  // !! says previous sound when turning sound on
+  useEffect(() => {
+    switch (previousAction) {
+      case null:
+        break;
+
+      case Action.FLIP_STARTER:
+        delta > 0 && sayTotalForScore(false, true, 2);
+        break;
+
+      case Action.PLAY:
+        sayTotalForScore(stackTotal, delta > 0, delta);
+        break;
+
+      case Action.GO:
+        delta > 0 && sayTotalForScore(false, true, 1);
+        break;
+
+      case Action.SCORE_HAND:
+      case Action.SCORE_CRIB:
+        sayTotalForScore(false, false, delta);
+        break;
+
+      default:
+        break;
+    }
+    // consecutive identical scores in hands only have previousPlayer change
+  }, [previousAction, previousPlayer, stackTotal, delta, sayTotalForScore]);
+
   // !! sound for "go"
   // ! other sound effects? - starting, joining, winning, etc.
 

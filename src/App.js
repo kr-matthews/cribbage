@@ -223,11 +223,6 @@ export default function App() {
   const { previousAction, makePlayerArray, setPreviousPlayerAction } =
     previousPlayerAction;
 
-  //// User Experience ////
-
-  // sound effects (can be muted)
-  const soundEffects = useSoundEffects();
-
   //// Network/Remote ////
 
   function handleAcceptMessageData(newPlayers) {
@@ -458,6 +453,16 @@ export default function App() {
   const selectedIndices = selected
     .map((bool, index) => (bool ? index : null))
     .filter((index) => index !== null);
+
+  //// User Experience ////
+
+  // sound effects (can be muted)
+  const soundEffects = useSoundEffects(
+    previousAction,
+    previousPlayerAction.previousPlayer,
+    game.stackTotal,
+    game.scoreDelta
+  );
 
   //// Next Action ////
 
