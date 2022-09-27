@@ -39,6 +39,7 @@ export function useMatchLogs(
   stackTotal,
   delta,
   scorer,
+  winner,
   storageLimit = DEFAULT_LIMIT
 ) {
   //// States ////
@@ -64,7 +65,17 @@ export function useMatchLogs(
 
   // colour-coded, starting with player name
   const postAction = useCallback(
-    (player, action, cuts, starter, piles, stackTotal, delta, scorer) => {
+    (
+      player,
+      action,
+      cuts,
+      starter,
+      piles,
+      stackTotal,
+      delta,
+      scorer,
+      winner
+    ) => {
       if (!players[player]) return;
       // base message
       let message = {
@@ -182,6 +193,12 @@ export function useMatchLogs(
           return;
       }
 
+      if (winner !== -1) {
+        message.text += ` ${
+          players[winner].isUser ? "You" : players[winner].name
+        } won the game!`;
+      }
+
       // log the message
       dispatchMessages({ type: "add", message, storageLimit });
 
@@ -218,7 +235,8 @@ export function useMatchLogs(
         piles,
         stackTotal,
         delta,
-        scorer
+        scorer,
+        winner
       );
     }
   }, [
@@ -230,6 +248,7 @@ export function useMatchLogs(
     stackTotal,
     delta,
     scorer,
+    winner,
     postAction,
   ]);
 

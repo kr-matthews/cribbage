@@ -469,8 +469,6 @@ export default function App() {
     game.winner
   );
 
-  // !! match logs for winning
-
   //// Next Action ////
 
   const [nextPlayers, nextAction] = (() => {
@@ -807,7 +805,8 @@ export default function App() {
     game.piles,
     game.stackTotal,
     game.scoreDelta,
-    game.scoreScorer
+    game.scoreScorer,
+    game.winner
   );
 
   //// Effects ////
