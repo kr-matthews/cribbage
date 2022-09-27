@@ -4,6 +4,7 @@ import { useLocalStorage } from "./useLocalStorage";
 
 import Action from "./Action";
 
+import go from "./../audio-files/go.wav";
 import zero from "./../audio-files/0.wav";
 import one from "./../audio-files/1.wav";
 import two from "./../audio-files/2.wav";
@@ -74,8 +75,14 @@ const INT_SOUND_FILES = [
   thirtyOne,
 ];
 
-function intToSoundFile(int) {
-  return INT_SOUND_FILES[int];
+function toSoundFile(sound) {
+  switch (sound) {
+    case "go":
+      return go;
+
+    default:
+      return INT_SOUND_FILES[sound];
+  }
 }
 
 //// hook ////
@@ -110,9 +117,9 @@ export function useSoundEffects(
       const sounds = [];
 
       // note: 0 is falsy!
-      total && sounds.push(intToSoundFile(total));
-      sayFor && sounds.push(intToSoundFile(4)); // hack: use "4" for "for"
-      score !== false && sounds.push(intToSoundFile(score));
+      total && sounds.push(toSoundFile(total));
+      sayFor && sounds.push(toSoundFile(4)); // hack: use "4" for "for"
+      score !== false && sounds.push(toSoundFile(score));
 
       playSounds(sounds);
     },
@@ -121,6 +128,7 @@ export function useSoundEffects(
 
   //// effects ////
 
+  // speaking //
   // note: when turning sound on, this will run, making sound for the previous action
   useEffect(() => {
     // only opponents should speak
@@ -140,7 +148,7 @@ export function useSoundEffects(
         break;
 
       case Action.GO:
-        delta > 0 && sayTotalForScore(false, true, 1);
+        sayTotalForScore("go", delta > 0, delta > 0 && 1);
         break;
 
       case Action.SCORE_HAND:
@@ -162,7 +170,6 @@ export function useSoundEffects(
     sayTotalForScore,
   ]);
 
-  // !! sound for "go"
   // ! other sound effects? - starting, joining, winning, etc.
 
   return { isOn, toggle };
