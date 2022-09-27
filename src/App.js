@@ -809,7 +809,10 @@ export default function App() {
     game.winner !== -1,
     game.winner,
     gamePoints.hasMatchWinner,
-    gamePoints.matchWinner
+    gamePoints.matchWinner,
+    game.skunkCount,
+    game.doubleSkunkCount,
+    game.tripleSkunkCount
   );
 
   //// Effects ////

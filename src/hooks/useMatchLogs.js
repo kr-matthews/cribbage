@@ -43,6 +43,9 @@ export function useMatchLogs(
   gameWinner,
   hasMatchWinner,
   matchWinner,
+  skunkCount,
+  doubleSkunkCount,
+  tripleSkunkCount,
   storageLimit = DEFAULT_LIMIT
 ) {
   //// States ////
@@ -80,7 +83,10 @@ export function useMatchLogs(
       hasGameWinner,
       gameWinner,
       hasMatchWinner,
-      matchWinner
+      matchWinner,
+      skunkCount,
+      doubleSkunkCount,
+      tripleSkunkCount
     ) => {
       if (!players[player]) return;
       // base message
@@ -199,20 +205,45 @@ export function useMatchLogs(
           return;
       }
 
-      // !! add skunk info
-
       if (hasGameWinner) {
         message.text += ` ${
           players[gameWinner].isUser ? "You" : players[gameWinner].name
-        } won the game!`;
+        } won the game`;
+        // if any skunks, add 'with'
+        (skunkCount || doubleSkunkCount || tripleSkunkCount) &&
+          (message.text += ` with`);
+        // if any regular skunks, add those
+        skunkCount &&
+          (message.text += ` ${skunkCount} skunk${
+            skunkCount === 1 ? "" : "s"
+          }`);
+        // if regular and double, add 'and'
+        skunkCount && doubleSkunkCount && (message.text += ` and`);
+        // if any double skunks, add those
+        doubleSkunkCount &&
+          (message.text += ` ${doubleSkunkCount} double skunk${
+            doubleSkunkCount === 1 ? "" : "s"
+          }`);
+        // if triples and something already, add 'and'
+        (skunkCount || doubleSkunkCount) &&
+          tripleSkunkCount &&
+          (message.text += ` and`);
+        // if any triple skunks, add those
+        tripleSkunkCount &&
+          (message.text += ` ${tripleSkunkCount} triple skunk${
+            tripleSkunkCount === 1 ? "" : "s"
+          }`);
+        // finish with punctuation
+        message.text +=
+          skunkCount || doubleSkunkCount || tripleSkunkCount ? `!` : ".";
       }
 
       if (hasMatchWinner) {
-        // note: overwrite existing text; and gameWinner may have won on someone else's 'go'
+        // note: overwrite existing text; and matchWinner may have won on someone else's 'go'
         message.text = `${
           players[matchWinner].isUser ? "You" : players[matchWinner].name
         } won the match!`;
-        message.colour = players[gameWinner].colour;
+        message.colour = players[matchWinner].colour;
       }
 
       // log the message
@@ -255,7 +286,10 @@ export function useMatchLogs(
         hasGameWinner,
         gameWinner,
         hasMatchWinner,
-        matchWinner
+        matchWinner,
+        skunkCount,
+        doubleSkunkCount,
+        tripleSkunkCount
       );
     }
   }, [
@@ -271,6 +305,9 @@ export function useMatchLogs(
     gameWinner,
     hasMatchWinner,
     matchWinner,
+    skunkCount,
+    doubleSkunkCount,
+    tripleSkunkCount,
     postAction,
   ]);
 
