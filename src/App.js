@@ -806,7 +806,10 @@ export default function App() {
     game.stackTotal,
     game.scoreDelta,
     game.scoreScorer,
-    game.winner
+    game.winner !== -1,
+    game.winner,
+    gamePoints.hasMatchWinner,
+    gamePoints.matchWinner
   );
 
   //// Effects ////

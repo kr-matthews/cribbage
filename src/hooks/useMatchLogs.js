@@ -39,7 +39,10 @@ export function useMatchLogs(
   stackTotal,
   delta,
   scorer,
-  winner,
+  hasGameWinner,
+  gameWinner,
+  hasMatchWinner,
+  matchWinner,
   storageLimit = DEFAULT_LIMIT
 ) {
   //// States ////
@@ -74,7 +77,10 @@ export function useMatchLogs(
       stackTotal,
       delta,
       scorer,
-      winner
+      hasGameWinner,
+      gameWinner,
+      hasMatchWinner,
+      matchWinner
     ) => {
       if (!players[player]) return;
       // base message
@@ -193,10 +199,20 @@ export function useMatchLogs(
           return;
       }
 
-      if (winner !== -1) {
+      // !! add skunk info
+
+      if (hasGameWinner) {
         message.text += ` ${
-          players[winner].isUser ? "You" : players[winner].name
+          players[gameWinner].isUser ? "You" : players[gameWinner].name
         } won the game!`;
+      }
+
+      if (hasMatchWinner) {
+        // note: overwrite existing text; and gameWinner may have won on someone else's 'go'
+        message.text = `${
+          players[matchWinner].isUser ? "You" : players[matchWinner].name
+        } won the match!`;
+        message.colour = players[gameWinner].colour;
       }
 
       // log the message
@@ -236,7 +252,10 @@ export function useMatchLogs(
         stackTotal,
         delta,
         scorer,
-        winner
+        hasGameWinner,
+        gameWinner,
+        hasMatchWinner,
+        matchWinner
       );
     }
   }, [
@@ -248,7 +267,10 @@ export function useMatchLogs(
     stackTotal,
     delta,
     scorer,
-    winner,
+    hasGameWinner,
+    gameWinner,
+    hasMatchWinner,
+    matchWinner,
     postAction,
   ]);
 
