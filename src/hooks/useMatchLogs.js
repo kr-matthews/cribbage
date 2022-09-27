@@ -172,7 +172,7 @@ export function useMatchLogs(
             delta > 0 && scorer === player
               ? ` for ${delta}` // get 1 for going last
               : delta === 1 && scorer !== player
-              ? `, ${delta} for ${players[scorer].name}` // someone else gets 1 for going last
+              ? `', ${players[scorer].name} says 'for ${delta}` // someone else gets 1 for going last
               : "" // not the last go
           }'.`;
           break;

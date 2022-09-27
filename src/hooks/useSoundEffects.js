@@ -19,7 +19,7 @@ import seven from "./../audio-files/7.wav";
 import eight from "./../audio-files/8.wav";
 import nine from "./../audio-files/9.wav";
 import ten from "./../audio-files/10.wav";
-import elevn from "./../audio-files/11.wav";
+import eleven from "./../audio-files/11.wav";
 import twelve from "./../audio-files/12.wav";
 import thirteen from "./../audio-files/13.wav";
 import fourteen from "./../audio-files/14.wav";
@@ -55,7 +55,7 @@ const INT_SOUND_FILES = [
   eight,
   nine,
   ten,
-  elevn,
+  eleven,
   twelve,
   thirteen,
   fourteen,
@@ -105,6 +105,7 @@ export function useSoundEffects(
   userPosition,
   stackTotal,
   delta,
+  scorer,
   winner
 ) {
   const [isOn, setIsOn] = useLocalStorage("sound", false);
@@ -154,7 +155,17 @@ export function useSoundEffects(
   // note: when turning sound on, this will run, making sound for the previous action
   useEffect(() => {
     // only opponents should speak
-    if (previousPlayer === userPosition) return;
+    if (previousPlayer === userPosition) {
+      if (
+        previousAction === Action.GO &&
+        scorer !== userPosition &&
+        delta > 0
+      ) {
+        // someone else scored off of user's 'go'
+        sayTotalForScore(false, true, delta);
+      }
+      return;
+    }
 
     switch (previousAction) {
       case null:
@@ -170,7 +181,13 @@ export function useSoundEffects(
         break;
 
       case Action.GO:
-        sayTotalForScore("go", delta > 0, delta > 0 && 1);
+        // say 'go', and say 'for 1' if a non-user gets 1 from it
+        sayTotalForScore(
+          "go",
+          scorer !== userPosition && delta > 0,
+          scorer !== userPosition && delta > 0 && delta
+        );
+
         break;
 
       case Action.SCORE_HAND:

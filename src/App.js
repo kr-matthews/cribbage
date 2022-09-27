@@ -466,6 +466,7 @@ export default function App() {
     userPosition,
     game.stackTotal,
     game.scoreDelta,
+    game.scoreScorer,
     game.winner
   );
 
