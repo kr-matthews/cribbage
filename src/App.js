@@ -869,7 +869,7 @@ export default function App() {
   //// Return ////
 
   return (
-    // ~  missing scoreboard
+    // !!!  missing scoreboard
     <div className="app">
       {/* <ScoreBoard
         gamePoints={gamePoints.points}
