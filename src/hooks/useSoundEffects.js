@@ -4,6 +4,9 @@ import { useLocalStorage } from "./useLocalStorage";
 
 import Action from "./Action";
 
+import hello from "./../audio-files/hello.wav";
+import bye from "./../audio-files/bye.wav";
+import win from "./../audio-files/win.mp3";
 import go from "./../audio-files/go.wav";
 import zero from "./../audio-files/0.wav";
 import one from "./../audio-files/1.wav";
@@ -80,6 +83,15 @@ function toSoundFile(sound) {
     case "go":
       return go;
 
+    case "hello":
+      return hello;
+
+    case "bye":
+      return bye;
+
+    case "win":
+      return win;
+
     default:
       return INT_SOUND_FILES[sound];
   }
@@ -92,7 +104,8 @@ export function useSoundEffects(
   previousPlayer,
   userPosition,
   stackTotal,
-  delta
+  delta,
+  winner
 ) {
   const [isOn, setIsOn] = useLocalStorage("sound", false);
 
@@ -122,6 +135,15 @@ export function useSoundEffects(
       score !== false && sounds.push(toSoundFile(score));
 
       playSounds(sounds);
+    },
+    [playSounds]
+  );
+
+  //// return functions ////
+
+  const playSound = useCallback(
+    (sound) => {
+      playSounds([toSoundFile(sound)]);
     },
     [playSounds]
   );
@@ -170,7 +192,12 @@ export function useSoundEffects(
     sayTotalForScore,
   ]);
 
-  // ! other sound effects? - starting, joining, winning, etc.
+  // winning //
+  useEffect(() => {
+    if (winner !== -1) {
+      playSound("win");
+    }
+  }, [winner, playSound]);
 
-  return { isOn, toggle };
+  return { isOn, toggle, playSound };
 }

@@ -173,6 +173,7 @@ export default function App() {
       matchLogs.postUpdate(
         `${isComputer ? "Computer player" : "Player"} ${name} has joined.`
       );
+      soundEffects.playSound("hello");
     }
   }
 
@@ -209,6 +210,7 @@ export default function App() {
           players[player].name
         } has left.${isMatchInProgress ? " The match cannot continue." : ""}`
       );
+      soundEffects.playSound("bye");
     }
   }
 
@@ -240,6 +242,7 @@ export default function App() {
       isComputer: false,
     });
     matchLogs.postUpdate(`Joined game with existing players.`);
+    soundEffects.playSound("hello");
   }
 
   // someone decided to leave
@@ -462,8 +465,11 @@ export default function App() {
     previousPlayerAction.previousPlayer,
     userPosition,
     game.stackTotal,
-    game.scoreDelta
+    game.scoreDelta,
+    game.winner
   );
+
+  // !! match logs for winning
 
   //// Next Action ////
 
