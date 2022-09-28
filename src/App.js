@@ -17,7 +17,7 @@ import Header from "./game-components/Header.js";
 import Hands from "./game-components/Hands.js";
 import PlayArea from "./game-components/PlayArea.js";
 import Actions from "./game-components/Actions.js";
-// import ScoreBoard from "./game-components/ScoreBoard.js";
+import ScoreBoard from "./game-components/ScoreBoard.js";
 import MatchLogs from "./game-components/MatchLogs.js";
 import Links from "./links/Links.js";
 
@@ -45,7 +45,7 @@ const HAND_ALL_UNSELECTED = Array(7).fill(false);
 // longest allowed name
 const USER_NAME_MAX_LENGTH = 12;
 // colours on the board (don't use middle track when 2 players)
-const COLOURS = ["DarkRed", "DarkGreen", "DarkBlue"];
+const COLOURS = ["DarkBlue", "DarkRed", "DarkGreen"];
 
 //// Reducers ////
 
@@ -869,13 +869,13 @@ export default function App() {
   //// Return ////
 
   return (
-    // !!!  missing scoreboard
     <div className="app">
-      {/* <ScoreBoard
+      <ScoreBoard
+        colours={COLOURS}
         gamePoints={gamePoints.points}
         currentScores={game.currentScores}
         priorScores={game.previousScores}
-      /> */}
+      />
       <Header
         hideEmptyColumns={HIDE_EMPTY_COLUMNS}
         userName={userName}

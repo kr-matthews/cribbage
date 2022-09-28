@@ -2,6 +2,8 @@
   --max-width: 1600px;
   --min-width: 999px;
   --padding: 10px;
+
+  --score-board-boarder-width: 2px;
 }
 
 .game-component {
@@ -102,4 +104,13 @@
 .message {
   text-align: left;
   padding: 3px;
+}
+
+/* scoreboard */
+
+.segment {
+  border-spacing: 0;
+  border-collapse: collapse;
+  color: white;
+  border: none;
 }
