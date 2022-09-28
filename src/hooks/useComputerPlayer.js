@@ -219,6 +219,8 @@ export default function useComputerPlayer(
       }, getRandomTimeoutDuration());
     }
   }, [needsControlling, needsToAct, nextAction, canPlay, handSize, stackSize]);
+
+  // eslint-disable-next-line
   useEffect(() => {
     if (toActFlag) {
       act();

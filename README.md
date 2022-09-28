@@ -13,7 +13,7 @@ On GitHub Pages at [https://kr-matthews.github.io/cribbage](https://kr-matthews.
 ### Current
 
 - Game-play for 2 or 3 players.
-- Computer players which make reasonable but imperfect decisions.
+- Computer players which make reasonable (but imperfect) decisions.
 - Local or remote play.
 - Automatic scoring of all plays, hands, etc. (no option for manually claiming points at this time).
 - A match log which records all actions taken in the match.
@@ -49,4 +49,5 @@ See the [issues](https://github.com/kr-matthews/cribbage/issues) on GitHub, in a
 - A few dependency array issues, mainly involving usages of return arrays/functions from custom hooks.
 - Network message handler for incoming messages isn't very robust and can only handle one, so messages will be lost if they come in simultaneously.
 - The `useNetwork` hook doesn't track UUIDs of present users, so can't implement kicking out players itself, meaning `App` has to take care of that and separation of concerns blurs a bit here.
+- Some sound effects happen within the custom hook `useSoundEffects` via side effects, others are explicitly called in the `App`.
 - And probably many more...

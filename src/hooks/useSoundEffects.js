@@ -206,6 +206,7 @@ export function useSoundEffects(
     userPosition,
     stackTotal,
     delta,
+    scorer,
     sayTotalForScore,
   ]);
 

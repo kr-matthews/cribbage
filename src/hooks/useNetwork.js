@@ -316,6 +316,7 @@ export function useNetwork({
   }, [isWaitingForConfirmation, sendMessage]);
 
   // handle incoming message - see note above [messageReceiver]
+  // eslint-disable-next-line
   useEffect(() => {
     if (message) {
       setMessage(null);
