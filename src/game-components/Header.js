@@ -20,6 +20,7 @@ export default function Header({
   nextPlayers = [false, false, false],
   scores = [null, null, null],
   gamePoints = [null, null, null],
+  pointsToWin,
   removeable,
   removePlayer,
 }) {
@@ -39,6 +40,7 @@ export default function Header({
         create={create}
         join={join}
         leave={leave}
+        pointsToWin={pointsToWin}
       />
       {players.map(({ name, isComputer, isUser, colour }, index) => {
         return (
@@ -116,10 +118,10 @@ function InfoBox({
             <div className="headerbox-info">{isUser ? <em>You</em> : name}</div>
             <div className="headerbox-info">{type}</div>
             <div className="headerbox-info">
-              Game Points: {gamePoints !== null ? gamePoints : "--"}
+              Score: {score !== null ? score : "--"}
             </div>
             <div className="headerbox-info">
-              Score: {score !== null ? score : "--"}
+              Game Points: {gamePoints !== null ? gamePoints : "--"}
             </div>
           </>
         )

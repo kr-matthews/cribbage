@@ -63,7 +63,7 @@ export function useGamePoints(
   //// Constants & State ////
 
   // if not specified, use these defaults
-  pointsToWin ||= playerCount === 2 ? 5 : 7;
+  pointsToWin ||= playerCount === 3 ? 7 : 5;
 
   const [gamePoints, dispatchGamePoints] = useReducer(
     gamePointsReducer,
@@ -115,5 +115,11 @@ export function useGamePoints(
 
   //// Return ////
 
-  return { points: gamePoints, hasMatchWinner, matchWinner, reset };
+  return {
+    points: gamePoints,
+    pointsToWin,
+    hasMatchWinner,
+    matchWinner,
+    reset,
+  };
 }

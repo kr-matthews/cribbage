@@ -11,6 +11,7 @@ export default function Options({
   create,
   join,
   leave,
+  pointsToWin,
 }) {
   return (
     <div className="col headerbox options">
@@ -33,6 +34,11 @@ export default function Options({
         join={join}
         leave={leave}
       />
+      {pointsToWin !== null && (
+        <div className="headerbox-info">First to {pointsToWin} Game Points</div>
+      )}
     </div>
   );
 }
+
+// todo: GAME POINTS: allow changing pointsToWin here

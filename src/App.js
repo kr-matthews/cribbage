@@ -907,6 +907,7 @@ export default function App() {
             ? [null, null, null]
             : gamePoints.points
         }
+        pointsToWin={gamePoints.pointsToWin}
         removeable={
           isInCharge &&
           nextAction === Action.SET_UP_CUT_FOR_DEAL && [false, true, true]
