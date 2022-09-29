@@ -6,31 +6,66 @@ export default function ScoreBoard({
 }) {
   return (
     <div className="game-component">
-      <ScoreBoardSegmentRegular colours={colours} upperIndex={85} />
-      <ScoreBoardSegmentRegular
-        colours={colours}
-        upperIndex={90}
-        skunkLine="S"
-      />
-      {/* //~ */}
-      <ScoreBoardSegmentRegular colours={colours} upperIndex={95} />
-      <ScoreBoardSegmentRegular colours={colours} upperIndex={100} />
-      <ScoreBoardSegmentRegular colours={colours} upperIndex={105} />
-      <ScoreBoardSegmentRegular colours={colours} upperIndex={110} />
-      <ScoreBoardSegmentRegular colours={colours} upperIndex={115} />
-      <ScoreBoardSegmentRegular colours={colours} upperIndex={120} />
+      <div className="board-rows">
+        <div className="board-row">
+          {[0, 5, 10, 15, 20, 25, 30, 35, 40].map((upperIndex) => (
+            <ScoreBoardSegmentRegular
+              key={upperIndex}
+              colours={colours}
+              currentScores={currentScores}
+              priorScores={priorScores}
+              upperIndex={upperIndex}
+              skunkLine={upperIndex === 30 && "SSS"}
+            />
+          ))}
+        </div>
+        <div className="board-row">
+          {[85, 90, 95, 100, 105, 110, 115, 120, 0].map((upperIndex) => (
+            <ScoreBoardSegmentRegular
+              key={upperIndex}
+              colours={colours}
+              currentScores={currentScores}
+              priorScores={priorScores}
+              upperIndex={upperIndex}
+              skunkLine={upperIndex === 90 && "S"}
+            />
+          ))}
+        </div>
+        <div className="board-row">
+          {[0, 80, 75, 70, 65, 60, 55, 50, 45].map((upperIndex) => (
+            <ScoreBoardSegmentRegular
+              key={upperIndex}
+              colours={colours}
+              currentScores={currentScores}
+              priorScores={priorScores}
+              upperIndex={upperIndex}
+              isOrientedUp={false}
+              skunkLine={upperIndex === 60 && "SS"}
+            />
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
 
+// !!! add 'start' holes
+// !!! add game points holes
+// !! make bent segments
+// ! add finish hole
+// todo: get skunk lines from useScores?
+// todo: clean up
+
 function ScoreBoardSegmentRegular({
   colours,
+  currentScores,
+  priorScores,
   isOrientedUp = true,
   upperIndex,
   skunkLine,
 }) {
   return (
-    <span>
+    <span className={upperIndex === 0 ? "invisible" : ""}>
       <table className="segment">
         <tbody>
           {[0, 1, 2].map((row) => (
@@ -45,14 +80,25 @@ function ScoreBoardSegmentRegular({
                   key={ind}
                   style={cellStyle(row, ind, colours, isOrientedUp, upperIndex)}
                 >
-                  O
+                  <span
+                    className="dot"
+                    style={dotStyle(
+                      colours,
+                      row,
+                      ind,
+                      isOrientedUp,
+                      upperIndex,
+                      currentScores,
+                      priorScores
+                    )}
+                  />
                 </td>
               ))}
             </tr>
           ))}
         </tbody>
       </table>
-      <div style={upperIndexStyle}>{skunkLine || upperIndex}</div>
+      <div style={upperIndexStyle(isOrientedUp)}>{skunkLine || upperIndex}</div>
     </span>
   );
 }
@@ -70,6 +116,7 @@ function cellStyle(row, ind, colours, isOrientedUp, upperIndex) {
     borderBottom: "solid var(--score-board-boarder-width) black",
     textAlign: "center",
     width: "1.5em",
+    minWidth: "1.5em",
     height: "1.5em",
   };
   if (ind === 0) {
@@ -89,12 +136,42 @@ function cellStyle(row, ind, colours, isOrientedUp, upperIndex) {
   return style;
 }
 
-// ! fix upperIndex positioning
-const upperIndexStyle = {
-  width: "2em",
-  textAlign: "center",
-  position: "relative",
-  top: "-3.05em",
-  left: "7.55em",
-  color: "black",
-};
+function dotStyle(
+  colours,
+  row,
+  ind,
+  isOrientedUp,
+  upperIndex,
+  currentScores,
+  priorScores
+) {
+  let playerCount = currentScores.length;
+
+  if (row !== 1 || playerCount !== 2) {
+    let playerIndex = playerCount === 3 ? row : row / 2;
+    isOrientedUp || (playerIndex = playerCount - 1 - playerIndex);
+
+    let dotIndex = upperIndex - (isOrientedUp ? 4 - ind : ind);
+    if (
+      [currentScores[playerIndex], priorScores[playerIndex]].includes(dotIndex)
+    ) {
+      // there is a peg here, for playerIndex
+      return { backgroundColor: "AliceBlue" };
+    }
+  }
+
+  // there's no peg here
+  return { backgroundColor: rowColour(colours, row, isOrientedUp) };
+}
+
+// ! fix upperIndex positioning (stop mixing pixels and em?)
+function upperIndexStyle(isOrientedUp) {
+  return {
+    width: "2em",
+    textAlign: "center",
+    position: "relative",
+    top: "-2.65em",
+    left: isOrientedUp ? "7.65em" : "-0.9em",
+    color: "black",
+  };
+}

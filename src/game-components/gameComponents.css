@@ -108,9 +108,33 @@
 
 /* scoreboard */
 
+.board-rows {
+  margin: 0 auto;
+}
+
+.invisible {
+  visibility: hidden;
+}
+
+.board-row {
+  display: flex;
+}
+
 .segment {
   border-spacing: 0;
   border-collapse: collapse;
   color: white;
   border: none;
+  /* to compensate for upperIndex relative position */
+  margin-bottom: -0.5em;
+}
+
+.dot {
+  height: 0.65em;
+  width: 0.65em;
+  background-color: black;
+  border-radius: 50%;
+  display: inline-block;
+  border-width: 0.05em;
+  border-style: solid;
 }
