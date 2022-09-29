@@ -125,6 +125,10 @@ export function useScores(playerCount) {
 
     peg,
     reset,
+
+    skunkLine: SKUNK_LINE,
+    doubleSkunkLine: DOUBLE_SKUNK_LINE,
+    tripleSkunkLine: TRIPLE_SKUNK_LINE,
   };
 }
 

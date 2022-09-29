@@ -875,6 +875,9 @@ export default function App() {
         gamePoints={gamePoints.points}
         currentScores={game.currentScores}
         priorScores={game.previousScores}
+        skunkLine={game.skunkLine}
+        doubleSkunkLine={game.doubleSkunkLine}
+        tripleSkunkLine={game.tripleSkunkLine}
       />
       <Header
         hideEmptyColumns={HIDE_EMPTY_COLUMNS}

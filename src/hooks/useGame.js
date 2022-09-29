@@ -96,6 +96,9 @@ export function useGame(
     skunkCount: scores.skunkCount,
     doubleSkunkCount: scores.doubleSkunkCount,
     tripleSkunkCount: scores.tripleSkunkCount,
+    skunkLine: scores.skunkLine,
+    doubleSkunkLine: scores.doubleSkunkLine,
+    tripleSkunkLine: scores.tripleSkunkLine,
 
     // checks
     isValidGo: round.isValidGo,
