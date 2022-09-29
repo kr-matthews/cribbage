@@ -6,6 +6,12 @@ export default function ScoreBoard({
 }) {
   return (
     <div className="game-component">
+      <ScoreBoardStartHoles
+        colours={colours}
+        currentScores={currentScores}
+        priorScores={priorScores}
+        gamePoints={gamePoints}
+      />
       <div className="board-rows">
         <div className="board-row">
           {[0, 5, 10, 15, 20, 25, 30, 35, 40].map((upperIndex) => (
@@ -49,7 +55,7 @@ export default function ScoreBoard({
   );
 }
 
-// !!! add 'start' holes
+// !!! fix 'start' holes
 // !!! add game points holes
 // !! make bent segments
 // ! add finish hole
@@ -103,8 +109,60 @@ function ScoreBoardSegmentRegular({
   );
 }
 
+function ScoreBoardStartHoles({
+  colours,
+  currentScores,
+  priorScores,
+  gamePoints,
+}) {
+  return (
+    <span>
+      <table className="start-holes">
+        <tbody>
+          {[0, 1, 2].map((row) => (
+            <tr
+              key={row}
+              style={{
+                backgroundColor: rowColour(colours, row, true),
+              }}
+            >
+              {[0, 1, 2].map((col) => (
+                <td
+                  key={col}
+                  className="start-holes"
+                  style={cellStyle(row, col, colours, true, 120)}
+                >
+                  <span
+                    className="dot"
+                    style={startHoleStyle(
+                      colours,
+                      row,
+                      col,
+                      currentScores,
+                      priorScores,
+                      gamePoints
+                    )}
+                  />
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </span>
+  );
+}
+
 function rowColour(colours, row, isOrientedUp) {
   return colours[isOrientedUp ? row : 2 - row];
+}
+
+function pegColourStyle(colours, row, isOrientedUp) {
+  return { backgroundColor: "AliceBlue" };
+}
+
+function holeColourStyle(colours, row, isOrientedUp) {
+  return { backgroundColor: rowColour(colours, row, isOrientedUp) };
 }
 
 function cellStyle(row, ind, colours, isOrientedUp, upperIndex) {
@@ -148,20 +206,48 @@ function dotStyle(
   let playerCount = currentScores.length;
 
   if (row !== 1 || playerCount !== 2) {
-    let playerIndex = playerCount === 3 ? row : row / 2;
-    isOrientedUp || (playerIndex = playerCount - 1 - playerIndex);
+    let playerIndex = getPlayerIndex(playerCount, row, isOrientedUp);
 
     let dotIndex = upperIndex - (isOrientedUp ? 4 - ind : ind);
     if (
       [currentScores[playerIndex], priorScores[playerIndex]].includes(dotIndex)
     ) {
       // there is a peg here, for playerIndex
-      return { backgroundColor: "AliceBlue" };
+      return pegColourStyle(colours, row, isOrientedUp);
     }
   }
 
   // there's no peg here
-  return { backgroundColor: rowColour(colours, row, isOrientedUp) };
+  return holeColourStyle(colours, row, isOrientedUp);
+}
+
+function startHoleStyle(
+  colours,
+  row,
+  col,
+  currentScores,
+  priorScores,
+  gamePoints
+) {
+  let playerCount = currentScores.length;
+  let playerIndex = getPlayerIndex(playerCount, row, true);
+
+  if (col === 0) {
+    if (gamePoints[playerIndex] === 0) {
+      // there's a peg here for 0 game points
+      return pegColourStyle(colours, row, true);
+    }
+  } else {
+    if (
+      [currentScores[playerIndex], priorScores[playerIndex]].includes(col - 2)
+    ) {
+      // there's a peg here not yet used for pegging
+      return pegColourStyle(colours, row, true);
+    }
+  }
+
+  // there's no peg here
+  return holeColourStyle(colours, row, true);
 }
 
 // ! fix upperIndex positioning (stop mixing pixels and em?); calculate it
@@ -174,4 +260,10 @@ function upperIndexStyle(isOrientedUp) {
     left: isOrientedUp ? "7.65em" : "-0.9em",
     color: "black",
   };
+}
+
+function getPlayerIndex(playerCount, row, isOrientedUp) {
+  let playerIndex = playerCount === 3 ? row : row / 2;
+  isOrientedUp || (playerIndex = playerCount - 1 - playerIndex);
+  return playerIndex;
 }

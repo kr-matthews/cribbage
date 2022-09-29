@@ -129,6 +129,16 @@
   margin-bottom: -0.5em;
 }
 
+.start-holes {
+  border-spacing: 0;
+  border-collapse: collapse;
+  color: white;
+}
+
+.start-hole-cell {
+  border: solid black;
+}
+
 .dot {
   height: 0.6em;
   width: 0.6em;
