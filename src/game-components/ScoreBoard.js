@@ -117,7 +117,7 @@ function cellStyle(row, ind, colours, isOrientedUp, upperIndex) {
     textAlign: "center",
     width: "1.5em",
     minWidth: "1.5em",
-    height: "1.5em",
+    height: "1.25em",
   };
   if (ind === 0) {
     style.paddingLeft = "0.5em";
@@ -164,13 +164,13 @@ function dotStyle(
   return { backgroundColor: rowColour(colours, row, isOrientedUp) };
 }
 
-// ! fix upperIndex positioning (stop mixing pixels and em?)
+// ! fix upperIndex positioning (stop mixing pixels and em?); calculate it
 function upperIndexStyle(isOrientedUp) {
   return {
     width: "2em",
     textAlign: "center",
     position: "relative",
-    top: "-2.65em",
+    top: "-2.2em",
     left: isOrientedUp ? "7.65em" : "-0.9em",
     color: "black",
   };

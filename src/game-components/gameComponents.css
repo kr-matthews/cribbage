@@ -130,8 +130,8 @@
 }
 
 .dot {
-  height: 0.65em;
-  width: 0.65em;
+  height: 0.6em;
+  width: 0.6em;
   background-color: black;
   border-radius: 50%;
   display: inline-block;
