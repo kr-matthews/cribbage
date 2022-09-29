@@ -6,11 +6,29 @@ export default function ScoreBoard({
 }) {
   return (
     <div className="game-component">
-      <ScoreBoardStartHoles
+      <GridOfHoles
+        rows={3}
+        cols={5}
+        cellWidth={25}
+        cellHeight={20}
+        holeRadius={6}
+        sidePadding={10}
         colours={colours}
-        currentScores={currentScores}
-        priorScores={priorScores}
-        gamePoints={gamePoints}
+        colourRotation={0.5}
+        displayText={5}
+        displaySide={"right"}
+        pegLocations={[[], [0, 1], [1, 0, 1], [], [], [], []]}
+      />
+      <GridOfHoles
+        rows={7}
+        cols={3}
+        cellWidth={25}
+        cellHeight={30}
+        holeRadius={6}
+        allBorders
+        colours={colours}
+        colourRotation={0.75}
+        pegLocations={[[], [0, 1], [1, 0, 1], [], [], [], []]}
       />
       <div className="board-rows">
         <div className="board-row">
@@ -55,12 +73,151 @@ export default function ScoreBoard({
   );
 }
 
-// !!! fix 'start' holes
-// !!! add game points holes
-// !! make bent segments
-// ! add finish hole
+// !!! finish GridOfHoles and sub-components
+// !!! replace original segment components with new components
+// !! add game points, start, finish holes
+// ! make bent segments
 // todo: get skunk lines from useScores?
-// todo: clean up
+
+function GridOfHoles({
+  rows,
+  cols,
+  cellHeight,
+  cellWidth,
+  holeRadius,
+  sidePadding,
+  allBorders,
+  colours,
+  colourRotation,
+  displayText,
+  displaySide,
+  pegLocations = Array(rows).fill(Array(cols).fill(false)),
+  visible = true,
+}) {
+  return (
+    <span style={{ visibility: visible ? "visible" : "hidden" }}>
+      <table
+        style={{
+          borderSpacing: 0,
+          borderCollapse: "collapse",
+          border: "none",
+        }}
+      >
+        <tbody>
+          {[...Array(rows).keys()].map((_, row) => (
+            <tr key={row}>
+              {[...Array(cols).keys()].map((_, col) => {
+                let colour =
+                  colours[
+                    colourRotation === 0.25
+                      ? cols - col - 1
+                      : colourRotation === 0.5
+                      ? rows - row - 1
+                      : colourRotation === 0.75
+                      ? col
+                      : row
+                  ];
+                return (
+                  <GridCell
+                    key={col}
+                    width={cellWidth}
+                    height={cellHeight}
+                    borderLeft={
+                      allBorders || (row !== 1 && col === 0)
+                        ? "present"
+                        : row === 1 && col === 0
+                        ? "fake"
+                        : "absent"
+                    }
+                    borderRight={allBorders ? "present" : "absent"}
+                    colour={colour}
+                    paddingLeft={col === 0 && sidePadding}
+                    paddingRight={col === cols - 1 && sidePadding}
+                  >
+                    <PegHole
+                      holeRadius={holeRadius}
+                      colour={colour}
+                      hasPeg={pegLocations[row][col]}
+                    />
+                  </GridCell>
+                );
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </span>
+  );
+}
+
+function GridCell({
+  width,
+  height,
+  borderRight,
+  borderLeft,
+  colour,
+  paddingLeft,
+  paddingRight,
+  children,
+}) {
+  let borderPresentStyle = "solid 2px black";
+  let borderAbsentStyle = "none";
+  let borderFakeStyle = `solid 2px ${colour}`;
+  return (
+    <td
+      style={{
+        padding: 0,
+        margin: 0,
+        height,
+        width,
+        minWidth: width,
+        textAlign: "center",
+        backgroundColor: colour,
+        border: "black",
+        borderRight:
+          borderRight === "present"
+            ? borderPresentStyle
+            : borderRight === "fake"
+            ? borderFakeStyle
+            : borderAbsentStyle,
+        borderLeft:
+          borderLeft === "present"
+            ? borderPresentStyle
+            : borderLeft === "fake"
+            ? borderFakeStyle
+            : borderAbsentStyle,
+        borderTop: borderPresentStyle,
+        borderBottom: borderPresentStyle,
+        paddingLeft: paddingLeft || 0,
+        paddingRight: paddingRight || 0,
+      }}
+    >
+      {children}
+    </td>
+  );
+}
+
+function PegHole({ holeRadius, colour, hasPeg }) {
+  let borderWidth = 0.5;
+  return (
+    <span
+      style={{
+        padding: 0,
+        margin: 0,
+        height: 2 * (holeRadius - borderWidth),
+        width: 2 * (holeRadius - borderWidth),
+        borderStyle: "solid",
+        borderRadius: "50%",
+        borderWidth,
+        display: "inline-block",
+        borderColor: "aliceblue",
+        backgroundColor: hasPeg ? "aliceblue" : colour,
+      }}
+    />
+  );
+}
+
+//// old ////
 
 function ScoreBoardSegmentRegular({
   colours,
