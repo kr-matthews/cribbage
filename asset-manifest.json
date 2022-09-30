@@ -1,7 +1,7 @@
 {
   "files": {
-    "main.css": "/cribbage/static/css/main.e6d2a36f.css",
-    "main.js": "/cribbage/static/js/main.7f514d99.js",
+    "main.css": "/cribbage/static/css/main.1c651551.css",
+    "main.js": "/cribbage/static/js/main.abaad2aa.js",
     "static/media/playing_card_back.svg": "/cribbage/static/media/playing_card_back.deeb6181c4296706168cc8f56e7bd42b.svg",
     "static/media/playing_card_back_selected.svg": "/cribbage/static/media/playing_card_back_selected.74a22268ccb95f8af9625be57353631f.svg",
     "static/media/go.wav": "/cribbage/static/media/go.bef335ff3471fe1e7dcc.wav",
@@ -47,11 +47,11 @@
     "static/media/website-logo.svg": "/cribbage/static/media/website-logo.2a15d8d040919c10066eaa55c12d2b83.svg",
     "static/media/dealer-icon.svg": "/cribbage/static/media/dealer-icon.b8552ef36ccd33f83252c902b4fd2e7b.svg",
     "index.html": "/cribbage/index.html",
-    "main.e6d2a36f.css.map": "/cribbage/static/css/main.e6d2a36f.css.map",
-    "main.7f514d99.js.map": "/cribbage/static/js/main.7f514d99.js.map"
+    "main.1c651551.css.map": "/cribbage/static/css/main.1c651551.css.map",
+    "main.abaad2aa.js.map": "/cribbage/static/js/main.abaad2aa.js.map"
   },
   "entrypoints": [
-    "static/css/main.e6d2a36f.css",
-    "static/js/main.7f514d99.js"
+    "static/css/main.1c651551.css",
+    "static/js/main.abaad2aa.js"
   ]
 }

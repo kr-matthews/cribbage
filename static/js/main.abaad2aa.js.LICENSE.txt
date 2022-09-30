@@ -17,6 +17,8 @@ object-assign
 
 /*! lil-uuid - v0.1 - MIT License - https://github.com/lil-js/uuid */
 
+/*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/facebook/regenerator/blob/main/LICENSE */
+
 /**
  * @license
  * Lodash <https://lodash.com/>
