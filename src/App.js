@@ -45,7 +45,8 @@ const HAND_ALL_UNSELECTED = Array(7).fill(false);
 // longest allowed name
 const USER_NAME_MAX_LENGTH = 12;
 // colours on the board (don't use middle track when 2 players)
-const COLOURS = ["DarkBlue", "DarkRed", "DarkGreen"];
+const BOARD_COLOURS = ["#33A8FF", "red", "#238E04"];
+const PEG_COLOURS = ["darkblue", "#A70303", "#2C5121"]; // these might not actually be used
 
 //// Reducers ////
 
@@ -86,7 +87,7 @@ function playersReducer(players, action) {
   for (let ind = 0; ind < newPlayerCount; ind++) {
     // if 2 players, 2 * ind maps indices to inner, outer tracks
     newPlayers[ind].colour =
-      newPlayerCount === 3 ? COLOURS[ind] : COLOURS[2 * ind];
+      BOARD_COLOURS[newPlayerCount === 3 ? ind : 2 * ind];
   }
 
   return newPlayers;
@@ -871,7 +872,8 @@ export default function App() {
   return (
     <div className="app">
       <ScoreBoard
-        colours={COLOURS}
+        pathColours={BOARD_COLOURS}
+        pegColours={PEG_COLOURS}
         gamePoints={gamePoints.points}
         currentScores={game.currentScores}
         priorScores={game.previousScores}

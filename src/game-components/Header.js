@@ -94,7 +94,7 @@ function InfoBox({
   const clickable = !!clickableType;
   const colours = {
     backgroundColor: colour,
-    borderColor: isNextPlayer ? "#E41B17" : "transparent",
+    borderColor: isNextPlayer ? "black" : "transparent",
   };
   const classes = `col headerbox infobox${
     clickable ? ` ${clickableType}` : ""

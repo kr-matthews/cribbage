@@ -1,14 +1,12 @@
 //// constants ////
 
 // colours
-const WOOD = "#966F33";
-const WOOD_COMPLEMENT = "#335B96";
+const WOOD = "#ECCD3F";
 const BLACK = "black";
 const WHITEISH = "aliceblue";
 
-// colour usages
+// repeated colour usages
 const TABLE_BORDER_COLOUR = BLACK;
-const HOLE_BORDER_COLOUR = WHITEISH;
 
 // dimensions
 const HOLE_RADIUS = 6;
@@ -18,8 +16,11 @@ const SIDE_PADDING = 10;
 
 //// main component ////
 
+// ? how to make bent segments (35->45 and 80->85)
+
 export default function ScoreBoard({
-  colours,
+  pathColours,
+  pegColours,
   gamePoints,
   currentScores,
   priorScores,
@@ -67,7 +68,8 @@ export default function ScoreBoard({
           cellHeight={30.5}
           holeRadius={HOLE_RADIUS}
           allBorders
-          colours={colours}
+          pathColours={pathColours}
+          pegColours={pegColours}
           pathRotation={0.75}
           pegLocations={translate(paddedGamePoints, 1)}
         />
@@ -82,7 +84,8 @@ export default function ScoreBoard({
                 cellHeight={20}
                 holeRadius={HOLE_RADIUS}
                 allBorders
-                colours={colours}
+                pathColours={pathColours}
+                pegColours={pegColours}
                 pegLocations={translate(paddedScores, -2).map((arr, ind) =>
                   paddedGamePoints[ind].includes(0) ? [0, ...arr] : arr
                 )}
@@ -96,7 +99,8 @@ export default function ScoreBoard({
                 key={upperIndex}
                 sidePadding={SIDE_PADDING}
                 closeStartMiddle={upperIndex === 5}
-                colours={colours}
+                pathColours={pathColours}
+                pegColours={pegColours}
                 displayText={skunkLineOrIndex(upperIndex)}
                 displaySide={"right"}
                 pegLocations={translate(paddedScores, upperIndex - 4)}
@@ -111,7 +115,8 @@ export default function ScoreBoard({
                 key={upperIndex}
                 sidePadding={SIDE_PADDING}
                 closeEnd={upperIndex === 120}
-                colours={colours}
+                pathColours={pathColours}
+                pegColours={pegColours}
                 displayText={skunkLineOrIndex(upperIndex)}
                 displaySide={"right"}
                 pegLocations={translate(paddedScores, upperIndex - 4)}
@@ -123,9 +128,9 @@ export default function ScoreBoard({
             {/* finish hole */}
             <PegHole
               holeRadius={HOLE_RADIUS}
-              colour={WOOD}
-              // pegColour={hasWinner ? colours[winner] : WOOD}
+              surroundingColour={WOOD}
               hasPeg={hasWinner}
+              pegColour={hasWinner && pegColours[winner]}
               customMarginTop={STANDARD_HEIGHT + 8}
             />
             <ScoreBoardText text="FINISH" />
@@ -137,7 +142,8 @@ export default function ScoreBoard({
               <GridOfHoles
                 key={upperIndex}
                 sidePadding={SIDE_PADDING}
-                colours={colours}
+                pathColours={pathColours}
+                pegColours={pegColours}
                 pathRotation={0.5}
                 displayText={skunkLineOrIndex(upperIndex)}
                 displaySide={"left"}
@@ -152,9 +158,6 @@ export default function ScoreBoard({
   );
 }
 
-// !! play around with colours
-// ! make bent segments ???
-
 //// helper components ////
 
 function GridOfHoles({
@@ -167,7 +170,8 @@ function GridOfHoles({
   allBorders,
   closeStartMiddle,
   closeEnd,
-  colours,
+  pathColours,
+  pegColours,
   pathRotation,
   displayText,
   displaySide,
@@ -207,7 +211,6 @@ function GridOfHoles({
                     : pathRotation === 0.75
                     ? rows - row - 1
                     : col;
-                let colour = colours[whichPath];
                 return (
                   <GridCell
                     key={col}
@@ -240,14 +243,15 @@ function GridOfHoles({
                         ? "fake"
                         : "absent"
                     }
-                    colour={colour}
+                    colour={pathColours[whichPath]}
                     paddingLeft={col === 0 && sidePadding}
                     paddingRight={col === cols - 1 && sidePadding}
                   >
                     <PegHole
                       holeRadius={holeRadius}
-                      colour={colour}
+                      surroundingColour={pathColours[whichPath]}
                       hasPeg={pegLocations[whichPath].includes(stepCount)}
+                      pegColour={pegColours[whichPath]}
                     />
                   </GridCell>
                 );
@@ -323,8 +327,13 @@ function GridCell({
   );
 }
 
-// !!! fix PegHole
-function PegHole({ holeRadius, colour, hasPeg, customMarginTop }) {
+function PegHole({
+  holeRadius,
+  surroundingColour,
+  hasPeg,
+  pegColour,
+  customMarginTop,
+}) {
   let borderWidth = 0.5;
   return (
     <span
@@ -337,8 +346,8 @@ function PegHole({ holeRadius, colour, hasPeg, customMarginTop }) {
         borderRadius: "50%",
         borderWidth,
         display: "inline-block",
-        borderColor: WHITEISH,
-        backgroundColor: hasPeg ? WHITEISH : colour,
+        borderColor: hasPeg ? BLACK : WOOD,
+        backgroundColor: hasPeg ? BLACK : WOOD,
       }}
     />
   );
