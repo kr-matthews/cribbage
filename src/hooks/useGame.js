@@ -91,6 +91,7 @@ export function useGame(
     previousScores: scores.previous,
     scoreDelta: scores.delta,
     scoreScorer: scores.scorer,
+    hasWinner: scores.hasWinner,
     winner: scores.winner,
     nonSkunkCount: scores.nonSkunkCount,
     skunkCount: scores.skunkCount,

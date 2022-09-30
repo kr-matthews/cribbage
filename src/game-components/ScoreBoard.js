@@ -1,14 +1,57 @@
+const WOOD = "#966F33";
 const WOOD_COMPLEMENT = "#335B96";
+
+function padToThreePlayers(array) {
+  let playerCount = array.length;
+  switch (playerCount) {
+    case 0:
+      return [[], [], []];
+
+    case 1:
+      return [array[0], [], []];
+
+    case 2:
+      return [array[0], [], array[1]];
+
+    default:
+      return array;
+  }
+}
+
+function padGamePoints(points) {
+  return padToThreePlayers(points.map((point) => [point]));
+}
+
+function padScores(current, prior) {
+  return padToThreePlayers(mergeArrays(current, prior));
+}
+
+function mergeArrays(array1, array2) {
+  let array = [];
+  array1.forEach((x, i) => {
+    array.push([x, array2[i]]);
+  });
+  return array;
+}
+
+function translate(arrays, offset) {
+  return arrays.map((array) => array.map((x) => x - offset));
+}
 
 export default function ScoreBoard({
   colours,
   gamePoints,
   currentScores,
   priorScores,
+  hasWinner,
+  winner,
   skunkLine,
   doubleSkunkLine,
   tripleSkunkLine,
 }) {
+  let paddedGamePoints = padGamePoints(gamePoints);
+  let paddedScores = padScores(currentScores, priorScores);
+
   function skunkLineOrIndex(upperIndex) {
     switch (upperIndex) {
       case skunkLine:
@@ -24,6 +67,7 @@ export default function ScoreBoard({
         return upperIndex;
     }
   }
+
   return (
     <div className="game-component">
       <div
@@ -31,7 +75,7 @@ export default function ScoreBoard({
           display: "flex",
           margin: "0 auto",
           padding: "20px 20px 8px 20px",
-          backgroundColor: "#966F33",
+          backgroundColor: WOOD,
           borderRadius: 10,
         }}
       >
@@ -45,7 +89,7 @@ export default function ScoreBoard({
           allBorders
           colours={colours}
           pathRotation={0.75}
-          pegLocations={[[], [0, 1], [1, 0, 1], [], [], [], []]}
+          pegLocations={translate(paddedGamePoints, 1)}
         />
         <div style={{ marginLeft: 15 }} className="board-rows">
           <div className="board-row">
@@ -59,18 +103,11 @@ export default function ScoreBoard({
                 holeRadius={6}
                 allBorders
                 colours={colours}
-                pegLocations={[[], [0, 1], [1, 0, 1], [], [], [], []]}
+                pegLocations={translate(paddedScores, -2).map((arr, ind) =>
+                  paddedGamePoints[ind].includes(0) ? [0, ...arr] : arr
+                )}
               />
-              <span
-                style={{
-                  writingMode: "vertical-rl",
-                  height: 3 * 20,
-                  margin: "auto 0",
-                  padding: 8,
-                }}
-              >
-                <strong>START</strong>
-              </span>
+              <ScoreBoardText text="START" />
             </span>
             {[5, 10, 15, 20, 25, 30, 35, 40].map((upperIndex) => (
               <GridOfHoles
@@ -85,7 +122,7 @@ export default function ScoreBoard({
                 colours={colours}
                 displayText={skunkLineOrIndex(upperIndex)}
                 displaySide={"right"}
-                pegLocations={[[], [0, 1], [1, 0, 1], [], [], [], []]}
+                pegLocations={translate(paddedScores, upperIndex - 4)}
               />
             ))}
           </div>
@@ -103,10 +140,19 @@ export default function ScoreBoard({
                 colours={colours}
                 displayText={skunkLineOrIndex(upperIndex)}
                 displaySide={"right"}
-                pegLocations={[[], [0, 1], [1, 0, 1], [], [], [], []]}
+                pegLocations={translate(paddedScores, upperIndex - 4)}
                 visible={upperIndex !== 0}
               />
             ))}
+            <span style={{ fontSize: 44, paddingLeft: 15 }}>&#8594;</span>
+            <PegHole
+              holeRadius={6}
+              colour={WOOD}
+              // pegColour={hasWinner ? colours[winner] : WOOD} // !! fix PegHole
+              hasPeg={hasWinner}
+              customMarginTop={28}
+            />
+            <ScoreBoardText text="FINISH" />
           </div>
           <div className="board-row">
             {[0, 80, 75, 70, 65, 60, 55, 50, 45].map((upperIndex) => (
@@ -122,7 +168,7 @@ export default function ScoreBoard({
                 pathRotation={0.5}
                 displayText={skunkLineOrIndex(upperIndex)}
                 displaySide={"left"}
-                pegLocations={[[], [0, 1], [1, 0, 1], [], [], [], []]}
+                pegLocations={translate(paddedScores, upperIndex - 4)}
                 visible={upperIndex !== 0}
               />
             ))}
@@ -133,10 +179,8 @@ export default function ScoreBoard({
   );
 }
 
-// !!! add finish hole
-// !!! add actual peg locations
+// !!! tidy up classNames and styles (including .css file)
 // !! extract colours as CONSTs, play around with colours
-// !! tidy up classNames and styles (including .css file)
 // ! make bent segments ???
 
 function GridOfHoles({
@@ -153,7 +197,7 @@ function GridOfHoles({
   pathRotation,
   displayText,
   displaySide,
-  pegLocations = Array(rows).fill(Array(cols).fill(false)),
+  pegLocations = [[], [], []],
   visible = true,
 }) {
   return (
@@ -171,16 +215,25 @@ function GridOfHoles({
           {[...Array(rows).keys()].map((_, row) => (
             <tr key={row}>
               {[...Array(cols).keys()].map((_, col) => {
-                let colour =
-                  colours[
-                    pathRotation === 0.25
-                      ? cols - col - 1
-                      : pathRotation === 0.5
-                      ? rows - row - 1
-                      : pathRotation === 0.75
-                      ? col
-                      : row
-                  ];
+                // the "row" the player is going along, but it may be rotated
+                let whichPath =
+                  pathRotation === 0.25
+                    ? cols - col - 1
+                    : pathRotation === 0.5
+                    ? rows - row - 1
+                    : pathRotation === 0.75
+                    ? col
+                    : row;
+                // how far along that "row" the player is
+                let stepCount =
+                  pathRotation === 0.25
+                    ? row
+                    : pathRotation === 0.5
+                    ? cols - col - 1
+                    : pathRotation === 0.75
+                    ? rows - row - 1
+                    : col;
+                let colour = colours[whichPath];
                 return (
                   <GridCell
                     key={col}
@@ -207,7 +260,7 @@ function GridOfHoles({
                     <PegHole
                       holeRadius={holeRadius}
                       colour={colour}
-                      hasPeg={pegLocations[row][col]}
+                      hasPeg={pegLocations[whichPath].includes(stepCount)}
                     />
                   </GridCell>
                 );
@@ -284,13 +337,13 @@ function GridCell({
   );
 }
 
-function PegHole({ holeRadius, colour, hasPeg }) {
+function PegHole({ holeRadius, colour, hasPeg, customMarginTop }) {
   let borderWidth = 0.5;
   return (
     <span
       style={{
         padding: 0,
-        margin: 0,
+        marginTop: customMarginTop || 0,
         height: 2 * (holeRadius - borderWidth),
         width: 2 * (holeRadius - borderWidth),
         borderStyle: "solid",
@@ -304,10 +357,16 @@ function PegHole({ holeRadius, colour, hasPeg }) {
   );
 }
 
-//// old ////
-
-function getPlayerIndex(playerCount, row, isOrientedUp) {
-  let playerIndex = playerCount === 3 ? row : row / 2;
-  isOrientedUp || (playerIndex = playerCount - 1 - playerIndex);
-  return playerIndex;
+function ScoreBoardText({ text }) {
+  return (
+    <span
+      style={{
+        writingMode: "vertical-rl",
+        height: 3 * 20,
+        padding: 8,
+      }}
+    >
+      <strong>{text}</strong>
+    </span>
+  );
 }

@@ -875,6 +875,8 @@ export default function App() {
         gamePoints={gamePoints.points}
         currentScores={game.currentScores}
         priorScores={game.previousScores}
+        hasWinner={game.hasWinner}
+        winner={game.winner}
         skunkLine={game.skunkLine}
         doubleSkunkLine={game.doubleSkunkLine}
         tripleSkunkLine={game.tripleSkunkLine}
