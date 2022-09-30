@@ -1,42 +1,22 @@
+//// constants ////
+
+// colours
 const WOOD = "#966F33";
 const WOOD_COMPLEMENT = "#335B96";
+const BLACK = "black";
+const WHITEISH = "aliceblue";
 
-function padToThreePlayers(array) {
-  let playerCount = array.length;
-  switch (playerCount) {
-    case 0:
-      return [[], [], []];
+// colour usages
+const TABLE_BORDER_COLOUR = BLACK;
+const HOLE_BORDER_COLOUR = WHITEISH;
 
-    case 1:
-      return [array[0], [], []];
+// dimensions
+const HOLE_RADIUS = 6;
+const STANDARD_WIDTH = 25;
+const STANDARD_HEIGHT = 20;
+const SIDE_PADDING = 10;
 
-    case 2:
-      return [array[0], [], array[1]];
-
-    default:
-      return array;
-  }
-}
-
-function padGamePoints(points) {
-  return padToThreePlayers(points.map((point) => [point]));
-}
-
-function padScores(current, prior) {
-  return padToThreePlayers(mergeArrays(current, prior));
-}
-
-function mergeArrays(array1, array2) {
-  let array = [];
-  array1.forEach((x, i) => {
-    array.push([x, array2[i]]);
-  });
-  return array;
-}
-
-function translate(arrays, offset) {
-  return arrays.map((array) => array.map((x) => x - offset));
-}
+//// main component ////
 
 export default function ScoreBoard({
   colours,
@@ -74,9 +54,9 @@ export default function ScoreBoard({
         style={{
           display: "flex",
           margin: "0 auto",
-          padding: "20px 20px 8px 20px",
+          padding: "20px 20px 8px 20px", // awkward, due to floating 'upperIndex's
           backgroundColor: WOOD,
-          borderRadius: 10,
+          borderRadius: 20,
         }}
       >
         {/* game points holes */}
@@ -85,13 +65,13 @@ export default function ScoreBoard({
           cols={3}
           cellWidth={25}
           cellHeight={30.5}
-          holeRadius={6}
+          holeRadius={HOLE_RADIUS}
           allBorders
           colours={colours}
           pathRotation={0.75}
           pegLocations={translate(paddedGamePoints, 1)}
         />
-        <div style={{ marginLeft: 15 }} className="board-rows">
+        <div style={{ marginLeft: 15 }}>
           <div className="board-row">
             <span style={{ display: "flex" }}>
               {/* start holes */}
@@ -100,7 +80,7 @@ export default function ScoreBoard({
                 cols={3}
                 cellWidth={35}
                 cellHeight={20}
-                holeRadius={6}
+                holeRadius={HOLE_RADIUS}
                 allBorders
                 colours={colours}
                 pegLocations={translate(paddedScores, -2).map((arr, ind) =>
@@ -109,16 +89,13 @@ export default function ScoreBoard({
               />
               <ScoreBoardText text="START" />
             </span>
+
+            {/* top row holes */}
             {[5, 10, 15, 20, 25, 30, 35, 40].map((upperIndex) => (
               <GridOfHoles
                 key={upperIndex}
-                rows={3}
-                cols={5}
-                cellWidth={25}
-                cellHeight={20}
-                holeRadius={6}
-                sidePadding={10}
-                closeLeftMiddle={upperIndex === 5}
+                sidePadding={SIDE_PADDING}
+                closeStartMiddle={upperIndex === 5}
                 colours={colours}
                 displayText={skunkLineOrIndex(upperIndex)}
                 displaySide={"right"}
@@ -126,17 +103,14 @@ export default function ScoreBoard({
               />
             ))}
           </div>
+
+          {/* middle row holes */}
           <div className="board-row">
             {[85, 90, 95, 100, 105, 110, 115, 120].map((upperIndex) => (
               <GridOfHoles
                 key={upperIndex}
-                rows={3}
-                cols={5}
-                cellWidth={25}
-                cellHeight={20}
-                holeRadius={6}
-                sidePadding={10}
-                closeRight={upperIndex === 120}
+                sidePadding={SIDE_PADDING}
+                closeEnd={upperIndex === 120}
                 colours={colours}
                 displayText={skunkLineOrIndex(upperIndex)}
                 displaySide={"right"}
@@ -144,26 +118,25 @@ export default function ScoreBoard({
                 visible={upperIndex !== 0}
               />
             ))}
+
             <span style={{ fontSize: 44, paddingLeft: 15 }}>&#8594;</span>
+            {/* finish hole */}
             <PegHole
-              holeRadius={6}
+              holeRadius={HOLE_RADIUS}
               colour={WOOD}
-              // pegColour={hasWinner ? colours[winner] : WOOD} // !! fix PegHole
+              // pegColour={hasWinner ? colours[winner] : WOOD}
               hasPeg={hasWinner}
-              customMarginTop={28}
+              customMarginTop={STANDARD_HEIGHT + 8}
             />
             <ScoreBoardText text="FINISH" />
           </div>
+
+          {/* bottom row holes */}
           <div className="board-row">
             {[0, 80, 75, 70, 65, 60, 55, 50, 45].map((upperIndex) => (
               <GridOfHoles
                 key={upperIndex}
-                rows={3}
-                cols={5}
-                cellWidth={25}
-                cellHeight={20}
-                holeRadius={6}
-                sidePadding={10}
+                sidePadding={SIDE_PADDING}
                 colours={colours}
                 pathRotation={0.5}
                 displayText={skunkLineOrIndex(upperIndex)}
@@ -179,20 +152,21 @@ export default function ScoreBoard({
   );
 }
 
-// !!! tidy up classNames and styles (including .css file)
-// !! extract colours as CONSTs, play around with colours
+// !! play around with colours
 // ! make bent segments ???
 
+//// helper components ////
+
 function GridOfHoles({
-  rows,
-  cols,
-  cellHeight,
-  cellWidth,
-  holeRadius,
+  rows = 3,
+  cols = 5,
+  cellWidth = STANDARD_WIDTH,
+  cellHeight = STANDARD_HEIGHT,
+  holeRadius = HOLE_RADIUS,
   sidePadding,
   allBorders,
-  closeLeftMiddle,
-  closeRight,
+  closeStartMiddle,
+  closeEnd,
   colours,
   pathRotation,
   displayText,
@@ -241,16 +215,29 @@ function GridOfHoles({
                     height={cellHeight}
                     borderLeft={
                       allBorders ||
-                      ((row !== 1 || closeLeftMiddle) && col === 0)
+                      (col === 0 &&
+                        ((!pathRotation && (row !== 1 || closeStartMiddle)) ||
+                          (pathRotation === 0.5 && row !== 1 && closeEnd)))
                         ? "present"
-                        : row === 1 && col === 0
+                        : (!pathRotation ||
+                            (pathRotation === 0.5 && closeEnd)) &&
+                          row === 1 &&
+                          col === 0
                         ? "fake"
                         : "absent"
                     }
                     borderRight={
                       allBorders ||
-                      (closeRight && col === cols - 1 && row !== 1)
+                      (col === cols - 1 &&
+                        ((!pathRotation && row !== 1 && closeEnd) ||
+                          (pathRotation === 0.5 &&
+                            (row !== 1 || closeStartMiddle))))
                         ? "present"
+                        : ((!pathRotation && closeEnd) ||
+                            pathRotation === 0.5) &&
+                          row === 1 &&
+                          col === cols - 1
+                        ? "fake"
                         : "absent"
                     }
                     colour={colour}
@@ -280,7 +267,6 @@ function GridOfHoles({
               displaySide === "right"
                 ? cols * cellWidth + 2 * sidePadding + 2 - 14
                 : -14,
-            color: "black",
           }}
         >
           <strong>{displayText}</strong>
@@ -300,7 +286,7 @@ function GridCell({
   paddingRight,
   children,
 }) {
-  let borderPresentStyle = "solid 2px black";
+  let borderPresentStyle = `solid 2px ${TABLE_BORDER_COLOUR}`;
   let borderAbsentStyle = "none";
   let borderFakeStyle = `solid 2px ${colour}`;
   return (
@@ -313,7 +299,7 @@ function GridCell({
         minWidth: width,
         textAlign: "center",
         backgroundColor: colour,
-        border: "black",
+        border: TABLE_BORDER_COLOUR,
         borderRight:
           borderRight === "present"
             ? borderPresentStyle
@@ -337,6 +323,7 @@ function GridCell({
   );
 }
 
+// !!! fix PegHole
 function PegHole({ holeRadius, colour, hasPeg, customMarginTop }) {
   let borderWidth = 0.5;
   return (
@@ -350,8 +337,8 @@ function PegHole({ holeRadius, colour, hasPeg, customMarginTop }) {
         borderRadius: "50%",
         borderWidth,
         display: "inline-block",
-        borderColor: "aliceblue",
-        backgroundColor: hasPeg ? "aliceblue" : colour,
+        borderColor: WHITEISH,
+        backgroundColor: hasPeg ? WHITEISH : colour,
       }}
     />
   );
@@ -369,4 +356,43 @@ function ScoreBoardText({ text }) {
       <strong>{text}</strong>
     </span>
   );
+}
+
+//// helper functions - array manipulation ////
+
+function padToThreePlayers(array) {
+  let playerCount = array.length;
+  switch (playerCount) {
+    case 0:
+      return [[], [], []];
+
+    case 1:
+      return [array[0], [], []];
+
+    case 2:
+      return [array[0], [], array[1]];
+
+    default:
+      return array;
+  }
+}
+
+function padGamePoints(points) {
+  return padToThreePlayers(points.map((point) => [point]));
+}
+
+function padScores(current, prior) {
+  return padToThreePlayers(mergeArrays(current, prior));
+}
+
+function mergeArrays(array1, array2) {
+  let array = [];
+  array1.forEach((x, i) => {
+    array.push([x, array2[i]]);
+  });
+  return array;
+}
+
+function translate(arrays, offset) {
+  return arrays.map((array) => array.map((x) => x - offset));
 }

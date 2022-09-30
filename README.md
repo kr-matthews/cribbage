@@ -40,7 +40,8 @@ Quick and clean implementation with proper use of hooks and good separation of c
 
 See the [issues](https://github.com/kr-matthews/cribbage/issues) on GitHub, in addition to the following:
 
-- The styling (css) is not very responsive; won't work well on smaller screens. In general, it's very basic, and doesn't take advantage of any libraries like `semantic-ui`.
+- The styling (css) is not very responsive - especially the scoreboard - and won't work well on smaller screens. In general, it's very basic, and doesn't take advantage of any libraries.
+- The scoreboard is supposed to have a couple of curved segments, but only straight segments are used.
 - The secret keys for remote play aren't properly secured.
 - The UI can be inspected to reveal what cards each player has.
 - The deck can similarly be checked via standard Chrome extensions or intercepting the pubnub messages.
@@ -49,5 +50,5 @@ See the [issues](https://github.com/kr-matthews/cribbage/issues) on GitHub, in a
 - A few dependency array issues, mainly involving usages of return arrays/functions from custom hooks.
 - Network message handler for incoming messages isn't very robust and can only handle one, so messages will be lost if they come in simultaneously.
 - The `useNetwork` hook doesn't track UUIDs of present users, so can't implement kicking out players itself, meaning `App` has to take care of that and separation of concerns blurs a bit here.
-- Some sound effects happen within the custom hook `useSoundEffects` via side effects, others are explicitly called in the `App`.
+- On a similar note, some sound effects happen within the custom hook `useSoundEffects` via side effects, others are explicitly called in the `App`.
 - And probably many more...
