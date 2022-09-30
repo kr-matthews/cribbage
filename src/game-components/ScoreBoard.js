@@ -7,6 +7,7 @@ const WHITEISH = "aliceblue";
 
 // repeated colour usages
 const TABLE_BORDER_COLOUR = BLACK;
+const BOARD_COLOUR = WOOD;
 
 // dimensions
 const HOLE_RADIUS = 6;
@@ -56,7 +57,7 @@ export default function ScoreBoard({
           display: "flex",
           margin: "0 auto",
           padding: "20px 20px 8px 20px", // awkward, due to floating 'upperIndex's
-          backgroundColor: WOOD,
+          backgroundColor: BOARD_COLOUR,
           borderRadius: 20,
         }}
       >
@@ -128,7 +129,7 @@ export default function ScoreBoard({
             {/* finish hole */}
             <PegHole
               holeRadius={HOLE_RADIUS}
-              surroundingColour={WOOD}
+              surroundingColour={BOARD_COLOUR}
               hasPeg={hasWinner}
               pegColour={hasWinner && pegColours[winner]}
               customMarginTop={STANDARD_HEIGHT + 8}
@@ -346,8 +347,12 @@ function PegHole({
         borderRadius: "50%",
         borderWidth,
         display: "inline-block",
-        borderColor: hasPeg ? BLACK : WOOD,
-        backgroundColor: hasPeg ? BLACK : WOOD,
+        borderColor: hasPeg
+          ? BLACK
+          : surroundingColour === BOARD_COLOUR
+          ? BLACK
+          : BOARD_COLOUR,
+        backgroundColor: hasPeg ? BLACK : BOARD_COLOUR,
       }}
     />
   );
