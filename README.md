@@ -1,5 +1,7 @@
 # Cribbage
 
+![Screenshot](public/cribbage.png)
+
 This is a (mostly complete) single-page application for the card game Cribbage with 2 or 3 players. Users can play locally against up to 2 computer players, or play remotely with other users (still with computer players if desired).
 
 If you want to clone the repository, you'll need to add definitions for `publishKey` and `subscribeKey` at `src/pubnubKeys.js`.
