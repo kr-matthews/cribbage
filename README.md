@@ -1,4 +1,4 @@
-# Cribbage [WIP]
+# Cribbage
 
 This is a (mostly complete) single-page application for the card game Cribbage with 2 or 3 players. Users can play locally against up to 2 computer players, or play remotely with other users (still with computer players if desired).
 
@@ -24,10 +24,11 @@ On GitHub Pages at [https://kr-matthews.github.io/cribbage](https://kr-matthews.
 See [enhancements](https://github.com/kr-matthews/cribbage/issues?q=is%3Aissue+is%3Aopen+label%3Aenhancement) on GitHub.
 
 - Allow sending of short (possibly predefined) messages, in addition to the automatic match logs.
+- Allow manual scoring of everything, and opponents can claim missed points.
 
 ## Original Intentions
 
-Quick and clean implementation with proper use of hooks and good separation of concerns. Better management of state shared between users (than Connect 4).
+Quick and clean implementation with proper use of hooks and good separation of concerns. Better management of state shared between users (than Connect 4). (Update: it wasn't quick...)
 
 ## Focus
 

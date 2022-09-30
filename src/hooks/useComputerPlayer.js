@@ -188,8 +188,8 @@ export default function useComputerPlayer(
 
         case Action.START_NEW_GAME:
         case Action.START_NEW_ROUND:
-          // easy, but allow user to observe for longer time
-          delay = 6000 + Math.random() * 1000;
+          // easy, and user explicitly grants permission to do this action
+          delay = 600 + Math.random() * 1400;
           break;
 
         case Action.DISCARD:

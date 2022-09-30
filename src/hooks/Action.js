@@ -52,6 +52,8 @@ export default class Action {
     "score the crib"
   );
 
+  static CONTINUE = new Action("Continue", "continue");
+
   /**
    * Create an Action to be the nextAction state.
    *

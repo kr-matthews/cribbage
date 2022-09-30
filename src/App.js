@@ -1,4 +1,4 @@
-import { useReducer, useEffect } from "react";
+import { useReducer, useEffect, useState } from "react";
 
 import { useLocalStorage } from "./hooks/useLocalStorage.js";
 import { usePreviousPlayerAction } from "./hooks/usePreviousPlayerAction.js";
@@ -473,6 +473,15 @@ export default function App() {
 
   //// Next Action ////
 
+  // to prevent computers moving forward before user processes something
+  const [permissionGiven, setPermissionGiven] = useState(false);
+  function givePermission() {
+    setPermissionGiven(true);
+  }
+  function resetPermission() {
+    setPermissionGiven(false);
+  }
+
   const [nextPlayers, nextAction] = (() => {
     if (!isMatchInProgress) {
       // haven't started anything yet
@@ -494,6 +503,23 @@ export default function App() {
 
   // if there's a unique next player, get them from here
   const nextPlayer = nextPlayers ? nextPlayers.indexOf(true) : null;
+
+  function doesActionRequirePermission(action) {
+    switch (action) {
+      case Action.START_NEW_GAME:
+      case Action.START_NEW_ROUND:
+        return true;
+
+      default:
+        return false;
+    }
+  }
+
+  const permissionIsRequired =
+    doesActionRequirePermission(nextAction) &&
+    players[nextPlayer].isComputer &&
+    (network.mode === "local" ||
+      (network.mode === "remote" && network.isCodeOwner));
 
   //// Actions ////
 
@@ -597,6 +623,7 @@ export default function App() {
     game.startNextRound();
     isUserInitiated && network.sendMessage({ type: "startNewRound" });
     isUserInitiated && deck.reset();
+    resetPermission();
   }
 
   function startNewGame(isUserInitiated = true) {
@@ -604,6 +631,7 @@ export default function App() {
     game.reset(nextDealer);
     isUserInitiated && network.sendMessage({ type: "startNewGame" });
     setPreviousPlayerAction(nextPlayer, Action.START_NEW_GAME);
+    resetPermission();
   }
 
   // reset everything
@@ -613,6 +641,7 @@ export default function App() {
     deck.reset();
     cutForDeal.reset();
     setPreviousPlayerAction(0, Action.RESET_ALL);
+    resetPermission();
   }
 
   const allActions = {
@@ -646,7 +675,6 @@ export default function App() {
 
   switch (nextAction) {
     case Action.SET_UP_CUT_FOR_DEAL:
-      labels = [nextAction.label];
       actions = [() => setUpCutForDeal()];
       enabled = [isInCharge && [2, 3].includes(playerCount)];
       break;
@@ -760,6 +788,12 @@ export default function App() {
       break;
   }
 
+  if (permissionIsRequired && !permissionGiven) {
+    labels = [Action.CONTINUE.label];
+    actions = [givePermission];
+    enabled = [true];
+  }
+
   //// Computer Player ////
 
   // todo: refactor hook to handle arbitrary number of computer players in 1 instantiation?
@@ -770,7 +804,9 @@ export default function App() {
       players[1].isComputer &&
       (network.mode === "local" ||
         (network.mode === "remote" && network.isCodeOwner)),
-    nextPlayers[1] && nextAction !== Action.CONTINUE_DEALING,
+    nextPlayers[1] &&
+      nextAction !== Action.CONTINUE_DEALING &&
+      (permissionGiven || !permissionIsRequired),
     allActions,
     nextAction,
     game.hands[1],
@@ -785,7 +821,9 @@ export default function App() {
       players[2].isComputer &&
       (network.mode === "local" ||
         (network.mode === "remote" && network.isCodeOwner)),
-    nextPlayers[2] && nextAction !== Action.CONTINUE_DEALING,
+    nextPlayers[2] &&
+      nextAction !== Action.CONTINUE_DEALING &&
+      (permissionGiven || !permissionIsRequired),
     allActions,
     nextAction,
     game.hands[2],
@@ -946,7 +984,10 @@ export default function App() {
         cutCards={cutForDeal.cuts}
       />
       <Actions
-        waiting={!nextPlayers[userPosition]}
+        waiting={
+          !nextPlayers[userPosition] &&
+          (!permissionIsRequired || permissionGiven)
+        }
         nextToAct={
           nextPlayers.reduce((count, curr) => count + (curr ? 1 : 0), 0) === 1
             ? nextPlayer === userPosition
