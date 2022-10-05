@@ -1,6 +1,6 @@
 import Deck from "../playing-cards/Deck.js";
 import CutDeck from "../playing-cards/CutDeck.js";
-import CardStack from "../playing-cards/CardStack.js";
+import Hand from "../playing-cards/Hand.js";
 
 export default function PlayArea({
   hideEmptyColumns,
@@ -42,7 +42,7 @@ export default function PlayArea({
           </div>
         ) : (
           <div key={index} className="col">
-            <CardStack cards={cards} maxSize={4} />
+            <Hand cards={cards} maxSize={4} />
           </div>
         );
       })}
