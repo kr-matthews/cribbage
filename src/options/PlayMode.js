@@ -24,7 +24,7 @@ export default function PlayMode({
             Playing Locally{" "}
             <Edit
               type="prompt"
-              text="Enter a valid remote code to join it, or leave blank to create your own:"
+              text={`To join an existing remote game, get the code from a player and enter it here.\n\nOr, to create a new remote game, leave this blank. You'll be given a new code which you can share.`}
               fun={playRemoteHandler}
             />
           </>
@@ -38,7 +38,7 @@ export default function PlayMode({
             </button>{" "}
             <Edit
               type="confirm"
-              text="Are you sure you want to leave this remote game? Any match history and game state will be lost for everyone."
+              text="Are you sure you want to leave this remote game? Any match history and game state will be lost for everyone - not just yourself."
               fun={leave}
             />
           </>

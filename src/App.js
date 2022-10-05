@@ -385,7 +385,7 @@ export default function App() {
     if (
       window.confirm(
         `All existing game state and match history will be lost when you try to create a code.
-        \nYou also won't be able to change your name while playing remotely.`
+        \nNote: You also won't be able to change your name while playing remotely. Change your name before creating if necessary, by hitting cancel.`
       )
     ) {
       reset();
@@ -397,8 +397,8 @@ export default function App() {
   function join(code) {
     if (
       window.confirm(
-        `All existing game state and match history will be lost when you try to join this code, and existing computer players will be removed if you're successful.
-        \nYou also won't be able to change your name while playing remotely.`
+        `Your existing game state and match history will be lost when you try to join this code, and existing computer players will be removed if you successfully join the code.
+        \nNote: You also won't be able to change your name while playing remotely. Change your name before joining if necessary, by hitting cancel.`
       )
     ) {
       reset();

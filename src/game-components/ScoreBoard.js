@@ -3,7 +3,7 @@
 // colours
 const WOOD = "#ECCD3F";
 const BLACK = "black";
-const WHITEISH = "aliceblue";
+// const WHITEISH = "aliceblue";
 
 // repeated colour usages
 const TABLE_BORDER_COLOUR = BLACK;
