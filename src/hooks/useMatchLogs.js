@@ -2,7 +2,7 @@ import { useCallback, useEffect, useReducer } from "react";
 import Action from "./Action";
 
 // amount of messages to keep
-const DEFAULT_LIMIT = 30;
+const DEFAULT_LIMIT = 50;
 
 function messagesReducer(messages, action) {
   let newMessages = messages;
