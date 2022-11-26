@@ -12,9 +12,10 @@ export default function Options({
   join,
   leave,
   pointsToWin,
+  showHelp,
 }) {
   return (
-    <div className="col headerbox options">
+    <div className="col headerbox options" style={{ position: "relative" }}>
       <div className="headerbox-info">
         Name: {userName}{" "}
         <Edit
@@ -37,6 +38,16 @@ export default function Options({
       {pointsToWin !== null && (
         <div className="headerbox-info">First to {pointsToWin} Game Points</div>
       )}
+      <div
+        style={{
+          position: "absolute",
+          top: 1,
+          left: 1,
+          maxWidth: 10,
+        }}
+      >
+        <button onClick={showHelp}>Show Help</button>
+      </div>
     </div>
   );
 }

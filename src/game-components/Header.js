@@ -23,6 +23,7 @@ export default function Header({
   pointsToWin,
   removeable,
   removePlayer,
+  showHelp,
 }) {
   const dummyArray = hideEmptyColumns
     ? []
@@ -41,6 +42,7 @@ export default function Header({
         join={join}
         leave={leave}
         pointsToWin={pointsToWin}
+        showHelp={showHelp}
       />
       {players.map(({ name, isComputer, isUser, colour }, index) => {
         return (

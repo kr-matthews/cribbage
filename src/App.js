@@ -20,6 +20,7 @@ import Actions from "./game-components/Actions.js";
 import ScoreBoard from "./game-components/ScoreBoard.js";
 import MatchLogs from "./game-components/MatchLogs.js";
 import Links from "./links/Links.js";
+import Help from "./game-components/Help.js";
 
 import "./game-components/gameComponents.css";
 import "./playing-cards/playingCards.css";
@@ -905,10 +906,30 @@ export default function App() {
     }
   }, [isResponsibleForDeck, network.sendMessage, deck.size, deck.cards]);
 
+  //// help modal ////
+
+  const [skipHelpOnLoad, setSkipHelpOnLoad] = useLocalStorage(
+    "skip-help",
+    false
+  );
+  const [showHelp, setShowHelp] = useState(!skipHelpOnLoad);
+
   //// Return ////
 
   return (
     <div className="app">
+      <Help
+        visible={showHelp}
+        doNotShowAgain={() => {
+          setSkipHelpOnLoad(true);
+          setShowHelp(false);
+        }}
+        doShowAgain={() => {
+          setSkipHelpOnLoad(false);
+          setShowHelp(false);
+        }}
+        justClose={() => setShowHelp(false)}
+      />
       <ScoreBoard
         pathColours={BOARD_COLOURS}
         pegColours={PEG_COLOURS}
@@ -958,6 +979,7 @@ export default function App() {
           nextAction === Action.SET_UP_CUT_FOR_DEAL && [false, true, true]
         }
         removePlayer={removePlayer}
+        showHelp={() => setShowHelp(true)}
       />
       <Hands
         hideEmptyColumns={HIDE_EMPTY_COLUMNS}
