@@ -1,12 +1,25 @@
 .modal {
   width: 50vw;
-  height: 50vh;
   position: absolute;
-  top: 25%;
+  top: 10%;
   left: 25%;
   background-color: lightgrey;
   border-radius: 15px;
   z-index: 2;
+}
+
+.modal h2 {
+  margin-left: 15px;
+}
+
+.modal div {
+  margin-bottom: 15px;
+  margin-left: 15px;
+  margin-right: 15px;
+}
+
+.modal button {
+  margin: 0 15px 15px;
 }
 
 .overlay {
