@@ -1,7 +1,7 @@
 {
   "files": {
     "main.css": "/cribbage/static/css/main.a425418f.css",
-    "main.js": "/cribbage/static/js/main.6efabfcb.js",
+    "main.js": "/cribbage/static/js/main.c61b3f46.js",
     "static/media/playing_card_back.svg": "/cribbage/static/media/playing_card_back.deeb6181c4296706168cc8f56e7bd42b.svg",
     "static/media/playing_card_back_selected.svg": "/cribbage/static/media/playing_card_back_selected.74a22268ccb95f8af9625be57353631f.svg",
     "static/media/go.wav": "/cribbage/static/media/go.bef335ff3471fe1e7dcc.wav",
@@ -48,10 +48,10 @@
     "static/media/dealer-icon.svg": "/cribbage/static/media/dealer-icon.b8552ef36ccd33f83252c902b4fd2e7b.svg",
     "index.html": "/cribbage/index.html",
     "main.a425418f.css.map": "/cribbage/static/css/main.a425418f.css.map",
-    "main.6efabfcb.js.map": "/cribbage/static/js/main.6efabfcb.js.map"
+    "main.c61b3f46.js.map": "/cribbage/static/js/main.c61b3f46.js.map"
   },
   "entrypoints": [
     "static/css/main.a425418f.css",
-    "static/js/main.6efabfcb.js"
+    "static/js/main.c61b3f46.js"
   ]
 }
