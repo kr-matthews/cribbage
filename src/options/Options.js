@@ -41,8 +41,8 @@ export default function Options({
       <div
         style={{
           position: "absolute",
-          top: 1,
-          left: 1,
+          top: 30,
+          left: -3,
           maxWidth: 10,
         }}
       >
