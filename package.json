@@ -7,7 +7,7 @@
     "@testing-library/jest-dom": "^5.16.1",
     "@testing-library/react": "^12.1.2",
     "@testing-library/user-event": "^13.5.0",
-    "footer-dependency": "github:kr-matthews/footer-dependency#v1.0.0",
+    "footer-dependency": "github:kr-matthews/footer-dependency#v1.0.1",
     "pubnub": "^4.37.0",
     "pubnub-react": "^2.1.1",
     "react": "^17.0.2",
