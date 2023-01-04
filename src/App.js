@@ -19,7 +19,6 @@ import PlayArea from "./game-components/PlayArea.js";
 import Actions from "./game-components/Actions.js";
 import ScoreBoard from "./game-components/ScoreBoard.js";
 import MatchLogs from "./game-components/MatchLogs.js";
-import Links from "./links/Links.js";
 import Help from "./game-components/Help.js";
 
 import "./game-components/gameComponents.css";
@@ -1028,10 +1027,6 @@ export default function App() {
         controlAllPlayers={CONTROL_ALL_PLAYERS}
       />
       <MatchLogs messages={matchLogs.messages} />
-      <Links
-        gitHubLink="https://github.com/kr-matthews/cribbage"
-        themeType="light"
-      />
     </div>
   );
 }
