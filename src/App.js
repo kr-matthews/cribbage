@@ -1,4 +1,11 @@
 import { useReducer, useEffect, useState } from "react";
+import {
+  WithHeavyFooter,
+  Body,
+  HeavyFooter,
+  HomeLink,
+  CodeLink,
+} from "footer-dependency/dist/lib";
 
 import { useLocalStorage } from "./hooks/useLocalStorage.js";
 import { usePreviousPlayerAction } from "./hooks/usePreviousPlayerAction.js";
@@ -19,7 +26,6 @@ import PlayArea from "./game-components/PlayArea.js";
 import Actions from "./game-components/Actions.js";
 import ScoreBoard from "./game-components/ScoreBoard.js";
 import MatchLogs from "./game-components/MatchLogs.js";
-import Links from "./links/Links.js";
 import Help from "./game-components/Help.js";
 
 import "./game-components/gameComponents.css";
@@ -917,121 +923,125 @@ export default function App() {
   //// Return ////
 
   return (
-    <div className="app">
-      <Help
-        visible={showHelp}
-        doNotShowAgain={() => {
-          setSkipHelpOnLoad(true);
-          setShowHelp(false);
-        }}
-        doShowAgain={() => {
-          setSkipHelpOnLoad(false);
-          setShowHelp(false);
-        }}
-        justClose={() => setShowHelp(false)}
-      />
-      <ScoreBoard
-        pathColours={BOARD_COLOURS}
-        pegColours={PEG_COLOURS}
-        gamePoints={gamePoints.points}
-        currentScores={game.currentScores}
-        priorScores={game.previousScores}
-        hasWinner={game.hasWinner}
-        winner={game.winner}
-        skunkLine={game.skunkLine}
-        doubleSkunkLine={game.doubleSkunkLine}
-        tripleSkunkLine={game.tripleSkunkLine}
-      />
-      <Header
-        hideEmptyColumns={HIDE_EMPTY_COLUMNS}
-        userName={userName}
-        updateUserName={trySetUserName}
-        dealerPosition={game.dealer}
-        mode={network.mode}
-        isSoundOn={soundEffects.isOn}
-        toggleSound={soundEffects.toggle}
-        code={network.code}
-        create={create}
-        join={join}
-        leave={leave}
-        canAddPlayer={
-          isInCharge &&
-          network.mode !== "loading" &&
-          nextAction === Action.SET_UP_CUT_FOR_DEAL &&
-          playerCount < 3
-        }
-        addComputerPlayer={() => addComputerPlayer(true)}
-        players={players}
-        nextPlayers={nextPlayers}
-        scores={
-          nextAction === Action.SET_UP_CUT_FOR_DEAL
-            ? [null, null, null]
-            : game.currentScores
-        }
-        gamePoints={
-          nextAction === Action.SET_UP_CUT_FOR_DEAL
-            ? [null, null, null]
-            : gamePoints.points
-        }
-        pointsToWin={gamePoints.pointsToWin}
-        removeable={
-          isInCharge &&
-          nextAction === Action.SET_UP_CUT_FOR_DEAL && [false, true, true]
-        }
-        removePlayer={removePlayer}
-        showHelp={() => setShowHelp(true)}
-      />
-      <Hands
-        hideEmptyColumns={HIDE_EMPTY_COLUMNS}
-        crib={game.crib}
-        hands={game.hands}
-        activePosition={CONTROL_ALL_PLAYERS ? nextPlayer : userPosition}
-        selectedCards={selected}
-        clickCardHandler={
-          (CONTROL_ALL_PLAYERS || nextPlayers[userPosition]) && clickCardHandler
-        }
-        maxSize={game.crib.length === 4 ? 4 : 8 - playerCount}
-      />
-      <PlayArea
-        hideEmptyColumns={HIDE_EMPTY_COLUMNS}
-        deckSize={deck.unCutCount}
-        isDeckCutInPlace={nextAction === Action.FLIP_STARTER}
-        deckBottomSize={nextAction === Action.FLIP_STARTER && deck.unCutCount}
-        deckTopSize={nextAction === Action.FLIP_STARTER && deck.cutCounts[0]}
-        starter={game.starter}
-        isStarterSelected={selected[6]}
-        clickDeckHandler={nextPlayers[userPosition] && clickDeckHandler}
-        piles={game.piles}
-        cutSizes={deck.cutCounts}
-        cutCards={cutForDeal.cuts}
-      />
-      <Actions
-        waiting={
-          !nextPlayers[userPosition] &&
-          (!permissionIsRequired || permissionGiven)
-        }
-        nextToAct={
-          nextPlayers.reduce((count, curr) => count + (curr ? 1 : 0), 0) === 1
-            ? nextPlayer === userPosition
-              ? "you"
-              : players[nextPlayer].name
-            : "everyone else"
-        }
-        nextAction={
-          nextPlayers[userPosition]
-            ? nextAction.futureDescriptionOfSelf
-            : nextAction.futureDescriptionOfOther
-        }
-        labels={labels}
-        actions={actions}
-        enabled={enabled}
-        controlAllPlayers={CONTROL_ALL_PLAYERS}
-      />
-      <MatchLogs messages={matchLogs.messages} />
-      <Links
-        gitHubLink="https://github.com/kr-matthews/cribbage"
-        themeType="light"
-      />
-    </div>
+    <WithHeavyFooter>
+      <Body>
+        <Help
+          visible={showHelp}
+          doNotShowAgain={() => {
+            setSkipHelpOnLoad(true);
+            setShowHelp(false);
+          }}
+          doShowAgain={() => {
+            setSkipHelpOnLoad(false);
+            setShowHelp(false);
+          }}
+          justClose={() => setShowHelp(false)}
+        />
+        <ScoreBoard
+          pathColours={BOARD_COLOURS}
+          pegColours={PEG_COLOURS}
+          gamePoints={gamePoints.points}
+          currentScores={game.currentScores}
+          priorScores={game.previousScores}
+          hasWinner={game.hasWinner}
+          winner={game.winner}
+          skunkLine={game.skunkLine}
+          doubleSkunkLine={game.doubleSkunkLine}
+          tripleSkunkLine={game.tripleSkunkLine}
+        />
+        <Header
+          hideEmptyColumns={HIDE_EMPTY_COLUMNS}
+          userName={userName}
+          updateUserName={trySetUserName}
+          dealerPosition={game.dealer}
+          mode={network.mode}
+          isSoundOn={soundEffects.isOn}
+          toggleSound={soundEffects.toggle}
+          code={network.code}
+          create={create}
+          join={join}
+          leave={leave}
+          canAddPlayer={
+            isInCharge &&
+            network.mode !== "loading" &&
+            nextAction === Action.SET_UP_CUT_FOR_DEAL &&
+            playerCount < 3
+          }
+          addComputerPlayer={() => addComputerPlayer(true)}
+          players={players}
+          nextPlayers={nextPlayers}
+          scores={
+            nextAction === Action.SET_UP_CUT_FOR_DEAL
+              ? [null, null, null]
+              : game.currentScores
+          }
+          gamePoints={
+            nextAction === Action.SET_UP_CUT_FOR_DEAL
+              ? [null, null, null]
+              : gamePoints.points
+          }
+          pointsToWin={gamePoints.pointsToWin}
+          removeable={
+            isInCharge &&
+            nextAction === Action.SET_UP_CUT_FOR_DEAL && [false, true, true]
+          }
+          removePlayer={removePlayer}
+          showHelp={() => setShowHelp(true)}
+        />
+        <Hands
+          hideEmptyColumns={HIDE_EMPTY_COLUMNS}
+          crib={game.crib}
+          hands={game.hands}
+          activePosition={CONTROL_ALL_PLAYERS ? nextPlayer : userPosition}
+          selectedCards={selected}
+          clickCardHandler={
+            (CONTROL_ALL_PLAYERS || nextPlayers[userPosition]) &&
+            clickCardHandler
+          }
+          maxSize={game.crib.length === 4 ? 4 : 8 - playerCount}
+        />
+        <PlayArea
+          hideEmptyColumns={HIDE_EMPTY_COLUMNS}
+          deckSize={deck.unCutCount}
+          isDeckCutInPlace={nextAction === Action.FLIP_STARTER}
+          deckBottomSize={nextAction === Action.FLIP_STARTER && deck.unCutCount}
+          deckTopSize={nextAction === Action.FLIP_STARTER && deck.cutCounts[0]}
+          starter={game.starter}
+          isStarterSelected={selected[6]}
+          clickDeckHandler={nextPlayers[userPosition] && clickDeckHandler}
+          piles={game.piles}
+          cutSizes={deck.cutCounts}
+          cutCards={cutForDeal.cuts}
+        />
+        <Actions
+          waiting={
+            !nextPlayers[userPosition] &&
+            (!permissionIsRequired || permissionGiven)
+          }
+          nextToAct={
+            nextPlayers.reduce((count, curr) => count + (curr ? 1 : 0), 0) === 1
+              ? nextPlayer === userPosition
+                ? "you"
+                : players[nextPlayer].name
+              : "everyone else"
+          }
+          nextAction={
+            nextPlayers[userPosition]
+              ? nextAction.futureDescriptionOfSelf
+              : nextAction.futureDescriptionOfOther
+          }
+          labels={labels}
+          actions={actions}
+          enabled={enabled}
+          controlAllPlayers={CONTROL_ALL_PLAYERS}
+        />
+        <MatchLogs messages={matchLogs.messages} />
+      </Body>
+
+      <HeavyFooter>
+        <HomeLink />
+        <CodeLink gitHubRepoName="cribbage" />
+      </HeavyFooter>
+    </WithHeavyFooter>
   );
 }
