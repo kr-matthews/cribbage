@@ -1,6 +1,6 @@
 {
   "name": "cribbage",
-  "version": "2.3.0",
+  "version": "2.3.1",
   "homepage": "https://kr-matthews.github.io/cribbage",
   "private": true,
   "dependencies": {
