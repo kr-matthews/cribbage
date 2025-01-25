@@ -2,9 +2,9 @@
 
 ![Screenshot](public/cribbage.png)
 
-This is a single-page application for the card game Cribbage with 2 or 3 players. Users can play locally against up to 2 computer players, or play remotely with other users (still with computer players if desired).
+This is a single-page application for the card game Cribbage with 2, 3, or 4 players. Users can play locally against up to 3 computer players, or play remotely with other users (including computer players, if desired).
 
-If you want to clone the repository, you'll need to add definitions for `publishKey` and `subscribeKey` at `src/pubnubKeys.js`.
+If you want to clone the repository, you'll need to add definitions for `publishKey` and `subscribeKey` at `src/pubnubKeys.js`. (Yes, I'm aware that this is not the correct way to handle these things.)
 
 ## Play
 
@@ -14,7 +14,7 @@ On GitHub Pages at [https://kr-matthews.github.io/cribbage](https://kr-matthews.
 
 ### Current
 
-- Game-play for 2 or 3 players.
+- Game-play for 2, 3, or 4 players.
 - Computer players which make reasonable (but imperfect) decisions.
 - Local or remote play.
 - Automatic scoring of all plays, hands, etc. (no option for manually claiming points at this time).
@@ -45,6 +45,7 @@ See the [issues](https://github.com/kr-matthews/cribbage/issues) on GitHub, in a
 
 - The styling (css) is not very responsive - especially the scoreboard - and won't work well on smaller screens. In general, it's very basic, and doesn't take advantage of any libraries.
 - The scoreboard is supposed to have a couple of curved segments, but only straight segments are used.
+- The scoreboard doesn't quite look exactly right in Firefox (and maybe other browsers).
 - The secret keys for remote play aren't properly secured.
 - The UI can be inspected to reveal what cards each player has.
 - The deck can similarly be checked via standard Chrome extensions or intercepting the pubnub messages.
@@ -54,4 +55,5 @@ See the [issues](https://github.com/kr-matthews/cribbage/issues) on GitHub, in a
 - Network message handler for incoming messages isn't very robust and can only handle one, so messages will be lost if they come in simultaneously.
 - The `useNetwork` hook doesn't track UUIDs of present users, so can't implement kicking out players itself, meaning `App` has to take care of that and separation of concerns blurs a bit here.
 - On a similar note, some sound effects happen within the custom hook `useSoundEffects` via side effects, others are explicitly called in the `App`.
+- `let` is used too much.
 - And probably many more...
