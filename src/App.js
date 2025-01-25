@@ -92,9 +92,15 @@ function playersReducer(players, action) {
   // update colours
   const newPlayerCount = newPlayers.length;
   for (let ind = 0; ind < newPlayerCount; ind++) {
-    // if 2 players, 2 * ind maps indices to inner, outer tracks
-    newPlayers[ind].colour =
-      BOARD_COLOURS[newPlayerCount === 3 ? ind : 2 * ind];
+    if (newPlayerCount <= 2) {
+      newPlayers[ind].colour = BOARD_COLOURS[2 * ind];
+    }
+    if (newPlayerCount === 3) {
+      newPlayers[ind].colour = BOARD_COLOURS[ind];
+    }
+    if (newPlayerCount === 4) {
+      newPlayers[ind].colour = BOARD_COLOURS[2 * (ind % 2)];
+    }
   }
 
   return newPlayers;
@@ -157,7 +163,7 @@ export default function App() {
     matchLogs.postUpdate(`You changed your username to ${newName}.`);
   }
 
-  // list of up to 3 players
+  // list of up to 4 players
   const [players, dispatchPlayers] = useReducer(playersReducer, []);
 
   // what spot the user is 'sitting' in (note: should always be in some position)
@@ -169,7 +175,7 @@ export default function App() {
   const computerCount = players.filter((player) => player.isComputer).length;
 
   function addNewPlayer(name, isComputer, isUserInitiated = true) {
-    if (!isMatchInProgress && playerCount < 3) {
+    if (!isMatchInProgress && playerCount < 4) {
       dispatchPlayers({
         type: "add",
         name,
@@ -186,8 +192,8 @@ export default function App() {
   }
 
   function addComputerPlayer() {
-    if (isMatchInProgress || playerCount >= 3) return;
-    if (network.mode !== "local" && playerCount === 2 && computerCount === 1) {
+    if (isMatchInProgress || playerCount >= 4) return;
+    if (network.mode !== "local" && playerCount === 3 && computerCount === 2) {
       // keep room for a second real user
       alert(
         `You must be playing locally to have only computer opponents. Leave remote play to add another computer players.`
@@ -371,7 +377,7 @@ export default function App() {
 
   // handle network connection, for remote play (can still play locally if there's no connection)
   const network = useNetwork({
-    capacity: 3,
+    capacity: 4,
     computerCount,
     messageHandler,
     onCreateSuccess,
@@ -383,7 +389,7 @@ export default function App() {
   });
 
   function create() {
-    if (computerCount === 2) {
+    if (computerCount === 3) {
       alert(
         `You must have space for other players to join in order to play remotely. Remove a computer player then try again.`
       );
@@ -683,7 +689,7 @@ export default function App() {
   switch (nextAction) {
     case Action.SET_UP_CUT_FOR_DEAL:
       actions = [() => setUpCutForDeal()];
-      enabled = [isInCharge && [2, 3].includes(playerCount)];
+      enabled = [isInCharge && [2, 3, 4].includes(playerCount)];
       break;
 
     case Action.CUT_FOR_DEAL:
@@ -722,7 +728,7 @@ export default function App() {
           dispatchSelected({ type: "reset" });
         },
       ];
-      enabled = [selectedCount === 4 - playerCount];
+      enabled = [selectedCount === (playerCount === 2 ? 2 : 1)];
       clickCardHandler = (index) => {
         dispatchSelected({ type: "click", index });
       };
@@ -837,6 +843,23 @@ export default function App() {
     game.sharedStack,
     game.stackTotal,
     game.dealer === 2
+  );
+  useComputerPlayer(
+    playerCount,
+    3,
+    players[3] &&
+      players[3].isComputer &&
+      (network.mode === "local" ||
+        (network.mode === "remote" && network.isCodeOwner)),
+    nextPlayers[3] &&
+      nextAction !== Action.CONTINUE_DEALING &&
+      (permissionGiven || !permissionIsRequired),
+    allActions,
+    nextAction,
+    game.hands[3],
+    game.sharedStack,
+    game.stackTotal,
+    game.dealer === 3
   );
 
   //// Game History ////
@@ -965,25 +988,34 @@ export default function App() {
             isInCharge &&
             network.mode !== "loading" &&
             nextAction === Action.SET_UP_CUT_FOR_DEAL &&
-            playerCount < 3
+            playerCount < 4
           }
           addComputerPlayer={() => addComputerPlayer(true)}
           players={players}
           nextPlayers={nextPlayers}
           scores={
             nextAction === Action.SET_UP_CUT_FOR_DEAL
-              ? [null, null, null]
+              ? [null, null, null, null]
+              : playerCount === 4
+              ? [...game.currentScores, ...game.currentScores]
               : game.currentScores
           }
           gamePoints={
             nextAction === Action.SET_UP_CUT_FOR_DEAL
-              ? [null, null, null]
+              ? [null, null, null, null]
+              : playerCount === 4
+              ? [...gamePoints.points, ...gamePoints.points]
               : gamePoints.points
           }
           pointsToWin={gamePoints.pointsToWin}
           removeable={
             isInCharge &&
-            nextAction === Action.SET_UP_CUT_FOR_DEAL && [false, true, true]
+            nextAction === Action.SET_UP_CUT_FOR_DEAL && [
+              false,
+              true,
+              true,
+              true,
+            ]
           }
           removePlayer={removePlayer}
           showHelp={() => setShowHelp(true)}
@@ -998,7 +1030,7 @@ export default function App() {
             (CONTROL_ALL_PLAYERS || nextPlayers[userPosition]) &&
             clickCardHandler
           }
-          maxSize={game.crib.length === 4 ? 4 : 8 - playerCount}
+          maxSize={game.crib.length === 4 ? 4 : Math.max([8 - playerCount, 5])}
         />
         <PlayArea
           hideEmptyColumns={HIDE_EMPTY_COLUMNS}

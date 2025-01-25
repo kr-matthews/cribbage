@@ -19,8 +19,8 @@ import {
 function initialStates(playerCount) {
   return {
     crib: [],
-    hands: [[], [], []].slice(0, playerCount),
-    piles: [[], [], []].slice(0, playerCount),
+    hands: [[], [], [], []].slice(0, playerCount),
+    piles: [[], [], [], []].slice(0, playerCount),
     sharedStack: [],
   };
 }
@@ -86,7 +86,7 @@ function reduceStates(states, action) {
         )
       );
       newStates.hands.forEach((hand) => hand.sort(cardSorter));
-      newStates.piles = [[], [], []].slice(0, playerCount);
+      newStates.piles = [[], [], [], []].slice(0, playerCount);
       newStates.sharedStack = [];
       break;
 
@@ -177,7 +177,9 @@ export function useRound(
       ? next(player)
       : !isOut[next(next(player))]
       ? next(next(player))
-      : // only possible in 3-player game; will cycle back on 3 nexts
+      : !isOut[next(next(next(player)))]
+      ? next(next(next(player)))
+      : // only possible in 4-player game; will cycle back on 4 nexts
         player;
   }
 
@@ -187,6 +189,8 @@ export function useRound(
       ? next(player)
       : hasCards[next(next(player))]
       ? next(next(player))
+      : hasCards[next(next(next(player)))]
+      ? next(next(next(player)))
       : next(next(next(player)));
   }
 
@@ -255,15 +259,27 @@ export function useRound(
         : hands[0].length > hands[1].length
         ? 1
         : 0
-      : // 3 players
-      crib.length >= 1
+      : playerCount === 3
+      ? // 3 players
+        crib.length >= 1
+        ? null
+        : hands[0].length + hands[1].length + hands[2].length === 15
+        ? -1
+        : hands[0].length > hands[1].length
+        ? 1
+        : hands[1].length > hands[2].length
+        ? 2
+        : 0
+      : // 4 players
+      hands[0].length + hands[1].length + hands[2].length + hands[3].length ===
+        20
       ? null
-      : hands[0].length + hands[1].length + hands[2].length === 15
-      ? -1
       : hands[0].length > hands[1].length
       ? 1
       : hands[1].length > hands[2].length
       ? 2
+      : hands[2].length > hands[3].length
+      ? 3
       : 0
     : null;
 

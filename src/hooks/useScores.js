@@ -15,9 +15,10 @@ const TRIPLE_SKUNK_LINE = 30;
 //// Helpers ////
 
 function initialScores(playerCount) {
+  const scoreCount = playerCount === 4 ? 2 : playerCount;
   return {
-    current: Array(playerCount).fill(0), // current (1st peg)
-    previous: Array(playerCount).fill(-1), // previous (2nd peg)
+    current: Array(scoreCount).fill(0), // current (1st peg)
+    previous: Array(scoreCount).fill(-1), // previous (2nd peg)
     delta: 0, // updates even when pegging 0 (unlike current - previous)
     scorer: null, // who scored last - needed for pegging 1 for being last to play
   };
@@ -101,7 +102,8 @@ export function useScores(playerCount) {
   //// Return Functions ////
 
   function peg(player, points) {
-    dispatchScores({ type: "increment", player, points });
+    const playerToScore = playerCount === 4 ? player % 2 : player;
+    dispatchScores({ type: "increment", player: playerToScore, points });
   }
 
   function reset() {

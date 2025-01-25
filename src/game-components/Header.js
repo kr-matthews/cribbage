@@ -17,9 +17,9 @@ export default function Header({
   canAddPlayer,
   addComputerPlayer,
   players = [],
-  nextPlayers = [false, false, false],
-  scores = [null, null, null],
-  gamePoints = [null, null, null],
+  nextPlayers = [false, false, false, false],
+  scores = [null, null, null, null],
+  gamePoints = [null, null, null, null],
   pointsToWin,
   removeable,
   removePlayer,
@@ -27,7 +27,7 @@ export default function Header({
 }) {
   const dummyArray = hideEmptyColumns
     ? []
-    : Array(3 - players.length - (canAddPlayer ? 1 : 0)).fill(0);
+    : Array(4 - players.length - (canAddPlayer ? 1 : 0)).fill(0);
 
   return (
     <div className="game-component">

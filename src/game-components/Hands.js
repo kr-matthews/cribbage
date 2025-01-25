@@ -9,7 +9,7 @@ export default function Hands({
   clickCardHandler,
   maxSize,
 }) {
-  const dummyArray = hideEmptyColumns ? [] : Array(3 - hands.length).fill(0);
+  const dummyArray = hideEmptyColumns ? [] : Array(4 - hands.length).fill(0);
 
   return (
     <div className="game-component">

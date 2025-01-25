@@ -41,7 +41,7 @@ export default function useComputerPlayer(
             );
           })
         )
-      : // 3 players: discard ind; score hand and ignore card being discarded
+      : // 3 or 4 players: discard ind; score hand and ignore card being discarded
         hand.length === 5 &&
         hand.map((_, ind) => {
           let potentialHand = hand.slice();

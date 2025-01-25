@@ -15,7 +15,7 @@ export default function PlayArea({
   cutSizes,
   cutCards,
 }) {
-  const dummyArray = hideEmptyColumns ? [] : Array(3 - piles.length).fill(0);
+  const dummyArray = hideEmptyColumns ? [] : Array(4 - piles.length).fill(0);
 
   return (
     <div className="game-component play-area">

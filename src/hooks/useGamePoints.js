@@ -10,7 +10,8 @@ const TRIPLE_SKUNK_POINTS = 7;
 //// Helpers ////
 
 function initialGamePoints(playerCount) {
-  return Array(playerCount).fill(0);
+  const scoreCount = playerCount === 4 ? 2 : playerCount;
+  return Array(scoreCount).fill(0);
 }
 
 //// Reducers ////

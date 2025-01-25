@@ -11,10 +11,10 @@ export default function Help({
       <section className={`modal${visible ? "" : " hidden"}`}>
         <h2>Cribbage</h2>
         <div>
-          You can play 2- or 3-player Cribbage matches here. A match consists of
-          several games, where you get game points for winning matches, and each
-          game is to 121 points. For full rules, search the internet, or check
-          out{" "}
+          You can play 2- or 3- or 4-player Cribbage matches here. A match
+          consists of several games, where you get game points for winning
+          matches, and each game is to 121 points. For full rules, search the
+          internet, or check out{" "}
           <a
             href={"https://en.wikipedia.org/wiki/Rules_of_cribbage"}
             className="link-tooltip-container"
@@ -48,8 +48,9 @@ export default function Help({
           the pencil icon next to "Playing Locally". You'll then be able to
           create a new match, or enter a code if someone else already created a
           match and sent you their code. If you created the match then you'll be
-          able to add a computer player and begin the match as above - otherwise
-          your opponent, who created the match, will do that.
+          able to add a computer player or two (if you want) and begin the match
+          as above - otherwise your opponent, who created the match, will do
+          that.
         </div>
         <div>
           At the bottom of the screen is a match log which records all the plays
