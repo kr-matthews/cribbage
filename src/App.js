@@ -207,7 +207,7 @@ export default function App() {
   }
 
   function removePlayer(player, isUserInitiated = true) {
-    // can't remove yourself or non-existant players
+    // can't remove yourself or non-existent players
     if (player !== userPosition && players[player]) {
       dispatchPlayers({ type: "remove", player });
       // someone leaving mid-match resets everything

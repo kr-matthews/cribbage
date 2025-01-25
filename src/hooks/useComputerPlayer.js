@@ -49,7 +49,7 @@ export default function useComputerPlayer(
           return scorePotentialHand(potentialHand);
         }));
 
-  // based on array or matrix returned above, find the ("last") occurence of the max
+  // based on array or matrix returned above, find the ("last") occurrence of the max
   const indicesToDiscard =
     hand &&
     (playerCount === 2

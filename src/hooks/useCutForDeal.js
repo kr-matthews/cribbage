@@ -77,7 +77,7 @@ export function useCutForDeal(deck, playerCount, previousPlayerAction) {
 
   function cut() {
     if (cuts[playerCount - 1] !== null) return;
-    // leave at least half the (remaning uncut) deck; take at least 4
+    // leave at least half the (remaining uncut) deck; take at least 4
     deck.cut(Math.floor(deck.unCutCount / 2), 4);
     let card = deck.draw(1)[0];
     dispatchCuts({ type: "add", player: cuts.indexOf(null), card });
